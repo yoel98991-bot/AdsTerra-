@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
@@ -187,6 +187,21 @@
         .link-type-landing { color: #8b5cf6; }
         .link-type-direct { color: #10b981; }
 
+        /* Estilo para las métricas */
+        .metric {
+            font-size: 0.8rem;
+            color: #4b5563;
+            font-weight: 600;
+            display: block;
+            margin-bottom: 4px;
+        }
+        .metric span {
+            font-weight: 700;
+            color: #111827;
+            margin-right: 5px;
+        }
+
+
         /* Notificaciones */
         .notification {
             position: fixed;
@@ -311,6 +326,11 @@
                 display: inline-flex !important;
                 margin-right: 10px !important;
             }
+
+            /* Ajuste de celdas en móvil para métricas */
+            tr > td:nth-child(3), tr > td:nth-child(4) {
+                padding-top: 15px; /* Separación extra */
+            }
         }
     </style>
 </head>
@@ -354,14 +374,15 @@
                     <table>
                         <thead>
                             <tr>
-                                <th width="25%">Título</th>
-                                <th width="15%">Fecha</th>
+                                <th width="20%">Título</th>
+                                <th width="10%">Fecha</th>
+                                <th width="10%">Métricas</th>
                                 <th width="45%">Enlaces</th>
                                 <th width="15%">Acciones</th>
                             </tr>
                         </thead>
                         <tbody id="articles-table-body">
-                            <tr><td colspan="4" style="text-align:center; padding: 20px;">Cargando lista...</td></tr>
+                            <tr><td colspan="5" style="text-align:center; padding: 20px;">Cargando lista...</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -488,22 +509,23 @@
             }, 3000);
         }
 
-        // 6. Cargar Artículos
+        // 6. Cargar Artículos (ACTUALIZADA)
         async function loadArticlesList() {
             const tbody = document.getElementById('articles-table-body');
             
+            // Incluimos las nuevas columnas de métricas en la selección
             const { data, error } = await _supabase
                 .from('articles')
-                .select('id, title, created_at')
+                .select('id, title, created_at, clicks_landing, views_article') 
                 .order('created_at', { ascending: false });
 
             if (error || !data) {
-                tbody.innerHTML = '<tr><td colspan="4">Error al cargar.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="5">Error al cargar.</td></tr>';
                 return;
             }
 
             if (data.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="4">No hay artículos aún.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="5">No hay artículos aún.</td></tr>';
                 return;
             }
 
@@ -511,10 +533,19 @@
                 const articleUrl = getArticleUrl(art.id);
                 const landingUrl = getLandingUrl(art.id);
                 
+                // Cálculo de CTR simple para visualización
+                const ctr = art.clicks_landing > 0 
+                    ? ((art.views_article / art.clicks_landing) * 100).toFixed(1) 
+                    : 'N/A';
+
                 return `
                 <tr>
                     <td>${art.title}</td>
                     <td>📅 ${new Date(art.created_at).toLocaleDateString()}</td>
+                    <td>
+                        <div class="metric">🖱️ Clicks: <span>${art.clicks_landing}</span></div>
+                        <div class="metric">👁️ Vistas: <span>${art.views_article}</span></div>
+                    </td>
                     <td>
                         <div class="link-type link-type-landing">💰 Link con Anuncios</div>
                         <div class="article-link">${landingUrl}</div>
@@ -555,9 +586,11 @@
 
             let error;
             if (currentEditingId) {
+                // Al actualizar, NO modificamos los contadores
                 const res = await _supabase.from('articles').update(payload).eq('id', currentEditingId);
                 error = res.error;
             } else {
+                // Al insertar, los contadores se inicializan a 0 por el DEFAULT de SQL
                 const res = await _supabase.from('articles').insert([payload]);
                 error = res.error;
             }
