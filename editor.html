@@ -1,0 +1,626 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Editor Pro - Admin Móvil</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    
+    <style>
+        /* Ajustes generales del editor */
+        #editor-container {
+            height: 350px;
+            background: white;
+            border-bottom-left-radius: 8px;
+            border-bottom-right-radius: 8px;
+            font-size: 16px; /* Evita zoom en iPhone al escribir */
+        }
+        
+        /* Barra de herramientas del editor */
+        .ql-toolbar {
+            background: #f8f9fa;
+            border-top-left-radius: 8px;
+            border-top-right-radius: 8px;
+            border: 1px solid #e5e7eb;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        
+        /* Botón personalizado para HTML */
+        .ql-html-button {
+            font-weight: bold;
+            color: #6366f1 !important;
+            cursor: pointer;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        /* Modal para insertar HTML */
+        .html-modal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            z-index: 2000;
+            width: 500px;
+            max-width: 90%; /* Responsive */
+        }
+        
+        .html-modal textarea {
+            width: 100%;
+            height: 200px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 14px;
+            margin: 10px 0;
+            resize: none;
+        }
+        
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1999;
+            backdrop-filter: blur(2px);
+        }
+
+        /* Estilos base de la lista */
+        .articles-list {
+            margin-top: 3rem;
+            border-top: 2px solid #eee;
+            padding-top: 2rem;
+        }
+        
+        .table-container {
+            margin-top: 1rem;
+            background: transparent;
+            border: none;
+        }
+        
+        /* TABLA MODO ESCRITORIO (Por defecto) */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        
+        th, td {
+            text-align: left;
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+            vertical-align: top;
+        }
+        
+        th {
+            background-color: #f9fafb;
+            color: #666;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        /* Botones de acción */
+        .actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .btn-small {
+            padding: 8px 12px;
+            font-size: 0.85rem;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            color: white;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            transition: all 0.2s;
+            font-weight: 500;
+        }
+        
+        .btn-edit { background-color: #f59e0b; }
+        .btn-delete { background-color: #ef4444; }
+        .btn-link { background-color: #6366f1; }
+        .btn-copy { background-color: #10b981; }
+        .btn-landing { background-color: #8b5cf6; }
+        
+        #cancel-btn {
+            background-color: #9ca3af;
+            margin-top: 10px;
+            display: none;
+        }
+        
+        /* Enlaces */
+        .article-link {
+            font-family: monospace;
+            background: #f3f4f6;
+            padding: 8px 10px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            word-break: break-all;
+            margin-bottom: 8px;
+            border: 1px solid #e5e7eb;
+            color: #4b5563;
+        }
+        
+        .link-actions {
+            display: flex;
+            gap: 6px;
+            margin-top: 5px;
+            margin-bottom: 15px;
+        }
+
+        /* Etiquetas visuales */
+        .link-type {
+            font-size: 0.75rem;
+            font-weight: 700;
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .link-type-landing { color: #8b5cf6; }
+        .link-type-direct { color: #10b981; }
+
+        /* Notificaciones */
+        .notification {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 12px 24px;
+            border-radius: 50px;
+            z-index: 10000;
+            font-weight: bold;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+            animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            white-space: nowrap;
+            font-size: 0.9rem;
+        }
+        .notification.success { background-color: #10b981; color: white; }
+        .notification.error { background-color: #ef4444; color: white; }
+        
+        @keyframes popIn {
+            from { transform: translateX(-50%) scale(0.8); opacity: 0; }
+            to { transform: translateX(-50%) scale(1); opacity: 1; }
+        }
+
+        /* =========================================
+           ESTILOS MÓVILES (MAGIC CSS)
+           ========================================= */
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .card {
+                padding: 1.5rem 1rem;
+                border-radius: 12px;
+            }
+
+            h2 { font-size: 1.4rem; }
+            
+            /* Ajustar inputs para dedo */
+            input, textarea {
+                padding: 12px;
+                font-size: 16px; /* Evita zoom auto */
+            }
+
+            /* TRANSFORMACIÓN DE TABLA A TARJETAS */
+            table, thead, tbody, th, td, tr { 
+                display: block; 
+            }
+            
+            /* Ocultar cabeceras de tabla */
+            thead tr { 
+                position: absolute;
+                top: -9999px;
+                left: -9999px;
+            }
+            
+            tr {
+                background: #ffffff;
+                border: 1px solid #e5e7eb;
+                border-radius: 12px;
+                margin-bottom: 20px;
+                box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+                padding: 15px;
+            }
+            
+            td {
+                border: none;
+                border-bottom: 1px solid #f3f4f6;
+                position: relative;
+                padding: 10px 0;
+                white-space: normal;
+            }
+            
+            td:last-child {
+                border-bottom: none;
+                padding-bottom: 0;
+            }
+
+            /* Estilo específico para el título en móvil */
+            td:first-child {
+                font-size: 1.1rem;
+                font-weight: 700;
+                color: #111827;
+                padding-top: 0;
+            }
+            
+            /* Estilo para la fecha */
+            td:nth-of-type(2) {
+                font-size: 0.85rem;
+                color: #6b7280;
+                padding-top: 0;
+                padding-bottom: 15px;
+            }
+
+            /* Botones de acción expandidos */
+            .actions {
+                display: grid;
+                grid-template-columns: 1fr 1fr; /* Dos columnas */
+                gap: 10px;
+                margin-top: 10px;
+            }
+            
+            .btn-small {
+                width: 100%;
+                padding: 10px;
+                font-size: 0.9rem;
+            }
+
+            .link-actions {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+            }
+
+            /* Barra Quill Scrollable */
+            .ql-toolbar {
+                overflow-x: auto;
+                white-space: nowrap;
+                -webkit-overflow-scrolling: touch;
+            }
+            
+            .ql-formats {
+                display: inline-flex !important;
+                margin-right: 10px !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="modal-overlay" id="html-modal-overlay"></div>
+    <div class="html-modal" id="html-modal">
+        <h3 style="margin-top: 0;">✏️ Insertar HTML</h3>
+        <p style="color: #666; margin-bottom: 10px; font-size: 0.9rem;">Pega tu código (Ads, iframes, tweets):</p>
+        <textarea id="html-input" placeholder="<iframe src='...'></iframe>"></textarea>
+        <div style="display: flex; gap: 10px;">
+            <button class="btn" onclick="insertHTML()" style="flex: 1;">Insertar</button>
+            <button class="btn" onclick="closeHTMLModal()" style="background: #9ca3af; flex: 1;">Cerrar</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="card">
+            <h2 id="form-title">📱 Editor Móvil</h2>
+            
+            <label style="font-weight:bold; font-size: 0.9rem;">Título del Artículo</label>
+            <input type="text" id="title" placeholder="Ej: Trucos de WhatsApp...">
+            
+            <label style="font-weight:bold; font-size: 0.9rem;">Imagen (URL)</label>
+            <input type="text" id="image" placeholder="https://i.imgur.com/...">
+            
+            <label style="font-weight:bold; font-size: 0.9rem;">Descripción Corta</label>
+            <textarea id="desc" rows="2" placeholder="Gancho para la landing page..."></textarea>
+            
+            <label style="font-weight:bold; font-size: 0.9rem;">Contenido Completo</label>
+            <div id="editor-wrapper">
+                <div id="editor-container"></div>
+            </div>
+            
+            <br>
+            <button class="btn" id="save-btn" onclick="saveArticle()">💾 Publicar Artículo</button>
+            <button class="btn" id="cancel-btn" onclick="resetForm()">❌ Cancelar Edición</button>
+
+            <div class="articles-list">
+                <h3>📚 Tus Artículos</h3>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th width="25%">Título</th>
+                                <th width="15%">Fecha</th>
+                                <th width="45%">Enlaces</th>
+                                <th width="15%">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="articles-table-body">
+                            <tr><td colspan="4" style="text-align:center; padding: 20px;">Cargando lista...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="config.js"></script>
+    <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+    
+    <script>
+        let currentEditingId = null;
+        let quill;
+
+        // 1. Inicializar Quill
+        function initializeQuill() {
+            // Icono SVG para el botón HTML
+            const htmlIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px;"><path d="M16 18l6-6-6-6"/><path d="M8 6l-6 6 6 6"/></svg>`;
+            
+            const toolbarContainer = document.createElement('div');
+            toolbarContainer.innerHTML = `
+                <div class="ql-toolbar ql-snow">
+                    <span class="ql-formats">
+                        <select class="ql-header">
+                            <option value="1"></option>
+                            <option value="2"></option>
+                            <option selected></option>
+                        </select>
+                    </span>
+                    <span class="ql-formats">
+                        <button class="ql-bold"></button>
+                        <button class="ql-italic"></button>
+                        <button class="ql-underline"></button>
+                    </span>
+                    <span class="ql-formats">
+                        <button class="ql-list" value="ordered"></button>
+                        <button class="ql-list" value="bullet"></button>
+                    </span>
+                    <span class="ql-formats">
+                        <button class="ql-link"></button>
+                        <button class="ql-image"></button>
+                    </span>
+                    <span class="ql-formats">
+                        <button class="ql-clean"></button>
+                        <span class="ql-html-button" title="Insertar HTML">${htmlIcon}</span>
+                    </span>
+                </div>
+                <div id="editor-container"></div>
+            `;
+            
+            document.getElementById('editor-wrapper').innerHTML = '';
+            document.getElementById('editor-wrapper').appendChild(toolbarContainer);
+            
+            quill = new Quill('#editor-container', {
+                theme: 'snow',
+                placeholder: 'Escribe aquí...',
+                modules: {
+                    toolbar: toolbarContainer.querySelector('.ql-toolbar')
+                }
+            });
+            
+            document.querySelector('.ql-html-button').addEventListener('click', openHTMLModal);
+        }
+
+        // 2. Modales
+        function openHTMLModal() {
+            document.getElementById('html-modal').style.display = 'block';
+            document.getElementById('html-modal-overlay').style.display = 'block';
+        }
+
+        function closeHTMLModal() {
+            document.getElementById('html-modal').style.display = 'none';
+            document.getElementById('html-modal-overlay').style.display = 'none';
+            document.getElementById('html-input').value = '';
+        }
+
+        function insertHTML() {
+            const html = document.getElementById('html-input').value;
+            if (html.trim()) {
+                const range = quill.getSelection(true);
+                quill.clipboard.dangerouslyPasteHTML(range.index, html);
+                closeHTMLModal();
+            }
+        }
+
+        // 3. URLs
+        function getArticleUrl(articleId) {
+            const baseUrl = window.location.origin + window.location.pathname.replace('editor.html', '');
+            return `${baseUrl}article.html?id=${articleId}`;
+        }
+
+        function getLandingUrl(articleId) {
+            const baseUrl = window.location.origin + window.location.pathname.replace('editor.html', '');
+            return `${baseUrl}index.html?id=${articleId}`;
+        }
+
+        // 4. Copiar
+        function copyToClipboard(text, message) {
+            navigator.clipboard.writeText(text).then(() => {
+                showNotification(message, 'success');
+            }).catch(err => {
+                console.error(err);
+                // Fallback para algunos móviles antiguos
+                const textArea = document.createElement("textarea");
+                textArea.value = text;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand("Copy");
+                textArea.remove();
+                showNotification(message, 'success');
+            });
+        }
+
+        // 5. Notificaciones
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.textContent = message;
+            notification.className = `notification ${type}`;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                setTimeout(() => notification.remove(), 300);
+            }, 3000);
+        }
+
+        // 6. Cargar Artículos
+        async function loadArticlesList() {
+            const tbody = document.getElementById('articles-table-body');
+            
+            const { data, error } = await _supabase
+                .from('articles')
+                .select('id, title, created_at')
+                .order('created_at', { ascending: false });
+
+            if (error || !data) {
+                tbody.innerHTML = '<tr><td colspan="4">Error al cargar.</td></tr>';
+                return;
+            }
+
+            if (data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4">No hay artículos aún.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = data.map(art => {
+                const articleUrl = getArticleUrl(art.id);
+                const landingUrl = getLandingUrl(art.id);
+                
+                return `
+                <tr>
+                    <td>${art.title}</td>
+                    <td>📅 ${new Date(art.created_at).toLocaleDateString()}</td>
+                    <td>
+                        <div class="link-type link-type-landing">💰 Link con Anuncios</div>
+                        <div class="article-link">${landingUrl}</div>
+                        <div class="link-actions">
+                            <a href="${landingUrl}" target="_blank" class="btn-small btn-landing">Ver</a>
+                            <button class="btn-small btn-copy" onclick="copyToClipboard('${landingUrl}', '✅ Link de Pago copiado')">Copiar</button>
+                        </div>
+                        
+                        <div class="link-type link-type-direct">📄 Link Directo</div>
+                        <div class="article-link">${articleUrl}</div>
+                        <div class="link-actions">
+                            <a href="${articleUrl}" target="_blank" class="btn-small btn-link">Ver</a>
+                            <button class="btn-small btn-copy" onclick="copyToClipboard('${articleUrl}', '✅ Link Directo copiado')">Copiar</button>
+                        </div>
+                    </td>
+                    <td class="actions">
+                        <button class="btn-small btn-edit" onclick="startEdit('${art.id}')">✏️ Editar</button>
+                        <button class="btn-small btn-delete" onclick="deleteArticle('${art.id}')">🗑️ Borrar</button>
+                    </td>
+                </tr>
+                `;
+            }).join('');
+        }
+
+        // 7. Guardar
+        async function saveArticle() {
+            const title = document.getElementById('title').value;
+            const image_url = document.getElementById('image').value;
+            const description = document.getElementById('desc').value;
+            const content = quill.root.innerHTML;
+
+            if(!title) return showNotification("❌ Falta el título", "error");
+
+            const payload = { title, image_url, description, content };
+            
+            document.getElementById('save-btn').disabled = true;
+            document.getElementById('save-btn').innerText = "Guardando...";
+
+            let error;
+            if (currentEditingId) {
+                const res = await _supabase.from('articles').update(payload).eq('id', currentEditingId);
+                error = res.error;
+            } else {
+                const res = await _supabase.from('articles').insert([payload]);
+                error = res.error;
+            }
+
+            document.getElementById('save-btn').disabled = false;
+
+            if (error) {
+                showNotification(`❌ Error: ${error.message}`, 'error');
+                document.getElementById('save-btn').innerText = currentEditingId ? "🔄 Actualizar" : "💾 Publicar";
+            } else {
+                showNotification(currentEditingId ? '✅ Actualizado' : '🎉 Publicado', 'success');
+                resetForm();
+                loadArticlesList();
+            }
+        }
+
+        // 8. Editar
+        async function startEdit(id) {
+            const { data } = await _supabase.from('articles').select('*').eq('id', id).single();
+            if(data) {
+                document.getElementById('title').value = data.title;
+                document.getElementById('image').value = data.image_url || '';
+                document.getElementById('desc').value = data.description || '';
+                quill.root.innerHTML = data.content || '';
+
+                currentEditingId = id;
+                document.getElementById('save-btn').innerText = "🔄 Actualizar";
+                document.getElementById('form-title').innerText = "✏️ Editando...";
+                document.getElementById('cancel-btn').style.display = "block";
+                
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        }
+
+        // 9. Borrar
+        async function deleteArticle(id) {
+            if(!confirm("¿Eliminar este artículo?")) return;
+            await _supabase.from('articles').delete().eq('id', id);
+            loadArticlesList();
+            showNotification('🗑️ Eliminado', 'success');
+            if(currentEditingId === id) resetForm();
+        }
+
+        // 10. Reset
+        function resetForm() {
+            currentEditingId = null;
+            document.getElementById('title').value = '';
+            document.getElementById('image').value = '';
+            document.getElementById('desc').value = '';
+            quill.setContents([]);
+            document.getElementById('save-btn').innerText = "💾 Publicar Artículo";
+            document.getElementById('form-title').innerText = "📱 Editor Móvil";
+            document.getElementById('cancel-btn').style.display = "none";
+        }
+
+        // Iniciar
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeQuill();
+            loadArticlesList();
+            
+            // Cerrar modal al tocar fuera
+            document.getElementById('html-modal-overlay').addEventListener('click', closeHTMLModal);
+        });
+    </script>
+</body>
+</html>

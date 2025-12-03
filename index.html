@@ -1,0 +1,85 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cargando contenido...</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <div class="container">
+        <div class="card" id="landing-card">
+            <img id="preview-img" src="" alt="" class="article-img" style="display:none;">
+            <h1 id="preview-title">Cargando...</h1>
+            <p id="preview-desc"></p>
+            
+            <button class="btn" id="start-btn" onclick="startFlow()">
+                🔓 DESBLOQUEAR ARTÍCULO COMPLETO
+            </button>
+
+            <div class="timer-box" id="timer-section">
+                <div class="loader"></div>
+                <p>Verificando enlace... <span id="countdown">5</span>s</p>
+                <p style="font-size: 0.8rem; color: #666;">Por favor espera, no cierres esta pestaña.</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="config.js"></script>
+    <script>
+        // Obtener ID de la URL
+        const params = new URLSearchParams(window.location.search);
+        const articleId = params.get('id');
+
+        // Cargar datos mínimos del artículo
+        async function loadPreview() {
+            if(!articleId) return document.body.innerHTML = "<h2 style='text-align:center'>No se especificó artículo</h2>";
+
+            const { data, error } = await _supabase
+                .from('articles')
+                .select('*')
+                .eq('id', articleId)
+                .single();
+
+            if(data) {
+                document.getElementById('preview-title').innerText = data.title;
+                document.getElementById('preview-desc').innerText = data.description || "Contenido exclusivo...";
+                if(data.image_url) {
+                    const img = document.getElementById('preview-img');
+                    img.src = data.image_url;
+                    img.style.display = 'block';
+                }
+                document.title = data.title;
+            }
+        }
+
+        // Lógica del Timer + Adsterra
+        function startFlow() {
+            // 1. Abrir Adsterra en nueva pestaña
+            window.open(ADSTERRA_LINK, '_blank');
+
+            // 2. Ocultar botón, mostrar timer
+            document.getElementById('start-btn').style.display = 'none';
+            document.getElementById('timer-section').style.display = 'block';
+
+            // 3. Cuenta regresiva
+            let timeLeft = 5; // Segundos de espera
+            const timerElement = document.getElementById('countdown');
+            
+            const interval = setInterval(() => {
+                timeLeft--;
+                timerElement.innerText = timeLeft;
+
+                if (timeLeft <= 0) {
+                    clearInterval(interval);
+                    // 4. Redirigir al artículo real
+                    window.location.href = `article.html?id=${articleId}`;
+                }
+            }, 1000);
+        }
+
+        loadPreview();
+    </script>
+</body>
+</html>

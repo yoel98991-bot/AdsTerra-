@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Artículo</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <img id="art-img" src="" alt="" class="article-img" style="display:none;">
+            <h1 id="art-title" style="margin-bottom: 0.5rem; color: var(--primary);"></h1>
+            <p id="art-date" style="font-size: 0.8rem; color: #888; margin-bottom: 2rem;"></p>
+            
+            <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
+            
+            <div id="art-content" style="line-height: 1.8;">
+                Cargando...
+            </div>
+            
+            <br><br>
+            <a href="index.html" class="btn" style="background: #333;">Volver al inicio</a>
+        </div>
+    </div>
+
+    <script src="config.js"></script>
+    <script>
+        const params = new URLSearchParams(window.location.search);
+        const articleId = params.get('id');
+
+        async function loadArticle() {
+            if(!articleId) return;
+
+            const { data, error } = await _supabase
+                .from('articles')
+                .select('*')
+                .eq('id', articleId)
+                .single();
+
+            if(data) {
+                document.title = data.title;
+                document.getElementById('art-title').innerText = data.title;
+                document.getElementById('art-content').innerHTML = data.content; // Renderiza HTML guardado
+                document.getElementById('art-date').innerText = new Date(data.created_at).toLocaleDateString();
+                
+                if(data.image_url) {
+                    const img = document.getElementById('art-img');
+                    img.src = data.image_url;
+                    img.style.display = 'block';
+                }
+            }
+        }
+        loadArticle();
+    </script>
+</body>
+</html>
