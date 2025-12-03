@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Art韈ulo</title>
+    <title>Art铆culo</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 </head>
@@ -30,9 +30,22 @@
         const params = new URLSearchParams(window.location.search);
         const articleId = params.get('id');
 
+        // Funci贸n para incrementar el contador de visitas al art铆culo
+        async function trackView() {
+            if (!articleId) return;
+            // Usamos RPC (Remote Procedure Call) para una actualizaci贸n at贸mica
+            await _supabase.rpc('increment_view', { article_id_param: articleId });
+            // Si la funci贸n RPC no existe a煤n, puedes usar:
+            // await _supabase.from('articles').rpc('increment', { column: 'views_article', id: articleId });
+        }
+
         async function loadArticle() {
             if(!articleId) return;
 
+            // 1. Registrar la visita (NO ESPERAMOS POR ELLA)
+            trackView();
+
+            // 2. Cargar el contenido del art铆culo
             const { data, error } = await _supabase
                 .from('articles')
                 .select('*')
