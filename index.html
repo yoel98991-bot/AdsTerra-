@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
@@ -32,13 +32,22 @@
         const params = new URLSearchParams(window.location.search);
         const articleId = params.get('id');
 
+        // Función para incrementar el contador de clicks en la landing page
+        async function trackClick() {
+            if (!articleId) return;
+            // Usamos RPC (Remote Procedure Call) para una actualización atómica
+            await _supabase.rpc('increment_click', { article_id_param: articleId });
+            // Si la función RPC no existe aún, puedes usar:
+            // await _supabase.from('articles').rpc('increment', { column: 'clicks_landing', id: articleId });
+        }
+
         // Cargar datos mínimos del artículo
         async function loadPreview() {
             if(!articleId) return document.body.innerHTML = "<h2 style='text-align:center'>No se especificó artículo</h2>";
 
             const { data, error } = await _supabase
                 .from('articles')
-                .select('*')
+                .select('title, description, image_url')
                 .eq('id', articleId)
                 .single();
 
@@ -56,6 +65,9 @@
 
         // Lógica del Timer + Adsterra
         function startFlow() {
+            // 0. Registrar el click en la base de datos (NO ESPERAMOS POR ELLA)
+            trackClick();
+
             // 1. Abrir Adsterra en nueva pestaña
             window.open(ADSTERRA_LINK, '_blank');
 
