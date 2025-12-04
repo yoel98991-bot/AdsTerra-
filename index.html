@@ -6,6 +6,30 @@
     <title>Cargando contenido...</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <style>
+        /* Estilos específicos para la landing */
+        .social-proof {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-bottom: 25px;
+            padding: 15px 0;
+            border-top: 1px solid #eee;
+        }
+        .proof-item {
+            text-align: center;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .proof-item span {
+            font-size: 1.5rem;
+            color: var(--primary);
+        }
+    </style>
 </head>
 <body>
     <div class="container">
@@ -14,44 +38,58 @@
             <h1 id="preview-title">Cargando...</h1>
             <p id="preview-desc"></p>
             
+            <div class="social-proof">
+                <div class="proof-item">
+                    👍 <span id="landing-likes">...</span>
+                </div>
+                <div class="proof-item">
+                    💬 <span id="landing-comments">...</span>
+                </div>
+            </div>
+
             <button class="btn" id="start-btn" onclick="startFlow()">
                 🔓 DESBLOQUEAR ARTÍCULO COMPLETO
             </button>
 
             <div class="timer-box" id="timer-section">
                 <div class="loader"></div>
-                <p>Verificando enlace... <span id="countdown">5</span>s</p>
-                <p style="font-size: 0.8rem; color: #666;">Por favor espera, no cierres esta pestaña.</p>
+                <h3>⏳ Espera de Verificación</h3>
+                <p>Por favor, **haz clic en el botón de abajo** y **espera <span id="countdown">15</span> segundos** en la página de nuestro patrocinador. Esto verifica el enlace. ¡No cierres la pestaña!</p>
+                
+                <p id="redirect-message" style="color:red; font-weight: bold; margin-top: 20px; display: none;">
+                    ✅ ¡LISTO! Vuelve a esta pestaña para ser redirigido.
+                </p>
+                <button class="btn" id="final-redirect-btn" style="display:none; margin-top: 15px;" onclick="redirectToArticle()">
+                    Continuar al Artículo
+                </button>
             </div>
         </div>
     </div>
 
     <script src="config.js"></script>
     <script>
-        // Obtener ID de la URL
         const params = new URLSearchParams(window.location.search);
         const articleId = params.get('id');
 
-        // Función para incrementar el contador de clicks en la landing page
+        // Función para registrar el click en la base de datos
         async function trackClick() {
             if (!articleId) return;
-            // Usamos RPC (Remote Procedure Call) para una actualización atómica
+            // RPC para actualización atómica de clicks_landing
             await _supabase.rpc('increment_click', { article_id_param: articleId });
-            // Si la función RPC no existe aún, puedes usar:
-            // await _supabase.from('articles').rpc('increment', { column: 'clicks_landing', id: articleId });
         }
 
-        // Cargar datos mínimos del artículo
+        // Función para cargar la vista previa y la prueba social
         async function loadPreview() {
-            if(!articleId) return document.body.innerHTML = "<h2 style='text-align:center'>No se especificó artículo</h2>";
+            if(!articleId) return;
 
             const { data, error } = await _supabase
                 .from('articles')
-                .select('title, description, image_url')
+                .select('title, description, image_url, clicks_landing, likes, comments:comments(count)')
                 .eq('id', articleId)
                 .single();
 
             if(data) {
+                // Actualizar info del artículo
                 document.getElementById('preview-title').innerText = data.title;
                 document.getElementById('preview-desc').innerText = data.description || "Contenido exclusivo...";
                 if(data.image_url) {
@@ -60,10 +98,14 @@
                     img.style.display = 'block';
                 }
                 document.title = data.title;
+
+                // Actualizar prueba social
+                document.getElementById('landing-likes').innerText = data.likes || 0;
+                document.getElementById('landing-comments').innerText = data.comments[0].count || 0;
             }
         }
 
-        // Lógica del Timer + Adsterra
+        // Lógica del Timer y Monetización
         function startFlow() {
             // 0. Registrar el click en la base de datos (NO ESPERAMOS POR ELLA)
             trackClick();
@@ -75,8 +117,8 @@
             document.getElementById('start-btn').style.display = 'none';
             document.getElementById('timer-section').style.display = 'block';
 
-            // 3. Cuenta regresiva
-            let timeLeft = 5; // Segundos de espera
+            // 3. Cuenta regresiva (15 segundos)
+            let timeLeft = 15; 
             const timerElement = document.getElementById('countdown');
             
             const interval = setInterval(() => {
@@ -85,11 +127,19 @@
 
                 if (timeLeft <= 0) {
                     clearInterval(interval);
-                    // 4. Redirigir al artículo real
-                    window.location.href = `article.html?id=${articleId}`;
+                    // 4. Mostrar botón de redirección final
+                    timerElement.style.display = 'none';
+                    document.getElementById('redirect-message').style.display = 'block';
+                    document.getElementById('final-redirect-btn').style.display = 'block';
                 }
             }, 1000);
         }
+        
+        // 4. Redirigir al artículo real
+        function redirectToArticle() {
+            window.location.href = `article.html?id=${articleId}`;
+        }
+
 
         loadPreview();
     </script>
