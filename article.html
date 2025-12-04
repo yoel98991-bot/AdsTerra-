@@ -66,7 +66,7 @@
         </div>
     </div>
 
-    <script src="config.js"></script>
+   <script src="config.js"></script>
     <script>
         const params = new URLSearchParams(window.location.search);
         const articleId = params.get('id');
@@ -76,27 +76,50 @@
         // --- FUNCIONES PRINCIPALES ---
 
         async function init() {
-            if(!articleId) return;
+            console.log("🚀 Iniciando artículo ID:", articleId);
+
+            if(!articleId) {
+                console.error("❌ No se encontró ID en la URL");
+                return;
+            }
             
             // 1. Cargar Artículo
-            loadArticle();
+            await loadArticle();
             
-            // 2. Cargar Comentarios y Likes (Paralelo)
+            // 2. Cargar Reacciones y Comentarios
             loadReactions();
             loadComments();
 
-            // 3. Registrar vista (sin esperar)
-            _supabase.rpc('increment_view', { article_id_param: articleId });
+            // 3. Registrar vista (Con LOGS para depurar)
+            registerView();
+        }
+
+        async function registerView() {
+            console.log("⏳ Intentando registrar vista en Supabase...");
+            
+            const { data, error } = await _supabase.rpc('increment_view', { article_id_param: articleId });
+
+            if (error) {
+                console.error("❌ ERROR AL CONTAR VISTA:", error.message);
+                console.error("Detalles:", error);
+            } else {
+                console.log("✅ VISTA REGISTRADA CORRECTAMENTE (+1)");
+            }
         }
 
         async function loadArticle() {
+            console.log("📥 Cargando contenido del artículo...");
             const { data, error } = await _supabase
                 .from('articles')
                 .select('*')
                 .eq('id', articleId)
                 .single();
 
-            if(data) {
+            if (error) {
+                console.error("❌ Error cargando artículo:", error.message);
+                document.getElementById('art-content').innerHTML = "<p>Error al cargar el contenido.</p>";
+            } else if(data) {
+                console.log("📄 Datos del artículo recibidos:", data.title);
                 document.title = data.title;
                 document.getElementById('art-title').innerText = data.title;
                 document.getElementById('art-content').innerHTML = data.content; 
@@ -113,13 +136,16 @@
         // --- LÓGICA DE REACCIONES (LIKES) ---
 
         async function loadReactions() {
-            const { data } = await _supabase.from('articles').select('likes, dislikes').eq('id', articleId).single();
+            const { data, error } = await _supabase.from('articles').select('likes, dislikes').eq('id', articleId).single();
+            
+            if (error) console.warn("⚠️ No se pudieron cargar likes:", error.message);
+            
             if(data) {
                 articleLikes = data.likes || 0;
                 articleDislikes = data.dislikes || 0;
                 updateReactionUI();
             }
-            // Verificar si ya votó en este navegador
+            
             const voted = localStorage.getItem(`voted_${articleId}`);
             if(voted === 'like') document.getElementById('btn-like').classList.add('liked');
             if(voted === 'dislike') document.getElementById('btn-dislike').classList.add('disliked');
@@ -131,13 +157,11 @@
         }
 
         async function handleVote(type) {
-            // Verificar si ya votó para evitar spam simple
             if(localStorage.getItem(`voted_${articleId}`)) {
                 alert("Ya has votado en este artículo.");
                 return;
             }
 
-            // Actualización optimista (UI primero)
             if(type === 'like') {
                 articleLikes++;
                 document.getElementById('btn-like').classList.add('liked');
@@ -148,8 +172,11 @@
             updateReactionUI();
             localStorage.setItem(`voted_${articleId}`, type);
 
-            // Enviar a Supabase
-            await _supabase.rpc('increment_vote', { article_id_param: articleId, vote_type: type });
+            console.log(`📤 Enviando voto: ${type}`);
+            const { error } = await _supabase.rpc('increment_vote', { article_id_param: articleId, vote_type: type });
+            
+            if(error) console.error("❌ Error guardando voto:", error.message);
+            else console.log("✅ Voto guardado.");
         }
 
         // --- LÓGICA DE COMENTARIOS ---
@@ -159,32 +186,30 @@
                 .from('comments')
                 .select('*')
                 .eq('article_id', articleId)
-                .order('created_at', { ascending: false }); // Los más nuevos primero
+                .order('created_at', { ascending: false });
+
+            if(error) console.error("❌ Error cargando comentarios:", error.message);
 
             const list = document.getElementById('comments-list');
             list.innerHTML = '';
 
             if(data && data.length > 0) {
-                data.forEach(com => {
-                    addCommentToDOM(com);
-                });
+                data.forEach(com => addCommentToDOM(com));
             } else {
                 list.innerHTML = '<p style="text-align:center; color:#999;">Sé el primero en comentar.</p>';
             }
         }
 
-        let avatarBase64 = null; // Variable para guardar la foto procesada
+        let avatarBase64 = null;
 
         function previewImage(input) {
             const file = input.files[0];
             if(file) {
-                // Procesar y comprimir imagen
                 const reader = new FileReader();
                 reader.onload = function(e) {
                     const img = new Image();
                     img.src = e.target.result;
                     img.onload = function() {
-                        // Crear canvas para redimensionar (Max 100x100px)
                         const canvas = document.createElement('canvas');
                         const ctx = canvas.getContext('2d');
                         const maxSize = 100;
@@ -207,11 +232,8 @@
                         canvas.width = width;
                         canvas.height = height;
                         ctx.drawImage(img, 0, 0, width, height);
-                        
-                        // Guardar como base64 comprimido (JPEG calidad 0.7)
                         avatarBase64 = canvas.toDataURL('image/jpeg', 0.7);
                         
-                        // Mostrar preview
                         const preview = document.getElementById('preview-avatar');
                         preview.src = avatarBase64;
                         preview.style.display = 'block';
@@ -227,16 +249,16 @@
             const content = document.getElementById('com-content').value.trim();
 
             if(!name || !lastname || !content) {
-                alert("Por favor completa todos los campos de texto.");
+                alert("Por favor completa todos los campos.");
                 return;
             }
 
-            // Usar avatar por defecto si no suben foto
             const finalAvatar = avatarBase64 || "https://ui-avatars.com/api/?name=" + name + "+" + lastname + "&background=random";
-
             const btn = document.getElementById('submit-com-btn');
             btn.disabled = true;
             btn.innerText = "Publicando...";
+
+            console.log("📤 Publicando comentario...");
 
             const { data, error } = await _supabase
                 .from('comments')
@@ -251,11 +273,12 @@
                 .single();
 
             if(error) {
+                console.error("❌ Error comentario:", error.message);
                 alert("Error al publicar: " + error.message);
                 btn.disabled = false;
                 btn.innerText = "Publicar Comentario";
             } else {
-                // Limpiar formulario
+                console.log("✅ Comentario publicado");
                 document.getElementById('com-name').value = '';
                 document.getElementById('com-lastname').value = '';
                 document.getElementById('com-content').value = '';
@@ -263,11 +286,9 @@
                 document.getElementById('preview-avatar').style.display = 'none';
                 avatarBase64 = null;
                 
-                // Si era el primer comentario, limpiar el mensaje de "Sé el primero"
                 const list = document.getElementById('comments-list');
                 if(list.innerText.includes('Sé el primero')) list.innerHTML = '';
 
-                // Agregar el nuevo comentario arriba
                 addCommentToDOM(data, true);
 
                 btn.innerText = "¡Comentario Publicado!";
@@ -280,13 +301,10 @@
 
         function addCommentToDOM(comment, isNew = false) {
             const list = document.getElementById('comments-list');
-            
             const div = document.createElement('div');
             div.className = 'comment-item';
             
-            // Determinar imagen (si es base64 o url)
             const imgBtn = `<img src="${comment.avatar_data || 'https://via.placeholder.com/50'}" class="comment-avatar" alt="User">`;
-            
             const dateStr = new Date(comment.created_at).toLocaleDateString();
 
             div.innerHTML = `
@@ -300,11 +318,8 @@
                 </div>
             `;
 
-            if(isNew) {
-                list.prepend(div);
-            } else {
-                list.appendChild(div);
-            }
+            if(isNew) list.prepend(div);
+            else list.appendChild(div);
         }
 
         // Iniciar todo
@@ -312,3 +327,4 @@
     </script>
 </body>
 </html>
+
