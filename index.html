@@ -27,42 +27,44 @@
             gap: 5px;
         }
 
-        /* Hacemos los comentarios un poco más compactos en la landing */
         .landing-comment-item {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 12px;
-            padding-bottom: 12px;
+            display: flex; gap: 10px; margin-bottom: 12px; padding-bottom: 12px;
             border-bottom: 1px solid #e5e7eb;
         }
         .landing-comment-item:last-child {
-            border-bottom: none;
-            margin-bottom: 0;
-            padding-bottom: 0;
+            border-bottom: none; margin-bottom: 0; padding-bottom: 0;
         }
 
         .landing-avatar {
-            width: 35px;
-            height: 35px;
-            border-radius: 50%;
-            object-fit: cover;
+            width: 35px; height: 35px; border-radius: 50%; object-fit: cover;
         }
 
         .landing-comment-text {
-            font-size: 0.85rem;
-            color: #374151;
-            margin: 0;
-            line-height: 1.4;
+            font-size: 0.85rem; color: #374151; margin: 0; line-height: 1.4;
         }
         
         .landing-comment-author {
-            font-weight: 700;
-            font-size: 0.8rem;
-            color: #111827;
+            font-weight: 700; font-size: 0.8rem; color: #111827;
         }
     </style>
 </head>
 <body>
+
+    <div id="age-gate" class="age-overlay">
+        <div class="age-box">
+            <div class="age-title">🔞 Acceso Restringido</div>
+            <p class="age-text">
+                Este sitio web contiene material destinado exclusivamente a adultos. 
+                <br><br>
+                Debes tener al menos <strong>18 años</strong> (o la mayoría de edad legal en tu país) para entrar.
+            </p>
+            <div class="age-buttons">
+                <button class="btn-enter" onclick="confirmAge()">SOY MAYOR DE 18 AÑOS</button>
+                <button class="btn-exit" onclick="exitSite()">SALIR AHORA</button>
+            </div>
+        </div>
+    </div>
+
     <div class="container">
         <div class="card" id="landing-card">
             <img id="preview-img" src="" alt="" class="article-img" style="display:none;">
@@ -70,13 +72,12 @@
             <p id="preview-desc"></p>
             
             <div id="social-proof-section" style="display:none;">
-                
                 <div style="display:flex; align-items:center; gap:5px; margin-bottom:10px; font-weight:600; color:#059669;">
                     👍 <span id="landing-likes">0</span> personas recomendaron esto
                 </div>
 
                 <div class="landing-comments-box">
-                    <div class="landing-comments-title">💬 Últimos comentarios de la comunidad:</div>
+                    <div class="landing-comments-title">💬 Últimos comentarios:</div>
                     <div id="landing-comments-list">
                         <p style="font-size:0.8rem; color:#888;">Cargando opiniones...</p>
                     </div>
@@ -90,7 +91,7 @@
             <div class="timer-box" id="timer-section">
                 <div class="loader"></div>
                 <h3>⏳ Verificando acceso...</h3>
-                <p>Haz clic en el anuncio y espera <strong><span id="countdown">15</span> segundos</strong> para desbloquear el contenido.</p>
+                <p>Haz clic en el anuncio y espera <strong><span id="countdown">15</span> segundos</strong> para desbloquear.</p>
                 <p style="font-size: 0.8rem; color: #666; margin-top:5px;">No cierres esta pestaña.</p>
                 
                 <div id="final-step" style="display:none; margin-top: 20px; animation: fadeIn 0.5s;">
@@ -109,21 +110,35 @@
     <script>
         const params = new URLSearchParams(window.location.search);
         const articleId = params.get('id');
+        
+        // Variable dinámica para el link (Mainstream por defecto)
+        let currentAdLink = ADSTERRA_LINK_MAIN; 
 
-        // Registrar click (sin esperar respuesta)
+        // 1. Control de Edad
+        function confirmAge() {
+            localStorage.setItem('age_verified_v1', 'true');
+            document.getElementById('age-gate').style.display = 'none';
+            document.body.style.overflow = 'auto'; 
+        }
+
+        function exitSite() {
+            window.location.href = "https://www.google.com";
+        }
+
+        // 2. Registrar click
         async function trackClick() {
             if (!articleId) return;
             _supabase.rpc('increment_click', { article_id_param: articleId });
         }
 
-        // Cargar datos y prueba social
+        // 3. Cargar datos e identificar si es ADULTO
         async function loadPreview() {
             if(!articleId) return;
 
-            // 1. Datos del artículo y Likes
+            // Pedimos 'is_adult' en la consulta
             const { data: art, error } = await _supabase
                 .from('articles')
-                .select('title, description, image_url, likes')
+                .select('title, description, image_url, likes, is_adult')
                 .eq('id', articleId)
                 .single();
 
@@ -139,9 +154,27 @@
                 }
                 document.title = art.title;
                 document.getElementById('social-proof-section').style.display = 'block';
+
+                // --- LÓGICA DE PROTECCIÓN +18 ---
+                if (art.is_adult === true) {
+                    console.log("🔞 MODO ADULTO ACTIVADO");
+                    
+                    // 1. Cambiamos el link de monetización al de Adultos
+                    currentAdLink = ADSTERRA_LINK_ADULT; 
+
+                    // 2. Revisar si usuario ya confirmó edad
+                    const isVerified = localStorage.getItem('age_verified_v1');
+                    if (!isVerified) {
+                        document.getElementById('age-gate').style.display = 'flex'; // Mostrar modal
+                        document.body.style.overflow = 'hidden'; // Bloquear scroll
+                    }
+                } else {
+                    console.log("✅ MODO MAINSTREAM");
+                    currentAdLink = ADSTERRA_LINK_MAIN;
+                }
             }
 
-            // 2. Cargar últimos 3 comentarios (Consulta separada para mayor control)
+            // Cargar comentarios
             const { data: comments } = await _supabase
                 .from('comments')
                 .select('first_name, last_name, content, avatar_data')
@@ -166,10 +199,12 @@
             }
         }
 
-        // Lógica del Timer + Monetización
+        // 4. Iniciar Flujo
         function startFlow() {
             trackClick();
-            window.open(ADSTERRA_LINK, '_blank');
+            
+            // Abre el link correcto según el tipo de contenido
+            window.open(currentAdLink, '_blank');
 
             document.getElementById('start-btn').style.display = 'none';
             document.getElementById('timer-section').style.display = 'block';
@@ -183,11 +218,9 @@
 
                 if (timeLeft <= 0) {
                     clearInterval(interval);
-                    // Ocultar contador y mostrar botón final
                     document.getElementById('timer-section').querySelector('h3').style.display = 'none';
                     document.getElementById('timer-section').querySelector('p').style.display = 'none';
                     document.getElementById('timer-section').querySelector('.loader').style.display = 'none';
-                    
                     document.getElementById('final-step').style.display = 'block';
                 }
             }, 1000);
