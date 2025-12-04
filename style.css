@@ -115,7 +115,7 @@ input:focus, textarea:focus {
     border-radius: 0 8px 8px 0;
 }
 
-/* --- NUEVO: SISTEMA DE REACCIONES (LIKES) --- */
+/* --- REACCIONES (LIKES) --- */
 .reactions-container {
     display: flex;
     gap: 15px;
@@ -133,7 +133,7 @@ input:focus, textarea:focus {
     padding: 12px;
     border: 2px solid #e5e7eb;
     background: white;
-    border-radius: 50px; /* Redondeado tipo cápsula */
+    border-radius: 50px;
     cursor: pointer;
     font-weight: bold;
     color: #4b5563;
@@ -152,14 +152,10 @@ input:focus, textarea:focus {
     background: #fef2f2;
 }
 
-.reaction-count {
-    font-size: 1.1rem;
-}
+.reaction-count { font-size: 1.1rem; }
 
-/* --- NUEVO: SECCIÓN DE COMENTARIOS --- */
-.comments-section {
-    margin-top: 2rem;
-}
+/* --- COMENTARIOS --- */
+.comments-section { margin-top: 2rem; }
 
 .comment-form-box {
     background: #f9fafb;
@@ -169,15 +165,10 @@ input:focus, textarea:focus {
     border: 1px solid #eee;
 }
 
-.form-row {
-    display: flex;
-    gap: 10px;
-}
+.form-row { display: flex; gap: 10px; }
 .form-row input { flex: 1; }
 
-.file-input-wrapper {
-    margin-bottom: 15px;
-}
+.file-input-wrapper { margin-bottom: 15px; }
 
 .file-custom-label {
     display: inline-block;
@@ -190,8 +181,7 @@ input:focus, textarea:focus {
 }
 
 .preview-avatar {
-    width: 50px;
-    height: 50px;
+    width: 50px; height: 50px;
     border-radius: 50%;
     object-fit: cover;
     display: none;
@@ -199,33 +189,24 @@ input:focus, textarea:focus {
     border: 2px solid var(--primary);
 }
 
-/* Lista de Comentarios */
-.comment-list {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-}
+.comment-list { display: flex; flex-direction: column; gap: 20px; }
 
 .comment-item {
-    display: flex;
-    gap: 15px;
+    display: flex; gap: 15px;
     padding-bottom: 20px;
     border-bottom: 1px solid #f3f4f6;
     animation: fadeIn 0.5s ease;
 }
 
 .comment-avatar {
-    width: 48px;
-    height: 48px;
+    width: 48px; height: 48px;
     border-radius: 50%;
     object-fit: cover;
     background: #ddd;
     flex-shrink: 0;
 }
 
-.comment-body {
-    flex: 1;
-}
+.comment-body { flex: 1; }
 
 .comment-author {
     font-weight: 700;
@@ -236,16 +217,11 @@ input:focus, textarea:focus {
 }
 
 .comment-date {
-    font-weight: 400;
-    font-size: 0.8rem;
-    color: #9ca3af;
+    font-weight: 400; font-size: 0.8rem; color: #9ca3af;
 }
 
 .comment-text {
-    font-size: 0.95rem;
-    color: #4b5563;
-    line-height: 1.5;
-    margin: 0;
+    font-size: 0.95rem; color: #4b5563; line-height: 1.5; margin: 0;
 }
 
 @keyframes fadeIn {
@@ -269,4 +245,75 @@ input:focus, textarea:focus {
 @media (max-width: 600px) {
     .form-row { flex-direction: column; gap: 0; }
     .card { padding: 1.5rem; }
+}
+
+/* =========================================
+   MODAL DE VERIFICACIÓN DE EDAD (+18)
+   ========================================= */
+.age-overlay {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.96); /* Fondo casi negro */
+    z-index: 99999; 
+    display: none; /* Se activa con JS */
+    align-items: center; justify-content: center;
+    backdrop-filter: blur(10px);
+}
+
+.age-box {
+    background: #111827;
+    color: white;
+    padding: 2rem;
+    border-radius: 16px;
+    max-width: 400px;
+    width: 90%;
+    text-align: center;
+    border: 2px solid #ef4444;
+    box-shadow: 0 0 30px rgba(239, 68, 68, 0.2);
+}
+
+.age-title {
+    font-size: 1.6rem;
+    font-weight: 800;
+    margin-bottom: 1rem;
+    text-transform: uppercase;
+    color: #ef4444;
+}
+
+.age-text {
+    margin-bottom: 2rem;
+    line-height: 1.6;
+    color: #d1d5db;
+    font-size: 0.95rem;
+}
+
+.age-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.btn-enter {
+    background: #ef4444;
+    color: white;
+    font-weight: bold;
+    border: none;
+    padding: 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1rem;
+    text-transform: uppercase;
+    transition: background 0.2s;
+}
+.btn-enter:hover { background: #dc2626; }
+
+.btn-exit {
+    background: transparent;
+    border: 1px solid #4b5563;
+    color: #9ca3af;
+    padding: 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.9rem;
 }
