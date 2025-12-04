@@ -7,27 +7,58 @@
     <link rel="stylesheet" href="style.css">
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <style>
-        /* Estilos específicos para la landing */
-        .social-proof {
-            display: flex;
-            justify-content: center;
-            gap: 30px;
-            margin-bottom: 25px;
-            padding: 15px 0;
-            border-top: 1px solid #eee;
+        /* Ajustes específicos para la Landing Page */
+        .landing-comments-box {
+            background: #f9fafb;
+            border-radius: 12px;
+            padding: 15px;
+            margin: 20px 0;
+            border: 1px solid #eee;
+            text-align: left;
         }
-        .proof-item {
-            text-align: center;
-            font-size: 1.1rem;
-            font-weight: 600;
-            color: var(--text);
+
+        .landing-comments-title {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: #4b5563;
+            margin-bottom: 15px;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 5px;
         }
-        .proof-item span {
-            font-size: 1.5rem;
-            color: var(--primary);
+
+        /* Hacemos los comentarios un poco más compactos en la landing */
+        .landing-comment-item {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 12px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        .landing-comment-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .landing-avatar {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .landing-comment-text {
+            font-size: 0.85rem;
+            color: #374151;
+            margin: 0;
+            line-height: 1.4;
+        }
+        
+        .landing-comment-author {
+            font-weight: 700;
+            font-size: 0.8rem;
+            color: #111827;
         }
     </style>
 </head>
@@ -38,12 +69,17 @@
             <h1 id="preview-title">Cargando...</h1>
             <p id="preview-desc"></p>
             
-            <div class="social-proof">
-                <div class="proof-item">
-                    👍 <span id="landing-likes">...</span>
+            <div id="social-proof-section" style="display:none;">
+                
+                <div style="display:flex; align-items:center; gap:5px; margin-bottom:10px; font-weight:600; color:#059669;">
+                    👍 <span id="landing-likes">0</span> personas recomendaron esto
                 </div>
-                <div class="proof-item">
-                    💬 <span id="landing-comments">...</span>
+
+                <div class="landing-comments-box">
+                    <div class="landing-comments-title">💬 Últimos comentarios de la comunidad:</div>
+                    <div id="landing-comments-list">
+                        <p style="font-size:0.8rem; color:#888;">Cargando opiniones...</p>
+                    </div>
                 </div>
             </div>
 
@@ -53,15 +89,18 @@
 
             <div class="timer-box" id="timer-section">
                 <div class="loader"></div>
-                <h3>⏳ Espera de Verificación</h3>
-                <p>Por favor, **haz clic en el botón de abajo** y **espera <span id="countdown">15</span> segundos** en la página de nuestro patrocinador. Esto verifica el enlace. ¡No cierres la pestaña!</p>
+                <h3>⏳ Verificando acceso...</h3>
+                <p>Haz clic en el anuncio y espera <strong><span id="countdown">15</span> segundos</strong> para desbloquear el contenido.</p>
+                <p style="font-size: 0.8rem; color: #666; margin-top:5px;">No cierres esta pestaña.</p>
                 
-                <p id="redirect-message" style="color:red; font-weight: bold; margin-top: 20px; display: none;">
-                    ✅ ¡LISTO! Vuelve a esta pestaña para ser redirigido.
-                </p>
-                <button class="btn" id="final-redirect-btn" style="display:none; margin-top: 15px;" onclick="redirectToArticle()">
-                    Continuar al Artículo
-                </button>
+                <div id="final-step" style="display:none; margin-top: 20px; animation: fadeIn 0.5s;">
+                    <p style="color:#059669; font-weight: bold; margin-bottom: 10px;">
+                        ✅ ¡Verificación exitosa!
+                    </p>
+                    <button class="btn" onclick="redirectToArticle()" style="background:#059669;">
+                        Leer Artículo Ahora ➔
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -71,54 +110,71 @@
         const params = new URLSearchParams(window.location.search);
         const articleId = params.get('id');
 
-        // Función para registrar el click en la base de datos
+        // Registrar click (sin esperar respuesta)
         async function trackClick() {
             if (!articleId) return;
-            // RPC para actualización atómica de clicks_landing
-            await _supabase.rpc('increment_click', { article_id_param: articleId });
+            _supabase.rpc('increment_click', { article_id_param: articleId });
         }
 
-        // Función para cargar la vista previa y la prueba social
+        // Cargar datos y prueba social
         async function loadPreview() {
             if(!articleId) return;
 
-            const { data, error } = await _supabase
+            // 1. Datos del artículo y Likes
+            const { data: art, error } = await _supabase
                 .from('articles')
-                .select('title, description, image_url, clicks_landing, likes, comments:comments(count)')
+                .select('title, description, image_url, likes')
                 .eq('id', articleId)
                 .single();
 
-            if(data) {
-                // Actualizar info del artículo
-                document.getElementById('preview-title').innerText = data.title;
-                document.getElementById('preview-desc').innerText = data.description || "Contenido exclusivo...";
-                if(data.image_url) {
+            if(art) {
+                document.getElementById('preview-title').innerText = art.title;
+                document.getElementById('preview-desc').innerText = art.description || "Contenido exclusivo...";
+                document.getElementById('landing-likes').innerText = art.likes || 0;
+                
+                if(art.image_url) {
                     const img = document.getElementById('preview-img');
-                    img.src = data.image_url;
+                    img.src = art.image_url;
                     img.style.display = 'block';
                 }
-                document.title = data.title;
+                document.title = art.title;
+                document.getElementById('social-proof-section').style.display = 'block';
+            }
 
-                // Actualizar prueba social
-                document.getElementById('landing-likes').innerText = data.likes || 0;
-                document.getElementById('landing-comments').innerText = data.comments[0].count || 0;
+            // 2. Cargar últimos 3 comentarios (Consulta separada para mayor control)
+            const { data: comments } = await _supabase
+                .from('comments')
+                .select('first_name, last_name, content, avatar_data')
+                .eq('article_id', articleId)
+                .order('created_at', { ascending: false })
+                .limit(3);
+
+            const commentsContainer = document.getElementById('landing-comments-list');
+            
+            if(comments && comments.length > 0) {
+                commentsContainer.innerHTML = comments.map(c => `
+                    <div class="landing-comment-item">
+                        <img src="${c.avatar_data || 'https://via.placeholder.com/35'}" class="landing-avatar">
+                        <div>
+                            <div class="landing-comment-author">${c.first_name} ${c.last_name}</div>
+                            <p class="landing-comment-text">"${c.content}"</p>
+                        </div>
+                    </div>
+                `).join('');
+            } else {
+                commentsContainer.innerHTML = '<p style="font-size:0.8rem; color:#666;">Sé el primero en ver esto.</p>';
             }
         }
 
-        // Lógica del Timer y Monetización
+        // Lógica del Timer + Monetización
         function startFlow() {
-            // 0. Registrar el click en la base de datos (NO ESPERAMOS POR ELLA)
             trackClick();
-
-            // 1. Abrir Adsterra en nueva pestaña
             window.open(ADSTERRA_LINK, '_blank');
 
-            // 2. Ocultar botón, mostrar timer
             document.getElementById('start-btn').style.display = 'none';
             document.getElementById('timer-section').style.display = 'block';
 
-            // 3. Cuenta regresiva (15 segundos)
-            let timeLeft = 15; 
+            let timeLeft = 15;
             const timerElement = document.getElementById('countdown');
             
             const interval = setInterval(() => {
@@ -127,19 +183,19 @@
 
                 if (timeLeft <= 0) {
                     clearInterval(interval);
-                    // 4. Mostrar botón de redirección final
-                    timerElement.style.display = 'none';
-                    document.getElementById('redirect-message').style.display = 'block';
-                    document.getElementById('final-redirect-btn').style.display = 'block';
+                    // Ocultar contador y mostrar botón final
+                    document.getElementById('timer-section').querySelector('h3').style.display = 'none';
+                    document.getElementById('timer-section').querySelector('p').style.display = 'none';
+                    document.getElementById('timer-section').querySelector('.loader').style.display = 'none';
+                    
+                    document.getElementById('final-step').style.display = 'block';
                 }
             }, 1000);
         }
-        
-        // 4. Redirigir al artículo real
+
         function redirectToArticle() {
             window.location.href = `article.html?id=${articleId}`;
         }
-
 
         loadPreview();
     </script>
