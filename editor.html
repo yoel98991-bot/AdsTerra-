@@ -28,30 +28,39 @@
             z-index: 10;
         }
         
-        .ql-html-button {
-            font-weight: bold; color: #6366f1 !important;
+        /* Botones personalizados Toolbar */
+        .ql-html-button, .ql-video-shortcode {
+            font-weight: bold; 
             cursor: pointer; width: 24px; height: 24px;
             display: flex; align-items: center; justify-content: center;
         }
+        .ql-html-button { color: #6366f1 !important; }
+        .ql-video-shortcode { font-size: 1.2rem; } /* Icono un poco más grande */
         
-        .html-modal {
-            display: none; position: fixed;
-            top: 50%; left: 50%; transform: translate(-50%, -50%);
-            background: white; padding: 20px; border-radius: 12px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3); z-index: 2000;
-            width: 500px; max-width: 90%;
-        }
-        
-        .html-modal textarea {
-            width: 100%; height: 200px; padding: 15px;
-            border: 1px solid #ddd; border-radius: 8px;
-            font-family: monospace; font-size: 14px; margin: 10px 0; resize: none;
-        }
-        
+        /* Modales */
         .modal-overlay {
             display: none; position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
             background: rgba(0,0,0,0.5); z-index: 1999; backdrop-filter: blur(2px);
+        }
+
+        .custom-modal {
+            display: none; position: fixed;
+            top: 50%; left: 50%; transform: translate(-50%, -50%);
+            background: white; padding: 25px; border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3); z-index: 2000;
+            width: 400px; max-width: 90%;
+            border: 1px solid #eee;
+        }
+        
+        .custom-modal h3 { margin-top: 0; color: #111827; }
+        .custom-modal label { display: block; margin-top: 10px; font-size: 0.9rem; font-weight: bold; color: #4b5563; }
+        
+        .custom-modal textarea, .custom-modal input {
+            width: 100%; padding: 10px;
+            border: 1px solid #ddd; border-radius: 8px;
+            font-family: inherit; font-size: 14px; margin: 5px 0 15px 0;
+            box-sizing: border-box;
         }
 
         .articles-list { margin-top: 3rem; border-top: 2px solid #eee; padding-top: 2rem; }
@@ -139,20 +148,37 @@
     </style>
 </head>
 <body>
-    <div class="modal-overlay" id="html-modal-overlay"></div>
-    <div class="html-modal" id="html-modal">
-        <h3 style="margin-top: 0;">✏️ Insertar HTML</h3>
-        <p style="color: #666; margin-bottom: 10px; font-size: 0.9rem;">Pega tu código (Ads, iframes, tweets):</p>
-        <textarea id="html-input" placeholder="<iframe src='...'></iframe>"></textarea>
+    <div class="modal-overlay" id="modal-overlay"></div>
+    
+    <div class="custom-modal" id="html-modal">
+        <h3>✏️ Insertar HTML (Ads/Iframes)</h3>
+        <p style="color: #666; margin-bottom: 10px; font-size: 0.8rem;">Para scripts, iframes o embeds normales.</p>
+        <textarea id="html-input" rows="5" placeholder="<iframe src='...'></iframe>"></textarea>
         <div style="display: flex; gap: 10px;">
             <button class="btn" onclick="insertHTML()" style="flex: 1;">Insertar</button>
-            <button class="btn" onclick="closeHTMLModal()" style="background: #9ca3af; flex: 1;">Cerrar</button>
+            <button class="btn" onclick="closeModals()" style="background: #9ca3af; flex: 1;">Cerrar</button>
+        </div>
+    </div>
+
+    <div class="custom-modal" id="video-modal">
+        <h3>🎬 Generar Video Premium</h3>
+        <p style="color: #666; margin-bottom: 10px; font-size: 0.8rem;">Crea un botón de reproducción elegante que no se borra.</p>
+        
+        <label>Link del Video (YouTube / Directo)</label>
+        <input type="text" id="vid-url" placeholder="https://youtube.com/..." />
+        
+        <label>Link de la Imagen de Portada</label>
+        <input type="text" id="vid-img" placeholder="https://sitio.com/foto.jpg" />
+        
+        <div style="display: flex; gap: 10px;">
+            <button class="btn" onclick="insertVideoShortcode()" style="background: linear-gradient(135deg, #f59e0b, #d97706); flex: 1;">✨ Generar Botón</button>
+            <button class="btn" onclick="closeModals()" style="background: #9ca3af; flex: 1;">Cerrar</button>
         </div>
     </div>
 
     <div class="container">
         <div class="card">
-            <h2 id="form-title">📱 Editor Móvil</h2>
+            <h2 id="form-title">📱 Editor Móvil Pro</h2>
             
             <label style="font-weight:bold; font-size: 0.9rem;">Título del Artículo</label>
             <input type="text" id="title" placeholder="Ej: Trucos de WhatsApp...">
@@ -164,13 +190,13 @@
                 </label>
             </div>
 
-            <label style="font-weight:bold; font-size: 0.9rem;">Imagen (URL)</label>
+            <label style="font-weight:bold; font-size: 0.9rem;">Imagen Principal (URL)</label>
             <input type="text" id="image" placeholder="https://i.imgur.com/...">
             
             <label style="font-weight:bold; font-size: 0.9rem;">Descripción Corta</label>
             <textarea id="desc" rows="2" placeholder="Gancho para la landing page..."></textarea>
             
-            <label style="font-weight:bold; font-size: 0.9rem;">Contenido Completo</label>
+            <label style="font-weight:bold; font-size: 0.9rem;">Contenido del Artículo</label>
             <div id="editor-wrapper">
                 <div id="editor-container"></div>
             </div>
@@ -230,8 +256,9 @@
                         <button class="ql-image"></button>
                     </span>
                     <span class="ql-formats">
-                        <button class="ql-clean"></button>
+                        <span class="ql-video-shortcode" title="Insertar Video Premium">🎬</span>
                         <span class="ql-html-button" title="Insertar HTML">${htmlIcon}</span>
+                        <button class="ql-clean"></button>
                     </span>
                 </div>
                 <div id="editor-container"></div>
@@ -242,30 +269,65 @@
             
             quill = new Quill('#editor-container', {
                 theme: 'snow',
-                placeholder: 'Escribe aquí...',
+                placeholder: 'Escribe aquí tu artículo...',
                 modules: { toolbar: toolbarContainer.querySelector('.ql-toolbar') }
             });
             
-            document.querySelector('.ql-html-button').addEventListener('click', openHTMLModal);
+            // Listeners para los botones personalizados
+            document.querySelector('.ql-html-button').addEventListener('click', () => openModal('html-modal'));
+            document.querySelector('.ql-video-shortcode').addEventListener('click', () => openModal('video-modal'));
+            
+            // Cerrar modal al hacer click fuera
+            document.getElementById('modal-overlay').addEventListener('click', closeModals);
         }
 
-        function openHTMLModal() {
-            document.getElementById('html-modal').style.display = 'block';
-            document.getElementById('html-modal-overlay').style.display = 'block';
+        // --- GESTIÓN DE MODALES ---
+        function openModal(id) {
+            document.getElementById('modal-overlay').style.display = 'block';
+            document.getElementById(id).style.display = 'block';
         }
-        function closeHTMLModal() {
-            document.getElementById('html-modal').style.display = 'none';
-            document.getElementById('html-modal-overlay').style.display = 'none';
+
+        function closeModals() {
+            document.getElementById('modal-overlay').style.display = 'none';
+            document.querySelectorAll('.custom-modal').forEach(m => m.style.display = 'none');
+            
+            // Limpiar inputs
             document.getElementById('html-input').value = '';
+            document.getElementById('vid-url').value = '';
+            document.getElementById('vid-img').value = '';
         }
+
+        // --- INSERTAR CÓDIGOS ---
         function insertHTML() {
             const html = document.getElementById('html-input').value;
             if (html.trim()) {
                 const range = quill.getSelection(true);
                 quill.clipboard.dangerouslyPasteHTML(range.index, html);
-                closeHTMLModal();
+                closeModals();
             }
         }
+
+        function insertVideoShortcode() {
+            const url = document.getElementById('vid-url').value.trim();
+            const img = document.getElementById('vid-img').value.trim();
+
+            if (!url || !img) {
+                alert("Debes poner ambos links (Video e Imagen)");
+                return;
+            }
+
+            // CREAMOS EL SHORTCODE
+            const shortcode = `\n[VIDEO: ${url} | ${img}]\n`;
+            
+            const range = quill.getSelection(true);
+            // Insertamos texto plano (para que Quill no lo intente formatear)
+            quill.insertText(range.index, shortcode, 'bold', true);
+            
+            closeModals();
+            showNotification("✨ Botón de video insertado", "success");
+        }
+
+        // --- FUNCIONES CORE (Igual que antes) ---
 
         function getArticleUrl(articleId) {
             const baseUrl = window.location.origin + window.location.pathname.replace('editor.html', '');
@@ -352,8 +414,6 @@
             const image_url = document.getElementById('image').value;
             const description = document.getElementById('desc').value;
             const content = quill.root.innerHTML;
-            
-            // NUEVO: LEER CHECKBOX
             const is_adult = document.getElementById('is-adult').checked;
 
             if(!title) return showNotification("❌ Falta el título", "error");
@@ -391,15 +451,12 @@
                 document.getElementById('image').value = data.image_url || '';
                 document.getElementById('desc').value = data.description || '';
                 quill.root.innerHTML = data.content || '';
-                
-                // NUEVO: Cargar estado del checkbox
                 document.getElementById('is-adult').checked = data.is_adult || false;
 
                 currentEditingId = id;
                 document.getElementById('save-btn').innerText = "🔄 Actualizar";
                 document.getElementById('form-title').innerText = "✏️ Editando...";
                 document.getElementById('cancel-btn').style.display = "block";
-                
                 window.scrollTo({ top: 0, behavior: 'smooth' });
             }
         }
@@ -417,7 +474,7 @@
             document.getElementById('title').value = '';
             document.getElementById('image').value = '';
             document.getElementById('desc').value = '';
-            document.getElementById('is-adult').checked = false; // Reset Checkbox
+            document.getElementById('is-adult').checked = false;
             quill.setContents([]);
             document.getElementById('save-btn').innerText = "💾 Publicar Artículo";
             document.getElementById('form-title').innerText = "📱 Editor Móvil";
@@ -427,7 +484,6 @@
         document.addEventListener('DOMContentLoaded', function() {
             initializeQuill();
             loadArticlesList();
-            document.getElementById('html-modal-overlay').addEventListener('click', closeHTMLModal);
         });
     </script>
 </body>
