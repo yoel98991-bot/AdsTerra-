@@ -35,7 +35,7 @@
             display: flex; align-items: center; justify-content: center;
         }
         .ql-html-button { color: #6366f1 !important; }
-        .ql-video-shortcode { font-size: 1.2rem; } /* Icono un poco más grande */
+        .ql-video-shortcode { font-size: 1.2rem; } 
         
         /* Modales */
         .modal-overlay {
@@ -162,16 +162,16 @@
 
     <div class="custom-modal" id="video-modal">
         <h3>🎬 Generar Video Premium</h3>
-        <p style="color: #666; margin-bottom: 10px; font-size: 0.8rem;">Crea un botón de reproducción elegante que no se borra.</p>
+        <p style="color: #666; margin-bottom: 10px; font-size: 0.8rem;">Crea un código que se transformará en botón al publicar.</p>
         
         <label>Link del Video (YouTube / Directo)</label>
-        <input type="text" id="vid-url" placeholder="https://youtube.com/..." />
+        <input type="text" id="vid-url" placeholder="https://..." />
         
         <label>Link de la Imagen de Portada</label>
-        <input type="text" id="vid-img" placeholder="https://sitio.com/foto.jpg" />
+        <input type="text" id="vid-img" placeholder="https://..." />
         
         <div style="display: flex; gap: 10px;">
-            <button class="btn" onclick="insertVideoShortcode()" style="background: linear-gradient(135deg, #f59e0b, #d97706); flex: 1;">✨ Generar Botón</button>
+            <button class="btn" onclick="insertVideoShortcode()" style="background: linear-gradient(135deg, #f59e0b, #d97706); flex: 1;">✨ Generar Código</button>
             <button class="btn" onclick="closeModals()" style="background: #9ca3af; flex: 1;">Cerrar</button>
         </div>
     </div>
@@ -316,18 +316,23 @@
                 return;
             }
 
-            // CREAMOS EL SHORTCODE
+            // CREAMOS EL SHORTCODE - Usamos saltos de línea para que quede limpio
             const shortcode = `\n[VIDEO: ${url} | ${img}]\n`;
             
             const range = quill.getSelection(true);
-            // Insertamos texto plano (para que Quill no lo intente formatear)
+            
+            // Insertamos el texto. Quill lo detectará como texto plano, que es lo que queremos en el editor
+            // para poder editarlo después si nos equivocamos.
             quill.insertText(range.index, shortcode, 'bold', true);
             
+            // Movemos el cursor al final
+            quill.setSelection(range.index + shortcode.length);
+            
             closeModals();
-            showNotification("✨ Botón de video insertado", "success");
+            showNotification("✨ Código de video insertado. (Se verá como botón al Publicar)", "success");
         }
 
-        // --- FUNCIONES CORE (Igual que antes) ---
+        // --- FUNCIONES CORE ---
 
         function getArticleUrl(articleId) {
             const baseUrl = window.location.origin + window.location.pathname.replace('editor.html', '');
