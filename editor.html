@@ -316,20 +316,19 @@
                 return;
             }
 
-            // CREAMOS EL SHORTCODE - Usamos saltos de línea para que quede limpio
-            const shortcode = `\n[VIDEO: ${url} | ${img}]\n`;
+            // CREAMOS EL SHORTCODE - Formato limpio
+            const shortcode = `[VIDEO: ${url} | ${img}]`;
             
             const range = quill.getSelection(true);
             
-            // Insertamos el texto. Quill lo detectará como texto plano, que es lo que queremos en el editor
-            // para poder editarlo después si nos equivocamos.
-            quill.insertText(range.index, shortcode, 'bold', true);
+            // Insertamos como texto plano para que sea fácil de editar
+            quill.insertText(range.index, shortcode);
             
-            // Movemos el cursor al final
+            // Movemos el cursor al final del shortcode
             quill.setSelection(range.index + shortcode.length);
             
             closeModals();
-            showNotification("✨ Código de video insertado. (Se verá como botón al Publicar)", "success");
+            showNotification("✨ Código de video insertado. Se convertirá automáticamente en un botón bonito al publicar.", "success");
         }
 
         // --- FUNCIONES CORE ---
