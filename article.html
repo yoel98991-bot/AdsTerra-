@@ -107,6 +107,29 @@
             }
         }
 
+        // FUNCIÓN PARA PROCESAR SHORTCODES DE VIDEO
+        function processVideoShortcodes(html) {
+            // Buscar el patrón [VIDEO: url_video | url_imagen]
+            const regex = /\[VIDEO:\s*(.+?)\s*\|\s*(.+?)\s*\]/g;
+            
+            return html.replace(regex, (match, videoUrl, imageUrl) => {
+                return `
+                <div class="video-card">
+                    <div class="new-tag">🎬 Nuevo contenido <span class="dot"></span></div>
+                    <img src="${imageUrl.trim()}" class="video-preview-img" alt="Video Preview" onerror="this.style.display='none'">
+                    <h2 class="video-title">VIDEO EXCLUSIVO</h2>
+                    <p class="video-desc">Contenido premium disponible solo para nuestros lectores. Haz clic en el botón para ver el video completo.</p>
+                    <a href="${videoUrl.trim()}" target="_blank" class="video-btn">
+                        VER VIDEO COMPLETO
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M8 5v14l11-7z"/>
+                        </svg>
+                    </a>
+                </div>
+                `;
+            });
+        }
+
         async function loadArticle() {
             console.log("📥 Cargando contenido del artículo...");
             const { data, error } = await _supabase
@@ -122,7 +145,11 @@
                 console.log("📄 Datos del artículo recibidos:", data.title);
                 document.title = data.title;
                 document.getElementById('art-title').innerText = data.title;
-                document.getElementById('art-content').innerHTML = data.content; 
+                
+                // PROCESAR SHORTCODES DE VIDEO ANTES DE MOSTRAR
+                let processedContent = processVideoShortcodes(data.content);
+                document.getElementById('art-content').innerHTML = processedContent;
+                
                 document.getElementById('art-date').innerText = new Date(data.created_at).toLocaleDateString();
                 
                 if(data.image_url) {
@@ -327,4 +354,3 @@
     </script>
 </body>
 </html>
-
