@@ -166,7 +166,6 @@
       transition: height 0.8s cubic-bezier(0.34, 1.56, 0.64, 1); margin-bottom: 8px; box-shadow: 0 2px 8px rgba(14, 165, 233, 0.2);
     }
     .bar-label { font-size: 12px; color: var(--text-secondary); font-weight: 600; transition: all 0.3s ease; }
-    /* Estilo elegante para destacar el día actual */
     .bar-label.hoy { color: var(--tint); font-weight: 800; background: #e0f2fe; padding: 2px 6px; border-radius: 8px; }
 
     /* ========== VENTAS ========== */
@@ -293,6 +292,7 @@
       background: var(--card-bg); width: 100%; max-width: 500px; border-radius: 28px 28px 0 0;
       padding: 24px 24px calc(env(safe-area-inset-bottom) + 30px);
       transform: translateY(100%); transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1); box-shadow: 0 -10px 40px rgba(0,0,0,0.1);
+      max-height: 80vh; overflow-y: auto; 
     }
     .modal-overlay.active .modal-sheet { transform: translateY(0); }
     
@@ -318,6 +318,22 @@
     .history-date { color: var(--text-secondary); font-weight: 600; min-width: 70px; }
     .history-detail { flex: 1; margin: 0 12px; }
     .history-amount { font-weight: 700; color: var(--tint); }
+
+    /* ========== GASTOS LISTA EN MODAL ========== */
+    .gastos-list { margin-top: 24px; border-top: 1px solid var(--separator); padding-top: 20px; }
+    .gasto-item {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 12px 0; border-bottom: 1px solid var(--separator); font-size: 13px;
+    }
+    .gasto-item:last-child { border-bottom: none; }
+    .gasto-date { color: var(--text-secondary); font-weight: 600; min-width: 70px; }
+    .gasto-desc { flex: 1; margin: 0 12px; }
+    .gasto-monto { font-weight: 700; color: var(--destructive); margin-right: 8px; }
+    .gasto-delete-btn {
+      width: 30px; height: 30px; border-radius: 8px; border: none; background: #fee2e2; color: var(--destructive);
+      display: flex; align-items: center; justify-content: center; cursor: pointer; transition: transform 0.15s;
+    }
+    .gasto-delete-btn:active { transform: scale(0.9); }
 
     /* ========== BARRA DE PESTAÑAS ========== */
     .tab-bar {
@@ -567,7 +583,6 @@
         <label>Frecuencia de pedido (días)</label>
         <input type="number" id="clientFrequency" placeholder="Opcional" min="1" step="1">
       </div>
-      <!-- Historial de ventas del cliente (visible al editar) -->
       <div class="client-history" id="clientSalesHistory" style="display: none;"></div>
       <div class="modal-actions">
         <button class="btn btn-cancel" onclick="closeModal('modalClientOverlay')">Cancelar</button>
@@ -579,7 +594,7 @@
     </div>
   </div>
 
-  <!-- Modal de gasto -->
+  <!-- Modal de gasto (ahora con lista para eliminar) -->
   <div class="modal-overlay" id="modalGastoOverlay">
     <div class="modal-sheet">
       <div class="modal-handle"></div>
@@ -600,6 +615,8 @@
         <button class="btn btn-cancel" onclick="closeModal('modalGastoOverlay')">Cancelar</button>
         <button class="btn btn-save" onclick="guardarGasto()">Registrar</button>
       </div>
+      <!-- Lista de gastos del mes actual para eliminar -->
+      <div class="gastos-list" id="gastosListContainer"></div>
     </div>
   </div>
 
@@ -722,7 +739,6 @@
     }
 
     // ========== PRECIOS Y COSTOS EDITABLES ==========
-    // Cargar desde localStorage o usar valores por defecto
     let precios = JSON.parse(localStorage.getItem('agua_precios') || '{"precioMineral":8.50,"precioSaborizada":10.00,"costoMineral":4.00,"costoSaborizada":5.00}');
     let precioMineral = precios.precioMineral;
     let precioSaborizada = precios.precioSaborizada;
@@ -877,10 +893,12 @@
       }
     }
 
+    // ========== GASTOS (MODAL CON LISTA PARA ELIMINAR) ==========
     function abrirModalGasto() {
       document.getElementById('fecha-gasto').value = new Date().toISOString().split('T')[0];
       document.getElementById('desc-gasto').value = '';
       document.getElementById('monto-gasto').value = '';
+      renderGastosList();
       openModal('modalGastoOverlay');
     }
 
@@ -897,8 +915,47 @@
       gastos.push({ id: Date.now().toString(), fecha, desc, monto });
       saveDB('agua_gastos', gastos);
       cargarMovimiento();
-      closeModal('modalGastoOverlay');
+      renderGastosList(); // refrescar lista
       showToast('Gasto registrado exitosamente', 'info');
+    }
+
+    function eliminarGasto(gastoId) {
+      gastos = gastos.filter(g => g.id !== gastoId);
+      saveDB('agua_gastos', gastos);
+      cargarMovimiento();
+      renderGastosList();
+      showToast('Gasto eliminado', 'info');
+    }
+
+    function renderGastosList() {
+      const container = document.getElementById('gastosListContainer');
+      const mes = parseInt(document.getElementById('mes').value);
+      const anio = parseInt(document.getElementById('anio').value);
+      
+      const gastosMes = gastos.filter(g => {
+        const d = new Date(g.fecha + 'T12:00:00');
+        return d.getMonth() === mes && d.getFullYear() === anio;
+      }).sort((a,b) => new Date(b.fecha) - new Date(a.fecha));
+
+      if (gastosMes.length === 0) {
+        container.innerHTML = '<p style="text-align:center; color:var(--text-secondary); padding:20px;">No hay gastos este mes</p>';
+        return;
+      }
+
+      let html = '<h3 style="margin-bottom:12px; font-size:16px;">Gastos del mes</h3>';
+      gastosMes.forEach(g => {
+        const fecha = new Date(g.fecha + 'T12:00:00').toLocaleDateString('es-ES', { day:'2-digit', month:'2-digit' });
+        html += `
+          <div class="gasto-item">
+            <span class="gasto-date">${fecha}</span>
+            <span class="gasto-desc">${escapeHtml(g.desc)}</span>
+            <span class="gasto-monto">-${formatearBs(g.monto)}</span>
+            <button class="gasto-delete-btn" onclick="eliminarGasto('${g.id}')" title="Eliminar gasto">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+            </button>
+          </div>`;
+      });
+      container.innerHTML = html;
     }
 
     // ========== VENTAS ==========
