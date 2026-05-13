@@ -308,6 +308,17 @@
     .btn-cancel { background: #f1f5f9; color: var(--text-primary); }
     .btn-save { background: var(--tint); color: white; box-shadow: 0 4px 12px rgba(14, 165, 233, 0.3); }
 
+    /* ========== HISTORIAL DE CLIENTE ========== */
+    .client-history { margin-top: 24px; border-top: 1px solid var(--separator); padding-top: 20px; }
+    .history-item {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 12px 0; border-bottom: 1px solid var(--separator); font-size: 13px;
+    }
+    .history-item:last-child { border-bottom: none; }
+    .history-date { color: var(--text-secondary); font-weight: 600; min-width: 70px; }
+    .history-detail { flex: 1; margin: 0 12px; }
+    .history-amount { font-weight: 700; color: var(--tint); }
+
     /* ========== BARRA DE PESTAÑAS ========== */
     .tab-bar {
       position: fixed; bottom: 0; left: 0; right: 0; background: var(--tab-bg); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
@@ -495,7 +506,7 @@
 
     <div class="section-title">Administración</div>
     <div class="card settings-list">
-      <div class="setting-row" onclick="demoFeature('Gestión de Precios')">
+      <div class="setting-row" onclick="abrirModalPrecios()">
         <div class="setting-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
         <div class="setting-text">Gestión de Precios</div>
         <div class="setting-arrow"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg></div>
@@ -535,6 +546,7 @@
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
   </button>
 
+  <!-- Modal de cliente -->
   <div class="modal-overlay" id="modalClientOverlay">
     <div class="modal-sheet">
       <div class="modal-handle"></div>
@@ -551,6 +563,12 @@
         <label>Dirección</label>
         <input type="text" id="clientAddress" placeholder="Calle, zona, ciudad">
       </div>
+      <div class="input-group">
+        <label>Frecuencia de pedido (días)</label>
+        <input type="number" id="clientFrequency" placeholder="Opcional" min="1" step="1">
+      </div>
+      <!-- Historial de ventas del cliente (visible al editar) -->
+      <div class="client-history" id="clientSalesHistory" style="display: none;"></div>
       <div class="modal-actions">
         <button class="btn btn-cancel" onclick="closeModal('modalClientOverlay')">Cancelar</button>
         <button class="btn btn-save" onclick="saveClient()">Guardar</button>
@@ -561,6 +579,7 @@
     </div>
   </div>
 
+  <!-- Modal de gasto -->
   <div class="modal-overlay" id="modalGastoOverlay">
     <div class="modal-sheet">
       <div class="modal-handle"></div>
@@ -580,6 +599,34 @@
       <div class="modal-actions">
         <button class="btn btn-cancel" onclick="closeModal('modalGastoOverlay')">Cancelar</button>
         <button class="btn btn-save" onclick="guardarGasto()">Registrar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de Gestión de Precios -->
+  <div class="modal-overlay" id="modalPreciosOverlay">
+    <div class="modal-sheet">
+      <div class="modal-handle"></div>
+      <div class="modal-title">Gestión de Precios</div>
+      <div class="input-group">
+        <label>Precio Mineral (Bs)</label>
+        <input type="number" id="precioMineralInput" step="0.01" min="0">
+      </div>
+      <div class="input-group">
+        <label>Precio Saborizada (Bs)</label>
+        <input type="number" id="precioSaborizadaInput" step="0.01" min="0">
+      </div>
+      <div class="input-group">
+        <label>Costo Prod. Mineral (Bs)</label>
+        <input type="number" id="costoMineralInput" step="0.01" min="0">
+      </div>
+      <div class="input-group">
+        <label>Costo Prod. Saborizada (Bs)</label>
+        <input type="number" id="costoSaborizadaInput" step="0.01" min="0">
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-cancel" onclick="closeModal('modalPreciosOverlay')">Cancelar</button>
+        <button class="btn btn-save" onclick="guardarPrecios()">Guardar</button>
       </div>
     </div>
   </div>
@@ -674,32 +721,72 @@
       }
     }
 
-    // ========== BASE DE DATOS LOCAL ==========
-    const precioMineral = 8.50; const precioSaborizada = 10.00;
-    const costoProdMineral = 4.00; const costoProdSaborizada = 5.00;
+    // ========== PRECIOS Y COSTOS EDITABLES ==========
+    // Cargar desde localStorage o usar valores por defecto
+    let precios = JSON.parse(localStorage.getItem('agua_precios') || '{"precioMineral":8.50,"precioSaborizada":10.00,"costoMineral":4.00,"costoSaborizada":5.00}');
+    let precioMineral = precios.precioMineral;
+    let precioSaborizada = precios.precioSaborizada;
+    let costoProdMineral = precios.costoMineral;
+    let costoProdSaborizada = precios.costoSaborizada;
 
+    function abrirModalPrecios() {
+      document.getElementById('precioMineralInput').value = precioMineral;
+      document.getElementById('precioSaborizadaInput').value = precioSaborizada;
+      document.getElementById('costoMineralInput').value = costoProdMineral;
+      document.getElementById('costoSaborizadaInput').value = costoProdSaborizada;
+      openModal('modalPreciosOverlay');
+    }
+
+    function guardarPrecios() {
+      const pm = parseFloat(document.getElementById('precioMineralInput').value);
+      const ps = parseFloat(document.getElementById('precioSaborizadaInput').value);
+      const cm = parseFloat(document.getElementById('costoMineralInput').value);
+      const cs = parseFloat(document.getElementById('costoSaborizadaInput').value);
+      
+      if (isNaN(pm) || isNaN(ps) || isNaN(cm) || isNaN(cs) || pm < 0 || ps < 0 || cm < 0 || cs < 0) {
+        showToast('Ingresa valores válidos', 'error');
+        return;
+      }
+
+      precioMineral = pm;
+      precioSaborizada = ps;
+      costoProdMineral = cm;
+      costoProdSaborizada = cs;
+      
+      precios = { precioMineral, precioSaborizada, costoMineral: cm, costoSaborizada: cs };
+      localStorage.setItem('agua_precios', JSON.stringify(precios));
+      
+      closeModal('modalPreciosOverlay');
+      showToast('Precios actualizados correctamente', 'success');
+      calcularTotalVenta();
+      cargarMovimiento();
+    }
+
+    // ========== BASE DE DATOS LOCAL ==========
     let ventas = JSON.parse(localStorage.getItem('agua_ventas') || '[{"id":"1714651200000","fecha":"2026-05-02","clienteId":"c1","mineral":2,"saborizada":0,"envasesDevueltos":2,"total":17},{"id":"1714910400000","fecha":"2026-05-05","clienteId":"c2","mineral":1,"saborizada":1,"envasesDevueltos":2,"total":18.5},{"id":"1715169600000","fecha":"2026-05-08","clienteId":"c5","mineral":5,"saborizada":2,"envasesDevueltos":5,"total":62.5},{"id":"1715342400000","fecha":"2026-05-10","clienteId":"c3","mineral":3,"saborizada":0,"envasesDevueltos":3,"total":25.5},{"id":"1715428800000","fecha":"2026-05-11","clienteId":"c4","mineral":0,"saborizada":2,"envasesDevueltos":2,"total":20},{"id":"1715515200000","fecha":"2026-05-12","clienteId":"c1","mineral":2,"saborizada":1,"envasesDevueltos":2,"total":27},{"id":"1715601600000","fecha":"2026-05-13","clienteId":"c5","mineral":4,"saborizada":2,"envasesDevueltos":6,"total":54}]');
     let stock = JSON.parse(localStorage.getItem('agua_stock') || '{"mineral": 85, "saborizada": 42, "envasesVacios": 215}');
-    let clients = JSON.parse(localStorage.getItem('agua_clientes') || '[{"id":"c1","name":"Juan Pérez","phone":"+59171234567","address":"Av. Blanco Galindo Km 3"},{"id":"c2","name":"María Gómez","phone":"+59178901234","address":"Calle Los Pinos #123"},{"id":"c3","name":"Carlos Ruiz","phone":"+59165432109","address":"Zona Sur, Barrio Obrajes"},{"id":"c4","name":"Ana López","phone":"+59172345678","address":"Av. América y Libertador"},{"id":"c5","name":"Restaurante El Buen Gusto","phone":"+59169876543","address":"Plaza Principal"}]');
+    let clients = JSON.parse(localStorage.getItem('agua_clientes') || '[{"id":"c1","name":"Juan Pérez","phone":"+59171234567","address":"Av. Blanco Galindo Km 3","frequency":""},{"id":"c2","name":"María Gómez","phone":"+59178901234","address":"Calle Los Pinos #123","frequency":""},{"id":"c3","name":"Carlos Ruiz","phone":"+59165432109","address":"Zona Sur, Barrio Obrajes","frequency":""},{"id":"c4","name":"Ana López","phone":"+59172345678","address":"Av. América y Libertador","frequency":""},{"id":"c5","name":"Restaurante El Buen Gusto","phone":"+59169876543","address":"Plaza Principal","frequency":"7"}]');
     let gastos = JSON.parse(localStorage.getItem('agua_gastos') || '[{"id":"g1","fecha":"2026-05-03","desc":"Combustible reparto","monto":120},{"id":"g2","fecha":"2026-05-07","desc":"Mantenimiento preventivo","monto":250},{"id":"g3","fecha":"2026-05-11","desc":"Insumos de limpieza","monto":45}]');
 
     function saveDB(key, data) { localStorage.setItem(key, JSON.stringify(data)); }
     function formatearBs(monto) { return 'Bs ' + monto.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
     function escapeHtml(text) { return String(text).replace(/[&<>"]/g, m => ({'&':'&','<':'<','>':'>','"':'"'}[m])); }
 
-    // ========== ANIMACIÓN ELEGANTE DE NÚMEROS ==========
+    // ========== ANIMACIÓN DE NÚMEROS MEJORADA (MANEJA NEGATIVOS) ==========
     function animarNumero(id, endValue, duration) {
       const obj = document.getElementById(id);
+      const isNegative = endValue < 0;
+      const absEnd = Math.abs(endValue);
       let startTimestamp = null;
       
       const step = (timestamp) => {
         if (!startTimestamp) startTimestamp = timestamp;
         const progress = Math.min((timestamp - startTimestamp) / duration, 1);
-        // Función cúbica de aceleración/desaceleración para suavidad
         const easeOut = 1 - Math.pow(1 - progress, 3);
-        const currentVal = easeOut * endValue;
+        const currentVal = easeOut * absEnd;
         
-        obj.textContent = formatearBs(currentVal);
+        const displayVal = isNegative ? -currentVal : currentVal;
+        obj.textContent = formatearBs(displayVal);
         
         if (progress < 1) {
           window.requestAnimationFrame(step);
@@ -743,11 +830,9 @@
       
       document.getElementById('utilidad-neta').style.color = utilidadNeta >= 0 ? 'var(--green)' : 'var(--destructive)';
 
-      // Disparar la animación de números ("Efecto vivo")
       animarNumero('total-mes', totalIngresos, 1200);
       animarNumero('utilidad-neta', utilidadNeta, 1200);
 
-      // Calcular barras del gráfico
       let barrasHTML = '';
       const maxDiario = Math.max(...Object.values(datosDiarios), 1);
       const diasEnMes = new Date(anio, mes + 1, 0).getDate();
@@ -764,14 +849,12 @@
         const idDia = esHoy ? 'bar-dia-actual' : '';
         const claseLabel = esHoy ? 'bar-label hoy' : 'bar-label';
 
-        // Iniciamos la altura en 0px y guardamos el objetivo en data-height para animarlo luego
         barrasHTML += `<div class="bar-item" id="${idDia}"><div class="bar" style="height:0px;" data-height="${altura}"></div><span class="${claseLabel}">${dia}</span></div>`;
       }
       
       const grafico = document.getElementById('grafico');
       grafico.innerHTML = barrasHTML;
 
-      // Animar el crecimiento de las barras
       setTimeout(() => {
         const bars = grafico.querySelectorAll('.bar');
         bars.forEach(bar => {
@@ -779,25 +862,18 @@
         });
       }, 50);
 
-      // Lógica de Scroll Automático Elegante
       const container = document.getElementById('chart-container-scroll');
-      
-      // 1. Reseteo instantáneo al día 1
-      container.style.scrollBehavior = 'auto';
-      container.scrollLeft = 0;
-      
-      // 2. Si es el mes actual, nos dirigimos al día actual
       if (esMesActual) {
         setTimeout(() => {
-          container.style.scrollBehavior = 'smooth';
           const barActual = document.getElementById('bar-dia-actual');
           if (barActual) {
-            // Calcular posición para centrar el elemento
-            const centroContenedor = container.offsetWidth / 2;
-            const centroBarra = barActual.offsetLeft + (barActual.offsetWidth / 2);
-            container.scrollLeft = centroBarra - centroContenedor;
+            barActual.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+          } else {
+            container.scrollLeft = container.scrollWidth;
           }
-        }, 500); // Esperar medio segundo para que el usuario note el recorrido desde el inicio
+        }, 300);
+      } else {
+        container.scrollLeft = 0;
       }
     }
 
@@ -903,7 +979,7 @@
       document.getElementById('total-envases-fisicos').textContent = totalEnvases;
     }
 
-    // ========== CLIENTES (CRM INTELIGENTE) ==========
+    // ========== CLIENTES (CRM MEJORADO) ==========
     let editingClientId = null;
 
     function getClientStats(clienteId) {
@@ -916,18 +992,28 @@
       
       const deudaEnvases = (totMin + totSab) - totDev;
       
+      const client = clients.find(c => c.id === clienteId);
       let pedidoPendiente = false;
-      if (clientSales.length >= 2) {
-        let maxIter = Math.min(clientSales.length, 3);
-        let diasDiff = [];
-        for(let i = 0; i < maxIter - 1; i++){
-           const d1 = new Date(clientSales[i].fecha);
-           const d2 = new Date(clientSales[i+1].fecha);
-           diasDiff.push(Math.abs(d1 - d2) / (1000 * 60 * 60 * 24));
-        }
-        const avg = diasDiff.reduce((a,b)=>a+b, 0) / diasDiff.length;
+      
+      if (clientSales.length > 0) {
         const diasDesdeUltima = Math.floor((new Date() - new Date(clientSales[0].fecha)) / (1000 * 60 * 60 * 24));
-        if(diasDesdeUltima > avg + 1) pedidoPendiente = true;
+        
+        if (client && client.frequency && !isNaN(parseInt(client.frequency))) {
+          const freq = parseInt(client.frequency);
+          pedidoPendiente = diasDesdeUltima > freq * 1.3;
+        } else {
+          if (clientSales.length >= 2) {
+            let maxIter = Math.min(clientSales.length, 3);
+            let diasDiff = [];
+            for(let i = 0; i < maxIter - 1; i++){
+               const d1 = new Date(clientSales[i].fecha);
+               const d2 = new Date(clientSales[i+1].fecha);
+               diasDiff.push(Math.abs(d1 - d2) / (1000 * 60 * 60 * 24));
+            }
+            const avg = diasDiff.reduce((a,b)=>a+b, 0) / diasDiff.length;
+            pedidoPendiente = diasDesdeUltima > avg + 1;
+          }
+        }
       }
 
       return { totMin, totSab, deudaEnvases, pedidoPendiente };
@@ -998,7 +1084,9 @@
       document.getElementById('clientName').value = '';
       document.getElementById('clientPhone').value = '';
       document.getElementById('clientAddress').value = '';
+      document.getElementById('clientFrequency').value = '';
       document.getElementById('deleteClientContainer').style.display = 'none';
+      document.getElementById('clientSalesHistory').style.display = 'none';
       openModal('modalClientOverlay');
     }
 
@@ -1010,23 +1098,58 @@
       document.getElementById('clientName').value = client.name;
       document.getElementById('clientPhone').value = client.phone;
       document.getElementById('clientAddress').value = client.address || '';
+      document.getElementById('clientFrequency').value = client.frequency || '';
       document.getElementById('deleteClientContainer').style.display = 'block';
+      
+      renderClientSalesHistory(id);
+      
       openModal('modalClientOverlay');
+    }
+
+    function renderClientSalesHistory(clientId) {
+      const container = document.getElementById('clientSalesHistory');
+      const clientSales = ventas.filter(v => v.clienteId === clientId).sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+      
+      if (clientSales.length === 0) {
+        container.style.display = 'none';
+        return;
+      }
+      
+      container.style.display = 'block';
+      let html = '<h3 style="margin-bottom:12px; font-size:16px;">Últimas ventas</h3>';
+      const maxItems = 10;
+      clientSales.slice(0, maxItems).forEach(v => {
+        const fecha = new Date(v.fecha + 'T12:00:00').toLocaleDateString('es-ES', { day:'2-digit', month:'2-digit', year:'numeric' });
+        let detalle = [];
+        if (v.mineral > 0) detalle.push(`${v.mineral} Min`);
+        if (v.saborizada > 0) detalle.push(`${v.saborizada} Sab`);
+        html += `
+          <div class="history-item">
+            <span class="history-date">${fecha}</span>
+            <span class="history-detail">${detalle.join(', ') || 'Sin detalle'}</span>
+            <span class="history-amount">${formatearBs(v.total)}</span>
+          </div>`;
+      });
+      if (clientSales.length > maxItems) {
+        html += `<div style="text-align:center; font-size:12px; color:var(--text-secondary); margin-top:8px;">Mostrando las ${maxItems} más recientes</div>`;
+      }
+      container.innerHTML = html;
     }
 
     function saveClient() {
       const name = document.getElementById('clientName').value.trim();
       const phone = document.getElementById('clientPhone').value.trim();
       const address = document.getElementById('clientAddress').value.trim();
+      const frequency = document.getElementById('clientFrequency').value.trim();
       
       if (!name || !phone) return showToast('Nombre y teléfono son obligatorios', 'error');
       
       const isNew = !editingClientId;
       if (editingClientId) {
         const client = clients.find(c => c.id === editingClientId);
-        if (client) Object.assign(client, { name, phone, address });
+        if (client) Object.assign(client, { name, phone, address, frequency: frequency || '' });
       } else {
-        clients.push({ id: Date.now().toString(), name, phone, address });
+        clients.push({ id: Date.now().toString(), name, phone, address, frequency: frequency || '' });
       }
       
       saveDB('agua_clientes', clients);
@@ -1060,7 +1183,6 @@
       actualizarStockUI();
       llenarSelectClientes();
 
-      // Cargar la foto de perfil guardada si existe
       const savedAvatar = localStorage.getItem('agua_avatar');
       if (savedAvatar) {
         document.getElementById('profile-img').src = savedAvatar;
