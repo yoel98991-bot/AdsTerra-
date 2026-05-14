@@ -587,7 +587,7 @@
         <input type="tel" id="clientPhone" placeholder="+58 412 1234567">
       </div>
       <div class="input-group">
-        <label>Dirección</label>
+        <label>Dirección (Agrega | GPS: lat,lng opcional)</label>
         <input type="text" id="clientAddress" placeholder="Calle, zona, ciudad">
       </div>
       <div class="input-group">
@@ -1297,8 +1297,21 @@
       filtered.forEach(client => {
         const stats = getClientStats(client.id);
         const inicial = client.name.charAt(0).toUpperCase();
+        
+        // Link de WhatsApp
         const urlWa = `https://wa.me/${client.phone.replace(/[^0-9]/g, '')}?text=Hola%20${encodeURIComponent(client.name)},%20te%20escribimos%20de%20AguaBol.`;
-        const urlMap = client.address ? `https://maps.google.com/?q=${encodeURIComponent(client.address)}` : '#';
+        
+        // Lógica de Google Maps 100% Nativa y Gratis
+        let urlMap = '#';
+        if (client.address) {
+           let queryBusqueda = client.address;
+           if (client.address.includes('| GPS:')) {
+               // Extrae las coordenadas si vienen del botón GPS del cliente
+               queryBusqueda = client.address.split('| GPS:')[1].trim();
+           }
+           // Genera el Universal Link
+           urlMap = `https://maps.google.com/?q=${encodeURIComponent(queryBusqueda)}`;
+        }
 
         let badgeDeuda = '';
         if(stats.deudaEnvases > 0) {
