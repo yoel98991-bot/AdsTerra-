@@ -2,9 +2,9 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <meta name="theme-color" content="#f4f6f9">
-  <title>AguaBol - Portal de Pedidos</title>
+  <title>AguaBol - Pedidos</title>
   
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   
@@ -12,438 +12,357 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
 
   <style>
-    :root {
-      --system-bg: #f4f6f9;
-      --card-bg: #ffffff;
-      --text-primary: #111827;
-      --text-secondary: #6b7280;
-      --tint: #0ea5e9; 
-      --destructive: #ef4444;
-      --green: #10b981;
-      --separator: #f3f4f6;
-      --shadow-sm: 0 4px 12px rgba(0,0,0,0.04);
-      --radius-sm: 16px;
+    /* ========== VARIABLES Y RESET ========== */
+    :root { 
+      --tint: #0ea5e9; --tint-hover: #0284c7; --bg: #f4f6f9; --card: #ffffff; 
+      --text-main: #111827; --text-muted: #6b7280; --green: #10b981; --gold: #f59e0b;
+      --radius-lg: 28px; --radius-md: 20px; --radius-sm: 14px;
     }
-
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, sans-serif; -webkit-tap-highlight-color: transparent;}
     
-    body { background: var(--system-bg); color: var(--text-primary); padding-bottom: 90px; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif; -webkit-tap-highlight-color: transparent;}
     
-    .header { padding: 24px 20px 16px; background: white; border-radius: 0 0 24px 24px; box-shadow: var(--shadow-sm); position: sticky; top: 0; z-index: 100; margin-bottom: 20px;}
-    .brand-title { font-size: 28px; font-weight: 800; color: var(--tint); display: flex; align-items: center; gap: 8px;}
-
-    .screen { display: none; padding: 0 20px; animation: fadeIn 0.3s ease; }
-    .screen.active { display: block; }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-    .card { background: var(--card-bg); border-radius: var(--radius-sm); padding: 20px; margin-bottom: 20px; box-shadow: var(--shadow-sm); }
+    html, body { width: 100%; height: 100dvh; overflow: hidden; background: var(--bg); color: var(--text-main); }
     
-    .input-group { margin-bottom: 16px; }
-    .input-group label { display: block; font-size: 12px; font-weight: 700; color: var(--text-secondary); margin-bottom: 8px; text-transform: uppercase; }
-    input, textarea { width: 100%; padding: 14px; border-radius: 12px; border: 1px solid #e2e8f0; background: #f8fafc; font-size: 16px; font-weight: 600; outline: none; }
-    input:focus, textarea:focus { border-color: var(--tint); background: white; box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15); }
+    /* ========== ANIMACIONES ========== */
+    @keyframes fadeSlideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes popIn { 0% { transform: scale(0.8); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+    @keyframes float { 0% { transform: translateY(0px); } 50% { transform: translateY(-10px); } 100% { transform: translateY(0px); } }
 
-    .btn-primary { width: 100%; background: linear-gradient(135deg, var(--tint), #0284c7); color: white; padding: 16px; border-radius: 12px; border: none; font-size: 16px; font-weight: 700; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 8px; box-shadow: 0 4px 12px rgba(14, 165, 233, 0.3); transition: transform 0.1s;}
-    .btn-primary:active { transform: scale(0.97); }
+    /* ========== PANTALLA ACCESO (ONBOARDING) ========== */
+    #auth-screen {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+      background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+      z-index: 1000; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 24px;
+      transition: opacity 0.5s ease, transform 0.5s ease;
+    }
+    #auth-screen.hidden { opacity: 0; transform: scale(1.05); pointer-events: none; }
+    
+    .auth-card {
+      background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+      width: 100%; max-width: 400px; border-radius: var(--radius-lg); padding: 32px 24px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.06); border: 1px solid white;
+    }
+    
+    .form-group { margin-bottom: 16px; }
+    .auth-input { width: 100%; padding: 18px 16px; background: white; border: 1.5px solid #e2e8f0; border-radius: 16px; font-size: 16px; font-weight: 600; outline: none; transition: 0.3s; }
+    .auth-input:focus { border-color: var(--tint); box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.1); }
 
-    .product-row { display: flex; align-items: center; justify-content: space-between; padding: 16px 0; border-bottom: 1px solid var(--separator); }
-    .product-row:last-child { border-bottom: none; }
-    .product-info { display: flex; align-items: center; gap: 14px; }
-    .product-icon { width: 48px; height: 48px; border-radius: 14px; display: flex; align-items: center; justify-content: center; }
-    .qty-controls { display: flex; align-items: center; background: #f8fafc; border-radius: 10px; border: 1px solid #e2e8f0;}
-    .btn-qty { width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; background: transparent; border: none; font-size: 20px; font-weight: bold; color: var(--tint); cursor: pointer; }
-    .qty-display { width: 30px; text-align: center; font-weight: 800; font-size: 16px; }
+    #registro-campos { max-height: 0; opacity: 0; overflow: hidden; transition: all 0.5s ease; }
+    #registro-campos.visible { max-height: 350px; opacity: 1; margin-top: 16px; }
 
-    /* PANTALLA DE RASTREO (LIVE TRACKING) */
-    .tracking-card { background: white; border-radius: 20px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.08); display: none; }
-    .tracking-header { padding: 20px; background: linear-gradient(135deg, #f0f9ff, #e0f2fe); border-bottom: 1px solid #bae6fd; text-align: center;}
-    .pulse-dot { display: inline-block; width: 10px; height: 10px; background: var(--tint); border-radius: 50%; margin-right: 8px; box-shadow: 0 0 0 0 rgba(14, 165, 233, 0.7); animation: pulse 1.5s infinite; }
-    @keyframes pulse { 0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(14, 165, 233, 0.7); } 70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(14, 165, 233, 0); } 100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(14, 165, 233, 0); } }
+    /* ========== APP PRINCIPAL (NATIVA) ========== */
+    #main-app { display: none; width: 100%; height: 100%; position: relative; }
+    #main-app.visible { display: block; }
+    
+    .screen { 
+      display: none; position: absolute; top: 0; left: 0; right: 0; 
+      bottom: calc(env(safe-area-inset-bottom) + 70px); 
+      overflow-y: auto; -webkit-overflow-scrolling: touch;
+      padding: calc(env(safe-area-inset-top) + 20px) 20px 20px 20px;
+    }
+    .screen.active { display: block; animation: fadeSlideUp 0.3s forwards; }
 
-    #mapa-cliente { width: 100%; height: 350px; background: #e2e8f0; }
+    /* ========== COMPONENTES UI ========== */
+    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+    .avatar-mini { width: 44px; height: 44px; border-radius: 22px; background: linear-gradient(135deg, var(--tint), #0284c7); color: white; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 18px; box-shadow: 0 4px 10px rgba(14, 165, 233, 0.3); }
 
-    /* TOAST */
-    .toast-container { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 9999; display: flex; flex-direction: column; gap: 10px; width: 90%; max-width: 400px; pointer-events: none;}
-    .toast { background: rgba(0,0,0,0.85); color: white; padding: 14px 20px; border-radius: 100px; font-weight: 600; font-size: 14px; text-align: center; backdrop-filter: blur(10px); animation: slideDown 0.3s forwards, fadeOut 0.3s ease 3s forwards; }
-    @keyframes slideDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
-    @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
+    .card { background: var(--card); padding: 20px; border-radius: var(--radius-md); box-shadow: 0 8px 24px rgba(0,0,0,0.03); margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.8); }
+    .section-title { font-size: 14px; font-weight: 800; margin-bottom: 16px; color: var(--text-main); text-transform: uppercase; letter-spacing: 1px; display: flex; align-items: center; gap: 8px;}
+
+    .product-row { display: flex; align-items: center; justify-content: space-between; padding: 16px; background: #f8fafc; border-radius: 16px; margin-bottom: 12px; }
+    .qty-control { display: flex; align-items: center; background: white; border-radius: 12px; border: 1px solid #e2e8f0; padding: 4px; }
+    .qty-btn { width: 34px; height: 34px; border-radius: 8px; border: none; background: #f1f5f9; font-size: 20px; font-weight: bold; cursor: pointer; }
+    .qty-val { font-size: 18px; font-weight: 800; width: 36px; text-align: center; }
+
+    /* ========== RASTREO LIVE ========== */
+    #tracking-card { display: none; background: white; border-radius: var(--radius-lg); overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.08); margin-bottom: 20px; }
+    #mapa-cliente { width: 100%; height: 300px; background: #e2e8f0; z-index: 1;}
+    .status-bar { padding: 16px; background: var(--green); color: white; text-align: center; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 10px; }
+    .pulse { width: 8px; height: 8px; background: white; border-radius: 50%; animation: pulse 1s infinite; }
+    @keyframes pulse { 0% { transform: scale(1); opacity: 1; } 100% { transform: scale(2.5); opacity: 0; } }
+
+    /* ========== TARJETA LEALTAD ========== */
+    .loyalty-card { background: linear-gradient(135deg, #1e293b, #0f172a); border-radius: 24px; padding: 24px; color: white; position: relative; overflow: hidden; }
+    .stamps-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-top: 20px; }
+    .stamp-spot { aspect-ratio: 1; border-radius: 50%; border: 2px dashed rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.2); }
+    .stamp-spot.filled { background: var(--tint); border-style: solid; box-shadow: 0 0 15px var(--tint); animation: popIn 0.5s; }
+    .stamp-spot.filled svg { opacity: 1 !important; }
+    .stamp-spot.free { border-color: var(--gold); }
+    .stamp-spot.free.filled { background: var(--gold); box-shadow: 0 0 15px var(--gold); }
+
+    /* ========== TAB BAR ========== */
+    .tab-bar { position: absolute; bottom: 0; left: 0; right: 0; background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(20px); border-top: 1px solid rgba(0,0,0,0.05); display: flex; justify-content: space-around; height: calc(env(safe-area-inset-bottom) + 70px); padding-bottom: env(safe-area-inset-bottom); z-index: 200; }
+    .tab-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #94a3b8; font-size: 11px; font-weight: 700; gap: 4px; cursor: pointer; }
+    .tab-item.active { color: var(--tint); }
+
+    /* ========== BOTONES ========== */
+    .btn-main { width: 100%; padding: 18px; background: linear-gradient(135deg, var(--tint), #0284c7); color: white; border: none; border-radius: 16px; font-size: 16px; font-weight: 800; cursor: pointer; box-shadow: 0 8px 20px rgba(14,165,233,0.3); }
+    .btn-main:active { transform: scale(0.97); }
+    .btn-gps { width: 100%; padding: 14px; background: #f0f9ff; color: var(--tint); border: 1px dashed #bae6fd; border-radius: 12px; font-size: 14px; font-weight: 700; margin-top: 10px; cursor: pointer; }
+    .btn-gps.success { background: #dcfce7; color: #16a34a; border-color: #86efac; }
+
+    #toast { display: none; position: fixed; top: calc(env(safe-area-inset-top) + 20px); left: 50%; transform: translateX(-50%); background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); color: var(--text-main); padding: 14px 24px; border-radius: 100px; font-weight: 800; z-index: 9999; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border: 1px solid rgba(0,0,0,0.05); align-items: center; gap: 10px; width: 90%; max-width: 350px;}
+    .spinner { border: 3px solid rgba(255,255,255,0.3); border-radius: 50%; border-top: 3px solid transparent; width: 20px; height: 20px; animation: spin 1s linear infinite; display: none; }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
   </style>
 </head>
 <body>
 
-  <div class="toast-container" id="toast-container"></div>
+  <div id="toast"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg> <span id="toast-msg">Mensaje</span></div>
 
-  <div class="header">
-    <div class="brand-title">
-      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z"/></svg>
-      AguaBol
-    </div>
-    <div style="font-size: 13px; color: var(--text-secondary); font-weight: 600; margin-top: 4px;" id="user-greeting">Bienvenido</div>
-  </div>
-
-  <div id="screen-login" class="screen active">
-    <h2 style="font-size: 24px; font-weight: 800; margin-bottom: 8px;">Crea tu cuenta</h2>
-    <p style="color: var(--text-secondary); font-size: 14px; margin-bottom: 24px;">Necesitamos tus datos para enviarte el pedido a casa.</p>
-    
-    <div class="card">
-      <div class="input-group">
-        <label>Nombre y Apellido</label>
-        <input type="text" id="reg-nombre" placeholder="Ej. Juan Pérez">
+  <div id="auth-screen">
+    <div class="auth-logo"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg></div>
+    <div class="auth-card">
+      <h1 class="auth-title">Bienvenido</h1>
+      <p class="auth-subtitle" id="auth-instruction">Ingresa tu número de WhatsApp para continuar.</p>
+      <div class="form-group"><input type="tel" id="auth-phone" class="auth-input" placeholder="Ej. 0412 1234567"></div>
+      <div id="registro-campos">
+        <div class="form-group"><input type="text" id="auth-name" class="auth-input" placeholder="Tu Nombre"></div>
+        <div class="form-group"><input type="text" id="auth-address" class="auth-input" placeholder="Dirección"></div>
       </div>
-      <div class="input-group">
-        <label>Número de WhatsApp</label>
-        <input type="tel" id="reg-telefono" placeholder="0412 1234567">
-      </div>
-      <div class="input-group">
-        <label>Dirección de entrega</label>
-        <textarea id="reg-direccion" rows="3" placeholder="Calle, casa/apto, referencia..."></textarea>
-      </div>
-      
-      <button class="btn-primary" style="background: #f1f5f9; color: var(--tint); box-shadow: none; margin-bottom: 16px;" onclick="capturarGPS()">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg>
-        Fijar mi ubicación GPS actual
+      <button class="btn-main" id="btn-auth" onclick="procesarAcceso()">
+        <span id="btn-auth-text">Continuar</span>
+        <div class="spinner" id="btn-auth-spinner"></div>
       </button>
-
-      <button class="btn-primary" onclick="registrarUsuario()">Continuar al Catálogo</button>
     </div>
   </div>
 
-  <div id="screen-pedido" class="screen">
+  <div id="main-app">
     
-    <div id="catalogo-container">
-      <h2 style="font-size: 24px; font-weight: 800; margin-bottom: 16px;">¿Qué necesitas hoy?</h2>
-      
+    <div id="screen-pedido" class="screen active">
+      <div class="header">
+        <div><div class="header-greeting">Hola, <span id="display-name">...</span> 👋</div><div class="header-subtitle">¿Qué te llevamos hoy?</div></div>
+        <div class="avatar-mini" id="header-avatar">A</div>
+      </div>
+
+      <div id="tracking-card">
+        <div class="status-bar"><div class="pulse"></div> EN CAMINO</div>
+        <div id="mapa-cliente"></div>
+        <div style="padding: 16px; text-align: center;">
+          <p style="font-weight: 700; color: var(--text-main);">Tu repartidor está cerca</p>
+          <p style="font-size: 13px; color: var(--text-secondary); margin-top: 4px;">Sigue el movimiento en tiempo real.</p>
+        </div>
+      </div>
+
+      <div id="catalogo-container">
+        <div class="card">
+          <div class="section-title">Productos</div>
+          <div class="product-row">
+            <div class="product-info"><div class="product-icon" style="color:var(--tint);"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/></svg></div><div><div style="font-weight:700;">Agua Mineral</div><div style="font-size:12px;color:var(--text-muted)" id="p-min">Bs 8.50</div></div></div>
+            <div class="qty-control"><button class="qty-btn" onclick="cambiarCant('min',-1)">-</button><div class="qty-val" id="qty-min">1</div><button class="qty-btn" onclick="cambiarCant('min',1)">+</button></div>
+          </div>
+          <div class="product-row">
+            <div class="product-info"><div class="product-icon" style="color:var(--gold);"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/></svg></div><div><div style="font-weight:700;">Saborizada</div><div style="font-size:12px;color:var(--text-muted)" id="p-sab">Bs 10.00</div></div></div>
+            <div class="qty-control"><button class="qty-btn" onclick="cambiarCant('sab',-1)">-</button><div class="qty-val" id="qty-sab">0</div><button class="qty-btn" onclick="cambiarCant('sab',1)">+</button></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="section-title">Dirección Actual</div>
+          <p id="resumen-direccion" style="font-size:14px; font-weight:600; color:var(--text-muted);"></p>
+          <button class="btn-gps" id="btn-gps" onclick="obtenerGPS()">📍 Compartir mi GPS exacto</button>
+        </div>
+        <div class="checkout-bar">
+          <div><div style="font-size:12px;font-weight:700;color:var(--text-muted);">TOTAL</div><div id="total-pago" style="font-size:24px;font-weight:800;color:var(--tint);">Bs 8.50</div></div>
+          <button class="btn-main" style="width:auto; padding:16px 30px;" onclick="enviarPedido()">Pedir Ahora</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="screen-lealtad" class="screen">
+      <div class="header" style="justify-content:center;"><h1>🎁 Club AguaBol</h1></div>
+      <div class="loyalty-card">
+        <h2 style="font-size:18px;">Tarjeta de Sellos</h2>
+        <p style="font-size:13px; opacity:0.8;">Compra 10 y el próximo es GRATIS.</p>
+        <div class="stamps-grid" id="stamps-container"></div>
+        <div id="status-lealtad" style="margin-top:20px;text-align:center;font-weight:700;font-size:14px;">Cargando puntos...</div>
+      </div>
+    </div>
+
+    <div id="screen-perfil" class="screen">
+      <div class="header" style="justify-content:center;"><h1>⚙️ Mi Perfil</h1></div>
       <div class="card">
-        <div class="product-row">
-          <div class="product-info">
-            <div class="product-icon" style="background: #e0f2fe; color: var(--tint);"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z"/></svg></div>
-            <div>
-              <div style="font-weight: 700; font-size: 16px;">Agua Mineral</div>
-              <div style="color: var(--text-secondary); font-size: 13px;" id="lbl-precio-mineral">Bs 0.00</div>
-            </div>
-          </div>
-          <div class="qty-controls">
-            <button class="btn-qty" onclick="cambiarCant('mineral', -1)">-</button>
-            <div class="qty-display" id="qty-mineral">0</div>
-            <button class="btn-qty" onclick="cambiarCant('mineral', 1)">+</button>
-          </div>
-        </div>
-
-        <div class="product-row">
-          <div class="product-info">
-            <div class="product-icon" style="background: #fef3c7; color: #d97706;"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z"/></svg></div>
-            <div>
-              <div style="font-weight: 700; font-size: 16px;">Saborizada</div>
-              <div style="color: var(--text-secondary); font-size: 13px;" id="lbl-precio-saborizada">Bs 0.00</div>
-            </div>
-          </div>
-          <div class="qty-controls">
-            <button class="btn-qty" onclick="cambiarCant('saborizada', -1)">-</button>
-            <div class="qty-display" id="qty-saborizada">0</div>
-            <button class="btn-qty" onclick="cambiarCant('saborizada', 1)">+</button>
-          </div>
-        </div>
+        <div class="section-title">Mis Datos</div>
+        <div class="form-group"><label>Nombre</label><input type="text" id="perfil-nombre" class="auth-input"></div>
+        <div class="form-group"><label>Dirección</label><input type="text" id="perfil-direccion" class="auth-input"></div>
+        <button class="btn-main" onclick="actualizarPerfil()">Guardar Cambios</button>
       </div>
-
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding: 0 10px;">
-        <span style="font-size: 18px; font-weight: 700; color: var(--text-secondary);">Total a pagar</span>
-        <span style="font-size: 28px; font-weight: 800; color: var(--text-primary);" id="total-pagar">Bs 0.00</span>
-      </div>
-
-      <button class="btn-primary" id="btn-enviar-pedido" onclick="enviarPedido()">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-        Confirmar Pedido Ahora
-      </button>
+      <button class="btn-main" style="background:#fee2e2; color:var(--destructive); box-shadow:none;" onclick="cerrarSesion()">Cerrar Sesión</button>
     </div>
 
-    <div class="tracking-card" id="tracking-card">
-      <div class="tracking-header">
-        <h2 style="font-size: 22px; font-weight: 800; color: var(--text-primary); margin-bottom: 4px;" id="track-titulo">
-          <span class="pulse-dot"></span>Procesando pedido...
-        </h2>
-        <p style="color: var(--text-secondary); font-size: 14px; font-weight: 600;" id="track-subtitulo">
-          Estamos asignando un repartidor.
-        </p>
-      </div>
-      <div id="mapa-cliente"></div>
-      
-      <div style="padding: 20px;">
-        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px; margin-bottom: 16px;">
-          <div style="font-size: 12px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 8px;">Detalle de tu orden</div>
-          <div id="track-detalle" style="font-size: 16px; font-weight: 700;">...</div>
-        </div>
-        <button class="btn-primary" style="background: #fee2e2; color: var(--destructive); box-shadow: none;" onclick="window.open('https://wa.me/584120000000?text=Hola,%20tengo%20un%20problema%20con%20mi%20pedido', '_blank')">
-          Contactar Soporte
-        </button>
-      </div>
+    <div class="tab-bar">
+      <div class="tab-item active" onclick="switchTab('pedido')"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span>Inicio</span></div>
+      <div class="tab-item" onclick="switchTab('lealtad')"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg><span>Regalo</span></div>
+      <div class="tab-item" onclick="switchTab('perfil')"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span>Perfil</span></div>
     </div>
 
   </div>
 
   <script>
-    // ========== CONFIGURACIÓN DE SUPABASE ==========
-    // PEGA AQUÍ LAS MISMAS CLAVES QUE TIENES EN EL ADMINISTRADOR
-    const SUPABASE_URL = 'https://aiipxfssbnpfpefbbnwm.supabase.co';
-    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFpaXB4ZnNzYm5wZnBlZmJibndtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3MDM2MzIsImV4cCI6MjA5NDI3OTYzMn0.CS_e43iE4ClLgqQULrm4mNm3ji71WQZQcdBNfg6lTHg';
-    const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-    // ========== VARIABLES GLOBALES ==========
-    let usuarioActual = null;
-    let precios = { mineral: 0, saborizada: 0 };
-    let cant = { mineral: 0, saborizada: 0 };
+    const db = window.supabase.createClient('https://aiipxfssbnpfpefbbnwm.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFpaXB4ZnNzYm5wZnBlZmJibndtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3MDM2MzIsImV4cCI6MjA5NDI3OTYzMn0.CS_e43iE4ClLgqQULrm4mNm3ji71WQZQcdBNfg6lTHg');
     
-    // Variables del Mapa de Rastreo
-    let mapaRastreo = null;
-    let marcadorRepartidor = null;
-    let marcadorCasa = null;
-    let rutaCliente = null;
+    let usuarioActual = null, coordsGPS = null, pMin = 8.5, pSab = 10, esRegistro = false;
+    let mapa = null, markRep = null, markCasa = null, polyRuta = null;
 
-    // Utilidades
-    function showToast(msg) {
-      const container = document.getElementById('toast-container');
-      const toast = document.createElement('div');
-      toast.className = 'toast';
-      toast.innerText = msg;
-      container.appendChild(toast);
-      setTimeout(() => toast.remove(), 3300);
-    }
-
-    function switchScreen(id) {
-      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-      document.getElementById(id).classList.add('active');
-    }
-
-    // ========== 1. SISTEMA DE USUARIO (LOGIN) ==========
-    async function inicializarApp() {
-      const storedId = localStorage.getItem('aguabol_cliente_id');
-      
-      // Obtener Precios
-      const { data: conf } = await db.from('configuracion').select('*').eq('id', 1).single();
-      if(conf) {
-        precios.mineral = parseFloat(conf.precio_mineral);
-        precios.saborizada = parseFloat(conf.precio_saborizada);
-        document.getElementById('lbl-precio-mineral').innerText = `Bs ${precios.mineral.toFixed(2)}`;
-        document.getElementById('lbl-precio-saborizada').innerText = `Bs ${precios.saborizada.toFixed(2)}`;
+    // --- AUTH ---
+    async function checkAuth() {
+      const id = localStorage.getItem('aguabol_id');
+      if (id) {
+        const { data: user } = await db.from('clientes').select('*').eq('id', id).single();
+        if (user) { usuarioActual = user; iniciarApp(); return; }
       }
-
-      if (storedId) {
-        // Buscar usuario en base de datos
-        const { data: user } = await db.from('clientes').select('*').eq('id', storedId).single();
-        if (user) {
-          usuarioActual = user;
-          document.getElementById('user-greeting').innerText = `Hola, ${user.nombre.split(' ')[0]}`;
-          switchScreen('screen-pedido');
-          
-          // Verificar si tiene un pedido activo para mostrar el mapa directamente
-          await chequearPedidoActivo();
-          
-          // Suscribirse a cambios en tiempo real de SU pedido
-          db.channel('public:pedidos')
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'pedidos', filter: `cliente_id=eq.${usuarioActual.id}` }, (payload) => {
-               chequearPedidoActivo();
-            }).subscribe();
-            
-          return;
-        }
-      }
-      
-      // Si no hay usuario, mostrar login
-      switchScreen('screen-login');
     }
 
-    function capturarGPS() {
-      if(navigator.geolocation) {
-        showToast('Buscando señal GPS...');
-        navigator.geolocation.getCurrentPosition((pos) => {
-          const lat = pos.coords.latitude;
-          const lng = pos.coords.longitude;
-          const txtDir = document.getElementById('reg-direccion');
-          let dirVal = txtDir.value;
-          if(dirVal.includes('| GPS:')) dirVal = dirVal.split('| GPS:')[0].trim();
-          txtDir.value = `${dirVal} | GPS: ${lat},${lng}`;
-          showToast('Ubicación capturada correctamente');
-        }, (err) => showToast('Activa el GPS de tu teléfono'));
+    async function procesarAcceso() {
+      const tel = document.getElementById('auth-phone').value.trim();
+      if (tel.length < 10) return showToast("Número inválido", true);
+      const btn = document.getElementById('btn-auth');
+      btn.disabled = true;
+
+      if (!esRegistro) {
+        const { data: user } = await db.from('clientes').select('*').eq('telefono', tel).maybeSingle();
+        if (user) { usuarioActual = user; guardarLocal(user); iniciarApp(); } 
+        else { esRegistro = true; document.getElementById('registro-campos').classList.add('visible'); document.getElementById('btn-auth-text').innerText = "Crear Cuenta"; btn.disabled = false; }
       } else {
-        showToast('GPS no compatible en este navegador');
+        const nom = document.getElementById('auth-name').value.trim();
+        const dir = document.getElementById('auth-address').value.trim();
+        if (!nom) return showToast("Nombre requerido", true);
+        const id = crypto.randomUUID();
+        await db.from('clientes').insert({ id, nombre: nom, telefono: tel, direccion: dir });
+        usuarioActual = { id, nombre: nom, telefono: tel, direccion: dir };
+        guardarLocal(usuarioActual); iniciarApp();
       }
     }
 
-    async function registrarUsuario() {
-      const nombre = document.getElementById('reg-nombre').value.trim();
-      const telefono = document.getElementById('reg-telefono').value.trim();
-      const direccion = document.getElementById('reg-direccion').value.trim();
-
-      if(!nombre || !telefono || !direccion) return showToast('Completa todos los campos');
-      
-      const btn = document.querySelector('#screen-login .btn-primary:last-child');
-      btn.innerText = 'Guardando...'; btn.disabled = true;
-
-      // Generar ID único
-      const nuevoId = crypto.randomUUID();
-      const { error } = await db.from('clientes').insert({
-        id: nuevoId, nombre, telefono, direccion
-      });
-
-      if(error) {
-        showToast('Error de conexión');
-        btn.innerText = 'Continuar al Catálogo'; btn.disabled = false;
-        return;
-      }
-
-      localStorage.setItem('aguabol_cliente_id', nuevoId);
-      
-      // Recargar la app para iniciar sesión
-      window.location.reload();
+    function guardarLocal(u) {
+      localStorage.setItem('aguabol_id', u.id);
+      localStorage.setItem('aguabol_nombre', u.nombre);
+      localStorage.setItem('aguabol_telefono', u.telefono);
+      localStorage.setItem('aguabol_direccion', u.direccion || '');
     }
 
-    // ========== 2. CARRITO DE COMPRAS ==========
-    function cambiarCant(tipo, delta) {
-      cant[tipo] = Math.max(0, cant[tipo] + delta);
-      document.getElementById(`qty-${tipo}`).innerText = cant[tipo];
+    function iniciarApp() {
+      document.getElementById('display-name').innerText = usuarioActual.nombre.split(' ')[0];
+      document.getElementById('header-avatar').innerText = usuarioActual.nombre[0].toUpperCase();
+      document.getElementById('resumen-direccion').innerText = usuarioActual.direccion || "Sin dirección fija.";
+      document.getElementById('perfil-nombre').value = usuarioActual.nombre;
+      document.getElementById('perfil-direccion').value = usuarioActual.direccion;
+      document.getElementById('auth-screen').classList.add('hidden');
+      setTimeout(() => { document.getElementById('auth-screen').style.display='none'; document.getElementById('main-app').classList.add('visible'); }, 500);
+      cargarPrecios(); chequearPedidoActivo();
       
-      const total = (cant.mineral * precios.mineral) + (cant.saborizada * precios.saborizada);
-      document.getElementById('total-pagar').innerText = `Bs ${total.toFixed(2)}`;
+      // Suscribirse a cambios en su pedido
+      db.channel('rastreo').on('postgres_changes', { event:'*', schema:'public', table:'pedidos', filter:`cliente_id=eq.${usuarioActual.id}` }, () => chequearPedidoActivo()).subscribe();
+    }
+
+    async function cargarPrecios() {
+      const { data } = await db.from('configuracion').select('*').eq('id', 1).single();
+      if (data) { pMin = data.precio_mineral; pSab = data.precio_saborizada; }
+      document.getElementById('p-min').innerText = `Bs ${pMin.toFixed(2)}`;
+      document.getElementById('p-sab').innerText = `Bs ${pSab.toFixed(2)}`;
+      calcularTotal();
+    }
+
+    // --- RASTREO ---
+    async function chequearPedidoActivo() {
+      if(!usuarioActual) return;
+      const { data: p } = await db.from('pedidos').select('*').eq('cliente_id', usuarioActual.id).in('estado',['pendiente','en_camino']).order('created_at',{ascending:false}).limit(1).maybeSingle();
+      
+      if (p && p.estado === 'en_camino') {
+        document.getElementById('catalogo-container').style.display = 'none';
+        document.getElementById('tracking-card').style.display = 'block';
+        if (!mapa) {
+          mapa = L.map('mapa-cliente', { zoomControl:false }).setView([10.162, -67.999], 14);
+          L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png').addTo(mapa);
+        }
+        setTimeout(() => mapa.invalidateSize(), 300);
+
+        // Casa
+        if (usuarioActual.direccion.includes('| GPS:')) {
+          const c = usuarioActual.direccion.split('| GPS:')[1].split(',');
+          if(!markCasa) markCasa = L.marker([c[0],c[1]]).addTo(mapa).bindPopup("Tu Casa");
+        }
+
+        // Chofer
+        if (p.ubicacion_chofer) {
+          const c = p.ubicacion_chofer.split(',');
+          if(!markRep) markRep = L.marker([c[0],c[1]], {icon: L.divIcon({html:'🚚', className:'truck-emoji', iconSize:[30,30]})}).addTo(mapa);
+          else markRep.setLatLng([c[0],c[1]]);
+          mapa.panTo([c[0],c[1]]);
+        }
+      } else {
+        document.getElementById('catalogo-container').style.display = 'block';
+        document.getElementById('tracking-card').style.display = 'none';
+      }
+    }
+
+    // --- FUNCIONALIDADES ---
+    function switchTab(id) {
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      document.getElementById('screen-' + id).classList.add('active');
+      document.querySelectorAll('.tab-item').forEach((t, i) => t.classList.toggle('active', (id==='pedido'&&i===0)||(id==='lealtad'&&i===1)||(id==='perfil'&&i===2)));
+      if(id === 'lealtad') cargarLealtad();
+    }
+
+    function cambiarCant(t, d) {
+      const el = document.getElementById('qty-'+t);
+      el.innerText = Math.max(0, parseInt(el.innerText) + d);
+      calcularTotal();
+    }
+
+    function calcularTotal() {
+      const t = (parseInt(document.getElementById('qty-min').innerText)*pMin) + (parseInt(document.getElementById('qty-sab').innerText)*pSab);
+      document.getElementById('total-pago').innerText = `Bs ${t.toFixed(2)}`;
+    }
+
+    function obtenerGPS() {
+      if (navigator.geolocation) {
+        document.getElementById('btn-gps').innerText = "⏳ Obteniendo...";
+        navigator.geolocation.getCurrentPosition(pos => {
+          coordsGPS = `${pos.coords.latitude},${pos.coords.longitude}`;
+          document.getElementById('btn-gps').innerText = "✅ GPS Listo";
+          document.getElementById('btn-gps').classList.add('success');
+        });
+      }
     }
 
     async function enviarPedido() {
-      if(cant.mineral === 0 && cant.saborizada === 0) return showToast('Agrega al menos un producto');
-      if(!usuarioActual) return window.location.reload();
-
-      const btn = document.getElementById('btn-enviar-pedido');
-      btn.innerText = 'Enviando...'; btn.disabled = true;
-
-      const total = (cant.mineral * precios.mineral) + (cant.saborizada * precios.saborizada);
-      const idPedido = crypto.randomUUID();
-
+      const m = parseInt(document.getElementById('qty-min').innerText);
+      const s = parseInt(document.getElementById('qty-sab').innerText);
+      if (m+s === 0) return showToast("Añade productos", true);
+      
+      let dir = usuarioActual.direccion;
+      if (coordsGPS) dir = (dir ? dir.split('|')[0] : "GPS") + ` | GPS: ${coordsGPS}`;
+      
       const { error } = await db.from('pedidos').insert({
-        id: idPedido,
-        cliente_id: usuarioActual.id,
-        items: { mineral: cant.mineral, saborizada: cant.saborizada },
-        monto_total: total,
-        estado: 'pendiente'
+        id: crypto.randomUUID(), cliente_id: usuarioActual.id, items: { mineral: m, saborizada: s }, monto_total: (m*pMin + s*pSab)
       });
+      if (!error) { showToast("¡Pedido enviado!"); document.getElementById('qty-min').innerText="1"; document.getElementById('qty-sab').innerText="0"; calcularTotal(); chequearPedidoActivo(); }
+    }
 
-      if(error) {
-        showToast('Error al enviar pedido');
-        btn.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> Confirmar Pedido Ahora';
-        btn.disabled = false;
-      } else {
-        // Limpiar carrito
-        cant = { mineral: 0, saborizada: 0 };
-        document.getElementById('qty-mineral').innerText = '0';
-        document.getElementById('qty-saborizada').innerText = '0';
-        document.getElementById('total-pagar').innerText = 'Bs 0.00';
-        btn.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> Confirmar Pedido Ahora';
-        btn.disabled = false;
-        
-        showToast('¡Pedido recibido!');
-        chequearPedidoActivo(); // Cambiar al mapa
+    async function cargarLealtad() {
+      const { data: v } = await db.from('ventas').select('mineral, saborizada').eq('cliente_id', usuarioActual.id);
+      let tot = 0; v?.forEach(x => tot += (x.mineral+x.saborizada));
+      const pts = tot % 10, faltan = 10 - pts;
+      document.getElementById('status-lealtad').innerText = faltan === 0 ? "¡Tienes un botellón GRATIS! 🎉" : `Te faltan ${faltan} para tu regalo`;
+      
+      const cont = document.getElementById('stamps-container'); cont.innerHTML = '';
+      for (let i=1; i<=10; i++) {
+        cont.innerHTML += `<div class="stamp-spot ${i===10?'free':''} ${i<=pts?'filled':''}"><svg viewBox="0 0 24 24" fill="white" style="opacity:0.2"><path d="M12 21.5c-3.3 0-6-2.6-6-5.8 0-3.3 3.8-9.1 5.2-11.2.3-.5 1.1-.5 1.5 0 1.4 2 5.3 7.9 5.3 11.2 0 3.2-2.7 5.8-6 5.8z"/></svg></div>`;
       }
     }
 
-    // ========== 3. RASTREO EN VIVO (LIVE TRACKING MAP) ==========
-    async function chequearPedidoActivo() {
-      if(!usuarioActual) return;
-      
-      // Buscar si el cliente tiene un pedido pendiente o en camino
-      const { data: pedido } = await db.from('pedidos')
-                                       .select('*')
-                                       .eq('cliente_id', usuarioActual.id)
-                                       .in('estado', ['pendiente', 'en_camino'])
-                                       .order('created_at', { ascending: false })
-                                       .limit(1)
-                                       .maybeSingle();
-      
-      const viewCatalogo = document.getElementById('catalogo-container');
-      const viewTracking = document.getElementById('tracking-card');
-
-      if(pedido) {
-        // Ocultar catálogo, mostrar rastreo
-        viewCatalogo.style.display = 'none';
-        viewTracking.style.display = 'block';
-        
-        let textDetalle = [];
-        if(pedido.items.mineral > 0) textDetalle.push(`${pedido.items.mineral} Mineral`);
-        if(pedido.items.saborizada > 0) textDetalle.push(`${pedido.items.saborizada} Saborizada`);
-        document.getElementById('track-detalle').innerText = textDetalle.join(' • ') + ` (Bs ${pedido.monto_total})`;
-
-        if (pedido.estado === 'pendiente') {
-           document.getElementById('track-titulo').innerHTML = '<span class="pulse-dot"></span>Procesando...';
-           document.getElementById('track-subtitulo').innerText = 'El administrador está revisando tu orden.';
-           document.getElementById('mapa-cliente').style.display = 'none';
-        } 
-        else if (pedido.estado === 'en_camino') {
-           document.getElementById('track-titulo').innerHTML = '<span class="pulse-dot" style="background:#10b981; box-shadow:0 0 0 0 rgba(16,185,129,0.7);"></span>¡Va en camino!';
-           document.getElementById('track-subtitulo').innerText = 'Sigue a tu repartidor en tiempo real en el mapa.';
-           document.getElementById('mapa-cliente').style.display = 'block';
-
-           // INICIALIZAR MAPA
-           if(!mapaRastreo) {
-             mapaRastreo = L.map('mapa-cliente', { zoomControl: false, dragging: false, scrollWheelZoom: false }).setView([10.1620, -67.9996], 14);
-             L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png').addTo(mapaRastreo);
-           }
-           setTimeout(() => mapaRastreo.invalidateSize(), 300);
-
-           // MARCADOR CASA DEL CLIENTE
-           let destLat = null, destLng = null;
-           if (usuarioActual.direccion && usuarioActual.direccion.includes('| GPS:')) {
-              const coords = usuarioActual.direccion.split('| GPS:')[1].split(',');
-              destLat = parseFloat(coords[0]); destLng = parseFloat(coords[1]);
-              
-              if(!marcadorCasa) {
-                 const homeIcon = L.divIcon({ className: 'custom-div-icon', html: "<div style='background:var(--tint); width:16px; height:16px; border-radius:50%; border:3px solid white; box-shadow:0 2px 5px rgba(0,0,0,0.3);'></div>", iconSize: [16, 16] });
-                 marcadorCasa = L.marker([destLat, destLng], {icon: homeIcon}).addTo(mapaRastreo);
-              }
-           }
-
-           // MARCADOR CAMIÓN DEL CHOFER
-           if(pedido.ubicacion_chofer) {
-              const choferCoords = pedido.ubicacion_chofer.split(',');
-              const cLat = parseFloat(choferCoords[0]);
-              const cLng = parseFloat(choferCoords[1]);
-
-              // Icono animado del camioncito
-              const truckIconHtml = `<div style="background:white; border-radius:50%; width:40px; height:40px; display:flex; align-items:center; justify-content:center; box-shadow:0 4px 12px rgba(0,0,0,0.15); font-size:20px;">🚚</div>`;
-              const truckIcon = L.divIcon({ className: 'custom-truck', html: truckIconHtml, iconSize: [40, 40], iconAnchor: [20, 20] });
-
-              if(!marcadorRepartidor) {
-                 marcadorRepartidor = L.marker([cLat, cLng], {icon: truckIcon}).addTo(mapaRastreo);
-              } else {
-                 marcadorRepartidor.setLatLng([cLat, cLng]); // Animación natural
-              }
-
-              // Dibujar línea azul
-              if(destLat && destLng) {
-                 mapaRastreo.fitBounds(L.latLngBounds([cLat, cLng], [destLat, destLng]), {padding: [40,40]});
-                 try {
-                   const res = await fetch(`https://router.project-osrm.org/route/v1/driving/${cLng},${cLat};${destLng},${destLat}?geometries=geojson`);
-                   const rutaData = await res.json();
-                   if(rutaData.routes && rutaData.routes[0]) {
-                      if(rutaCliente) mapaRastreo.removeLayer(rutaCliente);
-                      rutaCliente = L.geoJSON(rutaData.routes[0].geometry, { style: { color: '#0ea5e9', weight: 5, dashArray: '10, 10' } }).addTo(mapaRastreo);
-                   }
-                 } catch(e) {}
-              }
-           }
-        }
-      } else {
-        // No hay pedido activo (O ya fue entregado/cancelado)
-        viewCatalogo.style.display = 'block';
-        viewTracking.style.display = 'none';
-        
-        // Destruir mapa para ahorrar memoria
-        if(mapaRastreo) { 
-           mapaRastreo.remove(); 
-           mapaRastreo = null; 
-           marcadorRepartidor = null; 
-           marcadorCasa = null; 
-           rutaCliente = null;
-        }
-      }
+    async function actualizarPerfil() {
+      const n = document.getElementById('perfil-nombre').value;
+      const d = document.getElementById('perfil-direccion').value;
+      await db.from('clientes').update({ nombre: n, direccion: d }).eq('id', usuarioActual.id);
+      usuarioActual.nombre = n; usuarioActual.direccion = d; guardarLocal(usuarioActual);
+      showToast("Perfil actualizado");
     }
 
-    // Arranque
-    document.addEventListener('DOMContentLoaded', inicializarApp);
+    function cerrarSesion() { localStorage.clear(); window.location.reload(); }
+    function showToast(m, err=false) { const t = document.getElementById('toast'); document.getElementById('toast-msg').innerText = m; t.style.display='flex'; setTimeout(()=>t.style.display='none', 3000); }
+
+    document.addEventListener('DOMContentLoaded', checkAuth);
   </script>
 </body>
 </html>
