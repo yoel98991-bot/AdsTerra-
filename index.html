@@ -499,7 +499,11 @@
     </div>
   </div>
 
-  <div id="pantallaRutaOverlay">
+<div id="pantallaRutaOverlay">
+    <button onclick="cerrarRuta()" style="position: absolute; top: calc(env(safe-area-inset-top) + 20px); left: 20px; z-index: 99999; width: 44px; height: 44px; border-radius: 22px; background: white; border: none; box-shadow: 0 4px 12px rgba(0,0,0,0.15); display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text-primary);">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+
     <div id="mapa-repartidor"></div>
     
     <div class="ruta-panel">
@@ -507,7 +511,12 @@
       
       <div class="cliente-info-panel">
         <div>
-          <h3 id="ruta-cliente-nombre" style="margin: 0 0 4px 0; font-size: 22px; font-weight: 800;">Cargando...</h3>
+          <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 4px;">
+            <h3 id="ruta-cliente-nombre" style="margin: 0; font-size: 22px; font-weight: 800;">Cargando...</h3>
+            <button id="btn-contacto-ruta" style="display: none; width: 36px; height: 36px; border-radius: 10px; border: none; background: #dcfce7; color: #16a34a; cursor: pointer; align-items: center; justify-content: center;">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+            </button>
+          </div>
           <div id="ruta-chofer-asignado" style="font-size: 13px; color: var(--tint); font-weight: 700;">Sin chofer asignado</div>
         </div>
         <div class="lealtad-badge" id="ruta-lealtad-badge">
@@ -530,17 +539,13 @@
       </div>
       
       <div class="panel-acciones">
-        <button class="btn-outline" style="color: var(--destructive); border-color: #fecaca; background: #fef2f2; margin: 0;" id="btn-cancelar-ruta">
-          Cancelar Pedido
-        </button>
-        <button class="btn-primary" style="background: #10b981; margin: 0;" id="btn-completar-ruta">
-          Marcar Entregado
-        </button>
+        <button class="btn-outline" style="color: var(--destructive); border-color: #fecaca; background: #fef2f2; margin: 0;" id="btn-cancelar-ruta">Cancelar Pedido</button>
+        <button class="btn-primary" style="background: #10b981; margin: 0;" id="btn-completar-ruta">Marcar Entregado</button>
       </div>
       <button id="btn-iniciar-viaje" class="btn-primary" style="background: linear-gradient(135deg, #10b981, #059669); width: 100%; margin-top: 12px;">
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
-  Iniciar Navegación (En App)
-</button>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
+        Iniciar Navegación (En App)
+      </button>
     </div>
   </div>
 
@@ -1025,6 +1030,25 @@
         document.getElementById('btn-completar-ruta').style.display = 'none';
         btnViaje.style.display = 'none'; // Ocultamos el botón si no hay pedido
       }
+
+      // ---- PEGAR ESTO DENTRO DE abrirControlRuta ----
+      let tlf = '';
+      if (pedidoId) {
+         const pedido = pedidosActivos.find(p => p.id === pedidoId);
+         if(pedido && pedido.clientes) tlf = pedido.clientes.telefono;
+      } else {
+         const c = clients.find(c => c.name === nombreCliente);
+         if (c) tlf = c.phone;
+      }
+      
+      const btnWa = document.getElementById('btn-contacto-ruta');
+      if (tlf) {
+         btnWa.style.display = 'flex';
+         btnWa.onclick = () => window.open(`https://wa.me/${tlf.replace(/\D/g,'')}`, '_blank');
+      } else {
+         btnWa.style.display = 'none';
+      }
+      // --------------------------------------------------
 
       // --- INICIALIZAR EL MAPA VISUAL ---
       if (!mapaRepartidor) {
