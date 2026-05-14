@@ -735,7 +735,7 @@
         reader.onload = function(e) {
           const imgData = e.target.result;
           document.getElementById('profile-img').src = imgData;
-          localStorage.setItem('agua_avatar', imgData); // Solo mantenemos avatar local para no cargar base64 pesada
+          localStorage.setItem('agua_avatar', imgData); // Solo mantenemos avatar local
           showToast('Foto de perfil actualizada', 'success');
         }
         reader.readAsDataURL(file);
@@ -761,7 +761,8 @@
       showToast('Sincronizando datos...', 'info');
       try {
         // Configuraciones / Precios
-        const { data: confData } = await db.from('configuracion').select('*').eq('id', 1).single();
+        const { data: confData, error: errConf } = await db.from('configuracion').select('*').eq('id', 1).single();
+        if (errConf) console.error("🛑 ERROR SUPABASE (Cargar Precios):", errConf);
         if (confData) {
           precios = {
             precioMineral: parseFloat(confData.precio_mineral),
@@ -776,7 +777,8 @@
         }
 
         // Stock
-        const { data: stockData } = await db.from('stock').select('*').eq('id', 1).single();
+        const { data: stockData, error: errStock } = await db.from('stock').select('*').eq('id', 1).single();
+        if (errStock) console.error("🛑 ERROR SUPABASE (Cargar Stock):", errStock);
         if (stockData) {
           stock = {
             mineral: stockData.mineral,
@@ -786,7 +788,8 @@
         }
 
         // Clientes
-        const { data: clientsData } = await db.from('clientes').select('*');
+        const { data: clientsData, error: errCli } = await db.from('clientes').select('*');
+        if (errCli) console.error("🛑 ERROR SUPABASE (Cargar Clientes):", errCli);
         if (clientsData) {
           clients = clientsData.map(c => ({
             id: c.id,
@@ -798,7 +801,8 @@
         }
 
         // Gastos
-        const { data: gastosData } = await db.from('gastos').select('*');
+        const { data: gastosData, error: errGas } = await db.from('gastos').select('*');
+        if (errGas) console.error("🛑 ERROR SUPABASE (Cargar Gastos):", errGas);
         if (gastosData) {
           gastos = gastosData.map(g => ({
             id: g.id,
@@ -809,7 +813,8 @@
         }
 
         // Ventas
-        const { data: ventasData } = await db.from('ventas').select('*');
+        const { data: ventasData, error: errVen } = await db.from('ventas').select('*');
+        if (errVen) console.error("🛑 ERROR SUPABASE (Cargar Ventas):", errVen);
         if (ventasData) {
           ventas = ventasData.map(v => ({
             id: v.id,
@@ -829,7 +834,7 @@
         renderClientList();
         
       } catch (err) {
-        console.error(err);
+        console.error("🛑 ERROR DE RED O EJECUCIÓN:", err);
         showToast('Error al sincronizar', 'error');
       }
     }
@@ -874,6 +879,7 @@
         calcularTotalVenta();
         cargarMovimiento();
       } else {
+        console.error("🛑 ERROR SUPABASE (Precios):", error);
         showToast('Error al actualizar precios', 'error');
       }
     }
@@ -1021,6 +1027,7 @@
       if (!error) {
         showToast('Gasto registrado', 'success');
       } else {
+        console.error("🛑 ERROR SUPABASE (Gastos):", error);
         showToast('Error guardando gasto en la nube', 'error');
       }
     }
@@ -1035,6 +1042,8 @@
       const { error } = await db.from('gastos').delete().eq('id', gastoId);
       if(!error) {
          showToast('Gasto eliminado', 'info');
+      } else {
+         console.error("🛑 ERROR SUPABASE (Eliminar Gasto):", error);
       }
     }
 
@@ -1142,18 +1151,23 @@
          total: total
       });
 
+      if (errVenta) {
+         console.error("🛑 ERROR SUPABASE (Insertar Venta):", errVenta);
+         return showToast('Error al registrar en nube', 'error');
+      }
+
       // Guardar en Supabase - Stock
-      await db.from('stock').upsert({
+      const { error: errStock } = await db.from('stock').upsert({
          id: 1,
          mineral: stock.mineral,
          saborizada: stock.saborizada,
          envases_vacios: stock.envasesVacios
       });
 
-      if (!errVenta) {
-         showToast('Venta registrada con éxito', 'success');
+      if (errStock) {
+         console.error("🛑 ERROR SUPABASE (Actualizar Stock):", errStock);
       } else {
-         showToast('Error al registrar en nube', 'error');
+         showToast('Venta registrada con éxito', 'success');
       }
     }
 
@@ -1163,12 +1177,13 @@
       actualizarStockUI(); // Actualizar UI rápido
 
       // Subir a Supabase
-      await db.from('stock').upsert({
+      const { error } = await db.from('stock').upsert({
          id: 1,
          mineral: stock.mineral,
          saborizada: stock.saborizada,
          envases_vacios: stock.envasesVacios || 0
       });
+      if(error) console.error("🛑 ERROR SUPABASE (Cambiar Stock):", error);
     }
 
     function actualizarStockUI() {
@@ -1372,6 +1387,7 @@
       if(!error) {
          showToast(isNew ? 'Cliente guardado correctamente' : 'Cliente actualizado', 'success');
       } else {
+         console.error("🛑 ERROR SUPABASE (Clientes):", error);
          showToast('Error al guardar en la nube', 'error');
       }
     }
@@ -1390,6 +1406,8 @@
         const { error } = await db.from('clientes').delete().eq('id', cId);
         if(!error) {
            showToast('Cliente eliminado', 'info');
+        } else {
+           console.error("🛑 ERROR SUPABASE (Eliminar Cliente):", error);
         }
       }
     }
