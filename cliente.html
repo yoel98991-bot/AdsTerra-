@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <meta name="theme-color" content="#f4f6f9">
   <title>AguaBol - Pedidos</title>
   
@@ -18,60 +18,83 @@
     
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif; -webkit-tap-highlight-color: transparent;}
     
-    body { background: var(--bg); color: var(--text-main); overflow-x: hidden; min-height: 100vh;}
+    /* ========== ESTRUCTURA NATIVA (SIN SCROLL EN BODY) ========== */
+    html, body {
+      width: 100%;
+      height: 100vh; /* Fallback */
+      height: 100dvh; /* Altura dinámica real en móviles */
+      overflow: hidden; /* ¡Cero scroll en el cuerpo de la página! */
+      background: var(--bg); 
+      color: var(--text-main);
+    }
     
     /* ========== ANIMACIONES ========== */
     @keyframes fadeSlideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-    @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; visibility: hidden; } }
     @keyframes popIn { 0% { transform: scale(0.8); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
     @keyframes float { 0% { transform: translateY(0px); } 50% { transform: translateY(-10px); } 100% { transform: translateY(0px); } }
 
-    /* ========== PANTALLA DE ACCESO (LOGIN / ONBOARDING) ========== */
+    /* ========== PANTALLA DE ACCESO (LOGIN / REGISTRO AUTOMÁTICO) ========== */
     #auth-screen {
-      position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+      position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
       background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
       z-index: 1000; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 24px;
       transition: opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1), transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+      overflow-y: auto; /* Si el teclado virtual sube, permite scroll solo aquí */
     }
     #auth-screen.hidden { opacity: 0; transform: scale(1.05); pointer-events: none; }
     
-    .auth-logo { width: 80px; height: 80px; background: white; border-radius: 24px; display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 25px rgba(14,165,233,0.2); margin-bottom: 24px; color: var(--tint); animation: float 6s ease-in-out infinite; }
+    .auth-logo { width: 80px; height: 80px; background: white; border-radius: 24px; display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 25px rgba(14,165,233,0.2); margin-bottom: 24px; color: var(--tint); animation: float 6s ease-in-out infinite; flex-shrink: 0;}
     
     .auth-card {
       background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
       width: 100%; max-width: 400px; border-radius: var(--radius-lg); padding: 32px 24px;
       box-shadow: 0 20px 40px rgba(0,0,0,0.06); border: 1px solid rgba(255,255,255,1);
-      overflow: hidden; transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); flex-shrink: 0;
     }
     
     .auth-title { font-size: 24px; font-weight: 800; text-align: center; margin-bottom: 8px; letter-spacing: -0.5px;}
     .auth-subtitle { font-size: 14px; font-weight: 600; color: var(--text-muted); text-align: center; margin-bottom: 24px; line-height: 1.5;}
 
-    .form-group { margin-bottom: 16px; position: relative; }
+    .form-group { margin-bottom: 16px; }
     .auth-input { width: 100%; padding: 18px 16px; background: white; border: 1.5px solid #e2e8f0; border-radius: 16px; font-size: 16px; font-weight: 600; outline: none; transition: all 0.3s; color: var(--text-main); }
     .auth-input:focus { border-color: var(--tint); box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.1); }
-    .auth-input::placeholder { color: #94a3b8; font-weight: 500; }
     
-    .auth-btn { width: 100%; padding: 18px; background: linear-gradient(135deg, var(--tint), #0284c7); color: white; border: none; border-radius: 16px; font-size: 16px; font-weight: 800; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 8px; box-shadow: 0 8px 20px rgba(14, 165, 233, 0.3); transition: transform 0.15s, box-shadow 0.15s; margin-top: 24px;}
-    .auth-btn:active { transform: scale(0.97); box-shadow: 0 4px 10px rgba(14, 165, 233, 0.2); }
+    .auth-btn { width: 100%; padding: 18px; background: linear-gradient(135deg, var(--tint), #0284c7); color: white; border: none; border-radius: 16px; font-size: 16px; font-weight: 800; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 8px; box-shadow: 0 8px 20px rgba(14, 165, 233, 0.3); transition: transform 0.15s; margin-top: 24px;}
+    .auth-btn:active { transform: scale(0.97); }
     .auth-btn:disabled { opacity: 0.7; cursor: not-allowed; transform: none; }
 
-    /* Expandible de Registro */
+    /* Efecto fluido de expansión para Registro */
     #registro-campos { max-height: 0; opacity: 0; overflow: hidden; transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1); }
-    #registro-campos.visible { max-height: 300px; opacity: 1; margin-top: 16px; }
+    #registro-campos.visible { max-height: 350px; opacity: 1; margin-top: 16px; }
 
-    /* ========== APLICACIÓN PRINCIPAL ========== */
-    #main-app { display: none; padding: env(safe-area-inset-top) 20px calc(env(safe-area-inset-bottom) + 80px) 20px; }
-    #main-app.visible { display: block; animation: fadeSlideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+    /* ========== APLICACIÓN PRINCIPAL (NATIVA) ========== */
+    #main-app { 
+      display: none; 
+      width: 100%; 
+      height: 100%; 
+      position: relative;
+    }
+    #main-app.visible { display: block; animation: fadeSlideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
     
-    .screen { display: none; }
+    /* El contenedor que SÍ hace scroll, anclado encima del menú inferior */
+    .screen { 
+      display: none; 
+      position: absolute; 
+      top: 0; 
+      left: 0; 
+      right: 0; 
+      bottom: calc(env(safe-area-inset-bottom) + 70px); /* Respeta el Tab Bar */
+      overflow-y: auto; /* Aquí ocurre la magia del scroll interno */
+      -webkit-overflow-scrolling: touch; /* Scroll suave en iOS */
+      padding: calc(env(safe-area-inset-top) + 20px) 20px 20px 20px;
+    }
     .screen.active { display: block; animation: fadeSlideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
 
-    /* Componentes de la App (Reutilizados del diseño premium) */
-    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; margin-top: 10px; }
+    /* ========== DISEÑO INTERNO ========== */
+    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
     .header-greeting { font-size: 24px; font-weight: 800; color: var(--text-main); }
     .header-subtitle { font-size: 14px; color: var(--text-muted); font-weight: 600; margin-top: 4px; }
-    .avatar-mini { width: 44px; height: 44px; border-radius: 22px; background: linear-gradient(135deg, var(--tint), #0284c7); color: white; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 18px; box-shadow: 0 4px 10px rgba(14, 165, 233, 0.3);}
+    .avatar-mini { width: 44px; height: 44px; border-radius: 22px; background: linear-gradient(135deg, var(--tint), #0284c7); color: white; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 18px; box-shadow: 0 4px 10px rgba(14, 165, 233, 0.3); flex-shrink: 0;}
 
     .card { background: var(--card); padding: 20px; border-radius: var(--radius-md); box-shadow: 0 8px 24px rgba(0,0,0,0.03); margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.8); }
     .section-title { font-size: 16px; font-weight: 800; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; color: var(--text-main); text-transform: uppercase; letter-spacing: 0.5px;}
@@ -102,8 +125,18 @@
     .stamp-spot svg { width: 60%; height: 60%; color: white; opacity: 0.2; }
     .stamp-spot.filled svg { opacity: 1; }
 
-    /* TABS */
-    .tab-bar { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-top: 1px solid rgba(0,0,0,0.05); display: flex; justify-content: space-around; align-items: center; height: calc(env(safe-area-inset-bottom) + 70px); padding-bottom: env(safe-area-inset-bottom); z-index: 150; }
+    /* ========== TABS BOTTOM NAVIGATION (ESTÁTICA) ========== */
+    .tab-bar { 
+      position: absolute; /* Anclada al main-app */
+      bottom: 0; left: 0; right: 0; 
+      background: rgba(255, 255, 255, 0.9); 
+      backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); 
+      border-top: 1px solid rgba(0,0,0,0.05); 
+      display: flex; justify-content: space-around; align-items: center; 
+      height: calc(env(safe-area-inset-bottom) + 70px); 
+      padding-bottom: env(safe-area-inset-bottom); 
+      z-index: 150; 
+    }
     .tab-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #94a3b8; font-size: 11px; font-weight: 700; gap: 6px; padding: 10px 0; transition: color 0.2s; cursor: pointer; }
     .tab-item.active { color: var(--tint); }
     .tab-item svg { transition: transform 0.2s; }
@@ -112,12 +145,12 @@
     /* Componentes de Perfil */
     .profile-group { margin-bottom: 16px; }
     .profile-group label { display: block; font-size: 12px; font-weight: 700; color: var(--text-muted); margin-bottom: 8px; text-transform: uppercase;}
-    .profile-group input { padding: 14px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; width: 100%; font-size: 15px; font-weight: 600; outline: none; }
+    .profile-group input { padding: 14px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; width: 100%; font-size: 15px; font-weight: 600; outline: none; transition: 0.2s; color: var(--text-main);}
     .profile-group input:focus { border-color: var(--tint); background: #fff;}
     .btn-logout { background: #fee2e2; color: var(--destructive); width: 100%; padding: 14px; border-radius: 12px; font-weight: 700; border: none; margin-top: 24px; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 8px;}
 
     /* Spinners & Toasts */
-    #toast { display: none; position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); color: var(--text-main); padding: 14px 24px; border-radius: 100px; font-weight: 800; z-index: 9999; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border: 1px solid rgba(0,0,0,0.05); align-items: center; gap: 10px; width: 90%; max-width: 350px; animation: fadeSlideUp 0.3s forwards;}
+    #toast { display: none; position: fixed; top: calc(env(safe-area-inset-top) + 20px); left: 50%; transform: translateX(-50%); background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); color: var(--text-main); padding: 14px 24px; border-radius: 100px; font-weight: 800; z-index: 9999; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border: 1px solid rgba(0,0,0,0.05); align-items: center; gap: 10px; width: 90%; max-width: 350px; animation: fadeSlideUp 0.3s forwards;}
     .spinner { border: 3px solid rgba(255,255,255,0.3); border-radius: 50%; border-top: 3px solid transparent; width: 20px; height: 20px; animation: spin 1s linear infinite; display: none; }
     .spinner-blue { border-color: rgba(14,165,233,0.3); border-top-color: var(--tint); }
   </style>
@@ -141,7 +174,7 @@
 
       <div id="registro-campos">
         <div style="border-top: 1px dashed #e2e8f0; margin-bottom: 16px; padding-top: 16px;">
-          <p style="font-size: 13px; color: var(--tint); font-weight: 700; margin-bottom: 12px; text-align: center;">¡Eres nuevo! Completa tus datos 🚀</p>
+          <p style="font-size: 13px; color: var(--tint); font-weight: 700; margin-bottom: 12px; text-align: center;">¡No te encontramos! Vamos a registrarte 🚀</p>
           <div class="form-group">
             <input type="text" id="auth-name" class="auth-input" placeholder="Nombre y Apellido">
           </div>
@@ -240,7 +273,7 @@
       <div class="card" style="margin-top: 20px; text-align: center; padding: 30px 20px;">
         <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--tint)" stroke-width="1.5" style="margin-bottom: 16px; opacity: 0.5;"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
         <h3 style="font-size: 16px; font-weight: 800; margin-bottom: 8px;">¿Cómo funciona?</h3>
-        <p style="font-size: 14px; color: var(--text-muted); font-weight: 600; line-height: 1.5;">Tus compras se vinculan a tu WhatsApp automáticamente. El sello aparecerá en cuanto el repartidor marque tu pedido como entregado.</p>
+        <p style="font-size: 14px; color: var(--text-muted); font-weight: 600; line-height: 1.5;">Tus compras se vinculan a tu WhatsApp. El sello aparecerá en cuanto el repartidor marque tu pedido como entregado.</p>
       </div>
     </div>
 
@@ -248,17 +281,17 @@
       <div class="header" style="justify-content: center;"><h1 style="font-size:24px; font-weight:800;">⚙️ Configuración</h1></div>
       
       <div class="card">
-        <div class="section-title">Mis Datos</div>
-        <div class="profile-group"><label>Nombre</label><input type="text" id="perfil-nombre"></div>
-        <div class="profile-group"><label>Teléfono (Solo lectura)</label><input type="tel" id="perfil-telefono" disabled style="opacity: 0.7;"></div>
-        <div class="profile-group"><label>Dirección Fija</label><input type="text" id="perfil-direccion"></div>
+        <div class="section-title">Mis Datos Personales</div>
+        <div class="profile-group"><label>Nombre y Apellido</label><input type="text" id="perfil-nombre"></div>
+        <div class="profile-group"><label>Teléfono (Sesión Actual)</label><input type="tel" id="perfil-telefono" disabled style="opacity: 0.7;"></div>
+        <div class="profile-group"><label>Dirección Predeterminada</label><input type="text" id="perfil-direccion"></div>
         
         <button class="auth-btn" style="margin-top: 20px;" onclick="actualizarPerfil()">Guardar Cambios</button>
       </div>
 
       <button class="btn-logout" onclick="cerrarSesion()">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-        Cerrar Sesión (Cambiar Número)
+        Cerrar Sesión / Usar otro número
       </button>
     </div>
 
@@ -286,7 +319,7 @@
     // Variables de estado
     let pMin = 8.5, pSab = 10.0;
     let coordenadasGPS = null;
-    let usuarioActual = null; // Guardará { id, nombre, telefono, direccion }
+    let usuarioActual = null;
     let esModoRegistro = false;
 
     // ========== 2. SISTEMA DE AUTENTICACIÓN (ONBOARDING FLUÍDO) ==========
@@ -295,22 +328,21 @@
       const nombreGuardado = localStorage.getItem('aguabol_nombre');
       
       if (telGuardado && nombreGuardado) {
-        // Ya está logueado
+        // Ya está logueado: saltamos la pantalla de inicio
         usuarioActual = {
           id: localStorage.getItem('aguabol_id'),
           nombre: nombreGuardado,
           telefono: telGuardado,
           direccion: localStorage.getItem('aguabol_direccion') || ''
         };
-        await cargarPrecios(); // Carga background
-        iniciarApp(); // Transición a la app
+        await cargarPrecios();
+        iniciarApp();
       }
-      // Si no, se queda en la pantalla de Auth que está visible por defecto.
     }
 
     async function procesarAcceso() {
       const telInput = document.getElementById('auth-phone').value.trim();
-      if (!telInput || telInput.length < 10) return showToast("Ingresa un número válido", true);
+      if (!telInput || telInput.length < 7) return showToast("Ingresa un número de WhatsApp válido", true);
 
       const btn = document.getElementById('btn-auth');
       const btnText = document.getElementById('btn-auth-text');
@@ -320,23 +352,25 @@
 
       try {
         if (!esModoRegistro) {
-          // PASO 1: Buscar si el teléfono ya existe
+          // PASO 1: VERIFICAR AUTOMÁTICAMENTE SI EL NÚMERO EXISTE
           const { data: cliente, error } = await db.from('clientes').select('*').eq('telefono', telInput).maybeSingle();
           
           if (cliente) {
-            // ¡EXISTE! Lo dejamos pasar y guardamos en memoria
+            // ¡EXISTE! Entra directo sin preguntar más nada.
             guardarSesionLocal(cliente.id, cliente.nombre, cliente.telefono, cliente.direccion);
             await cargarPrecios();
             iniciarApp();
           } else {
-            // NO EXISTE: Desplegamos el formulario suavemente
+            // NO EXISTE: Transición fluida a "Registrarme"
             esModoRegistro = true;
             document.getElementById('registro-campos').classList.add('visible');
             document.getElementById('auth-instruction').innerText = "Crea tu cuenta gratis en segundos.";
-            btn.disabled = false; btnText.innerText = "Finalizar Registro"; btnText.style.display = 'block'; spinner.style.display = 'none';
+            btnText.innerText = "Registrarme y Entrar 🚀"; 
+            
+            btn.disabled = false; btnText.style.display = 'block'; spinner.style.display = 'none';
           }
         } else {
-          // PASO 2: El usuario llenó sus datos de registro
+          // PASO 2: EJECUTAR EL REGISTRO
           const nomInput = document.getElementById('auth-name').value.trim();
           const dirInput = document.getElementById('auth-address').value.trim();
           
@@ -357,7 +391,7 @@
           iniciarApp();
         }
       } catch (err) {
-        showToast("Error de conexión.", true);
+        showToast("Error de conexión. Revisa tu internet.", true);
         btn.disabled = false; btnText.style.display = 'block'; spinner.style.display = 'none';
       }
     }
@@ -371,17 +405,16 @@
     }
 
     function iniciarApp() {
-      // Poblar datos en la UI
+      // Poblar datos en la Interfaz
       document.getElementById('display-name').innerText = usuarioActual.nombre.split(' ')[0];
       document.getElementById('header-avatar').innerText = usuarioActual.nombre.charAt(0).toUpperCase();
       document.getElementById('resumen-direccion').innerText = usuarioActual.direccion || "Toca 'Perfil' para agregar tu dirección.";
       
-      // Llenar Pestaña de Perfil
       document.getElementById('perfil-nombre').value = usuarioActual.nombre;
       document.getElementById('perfil-telefono').value = usuarioActual.telefono;
       document.getElementById('perfil-direccion').value = usuarioActual.direccion;
 
-      // Animación de transición fluida
+      // Transición Ocultando el Auth y Mostrando el Main App
       const authScreen = document.getElementById('auth-screen');
       const mainApp = document.getElementById('main-app');
       
@@ -389,20 +422,22 @@
       setTimeout(() => {
         authScreen.style.display = 'none';
         mainApp.classList.add('visible');
-      }, 400); // Espera a que termine la opacidad
+      }, 400);
     }
 
     function cerrarSesion() {
-      localStorage.clear();
-      window.location.reload(); // Recarga la página limpia
+      if(confirm('¿Seguro que deseas salir? Te pediremos el número la próxima vez.')){
+        localStorage.clear();
+        window.location.reload(); 
+      }
     }
 
-    // ========== 3. LOGICA DE LA APLICACION ==========
+    // ========== 3. LÓGICA DE LA APLICACIÓN ==========
     async function cargarPrecios() {
       try {
         const { data } = await db.from('configuracion').select('precio_mineral, precio_saborizada').eq('id', 1).single();
         if (data) { pMin = parseFloat(data.precio_mineral); pSab = parseFloat(data.precio_saborizada); }
-      } catch (e) { console.log("Usando precios default"); }
+      } catch (e) { console.log("Usando precios por defecto"); }
       
       document.getElementById('precio-min-label').innerText = formatearBs(pMin) + ' c/u';
       document.getElementById('precio-sab-label').innerText = formatearBs(pSab) + ' c/u';
@@ -463,7 +498,7 @@
             btn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> GPS Listo';
             btn.classList.add('success');
           }, 
-          err => { showToast("GPS bloqueado por el teléfono.", true); btn.innerHTML = 'Compartir mi GPS exacto'; },
+          err => { showToast("GPS bloqueado por tu teléfono.", true); btn.innerHTML = 'Compartir mi GPS exacto'; },
           { enableHighAccuracy: true }
         );
       }
@@ -483,10 +518,10 @@
 
       let dirFinal = usuarioActual.direccion;
       if (coordenadasGPS) dirFinal = dirFinal ? `${dirFinal} | GPS: ${coordenadasGPS}` : `GPS | GPS: ${coordenadasGPS}`;
-      else if (!dirFinal) dirFinal = "Ubicación no especificada";
+      else if (!dirFinal) dirFinal = "Sin dirección especificada";
 
       try {
-        // Actualizamos la dirección en DB si la acaban de agregar con GPS
+        // Actualizamos la dirección en DB si la mandó por GPS
         if(coordenadasGPS || (usuarioActual.direccion !== dirFinal)) {
             await db.from('clientes').update({ direccion: dirFinal }).eq('id', usuarioActual.id);
         }
@@ -508,7 +543,7 @@
         }, 2000);
 
       } catch (err) {
-        showToast("Error de red. Intenta de nuevo.", true);
+        showToast("Error enviando el pedido.", true);
         btnText.style.display = 'block'; spinner.style.display = 'none'; btn.disabled = false;
       }
     }
@@ -517,7 +552,7 @@
     async function actualizarPerfil() {
       const n = document.getElementById('perfil-nombre').value.trim();
       const d = document.getElementById('perfil-direccion').value.trim();
-      if(!n) return showToast("El nombre no puede estar vacío", true);
+      if(!n) return showToast("El nombre es obligatorio", true);
 
       guardarSesionLocal(usuarioActual.id, n, usuarioActual.telefono, d);
       document.getElementById('display-name').innerText = n.split(' ')[0];
@@ -525,7 +560,7 @@
       document.getElementById('resumen-direccion').innerText = d || "Sin dirección";
 
       await db.from('clientes').update({ nombre: n, direccion: d }).eq('id', usuarioActual.id);
-      showToast("Datos actualizados correctamente");
+      showToast("Tus datos han sido actualizados");
     }
 
     // --- Lealtad ---
