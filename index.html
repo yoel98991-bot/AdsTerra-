@@ -6,7 +6,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="theme-color" content="#f4f6f9">
-  <title>Agua 20L - Admin</title>
+  <title>AguaBol - Admin</title>
   
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
@@ -713,12 +713,30 @@
 
     // ========== DIRECTLINK (COPIAR ENLACE CLIENTE) ==========
     function copiarDirectLink() {
-      const baseUrl = window.location.origin;
-      const directLink = `${baseUrl}/cliente.html?store=admin-default`;
+      // 1. Buscamos si ya existe un código de tienda para este administrador
+      let storeCode = localStorage.getItem('aguabol_store_code');
+      
+      // 2. Si no existe, creamos uno alfanumérico único aleatorio
+      if (!storeCode) {
+        const randomStr = Math.random().toString(36).substring(2, 6).toUpperCase();
+        storeCode = 'AGUA-' + randomStr; // Ej: AGUA-B7X9
+        localStorage.setItem('aguabol_store_code', storeCode);
+      }
+
+      // 3. Obtenemos la ruta exacta donde está alojado tu administrador (Ej: GitHub Pages)
+      const currentUrl = window.location.href;
+      // Quitamos el nombre del archivo actual si existe en la URL para obtener la carpeta base
+      let finalBase = currentUrl.substring(0, currentUrl.lastIndexOf('/'));
+      if (!currentUrl.includes('.html')) {
+         finalBase = currentUrl.endsWith('/') ? currentUrl.slice(0, -1) : currentUrl;
+      }
+      
+      // 4. Armamos el enlace final con el código único
+      const directLink = `${finalBase}/cliente.html?store=${storeCode}`;
       
       if (navigator.clipboard) {
         navigator.clipboard.writeText(directLink).then(() => {
-          showToast('DirectLink copiado al portapapeles', 'success');
+          showToast(`Link copiado (Código: ${storeCode})`, 'success');
         }).catch(err => {
           console.error("Error copiando el link: ", err);
           showToast('Error al copiar enlace', 'error');
@@ -730,7 +748,7 @@
         tempInput.select();
         document.execCommand("copy");
         document.body.removeChild(tempInput);
-        showToast('DirectLink copiado al portapapeles', 'success');
+        showToast(`Link copiado (Código: ${storeCode})`, 'success');
       }
     }
 
