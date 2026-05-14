@@ -537,10 +537,10 @@
           Marcar Entregado
         </button>
       </div>
-      <button id="btn-waze" class="btn-primary" style="margin-top: 12px;">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polygon points="12 15 9 10 15 10 12 15"/></svg>
-        Navegar con Waze
-      </button>
+      <button id="btn-iniciar-viaje" class="btn-primary" style="background: linear-gradient(135deg, #10b981, #059669); width: 100%; margin-top: 12px;">
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
+  Iniciar Navegación (En App)
+</button>
     </div>
   </div>
 
@@ -588,6 +588,7 @@
     
     let editingClientId = null;
     let pedidoSeleccionadoId = null; 
+    let watchGpsId = null; // Para controlar el rastreo en vivo
 
     let mapaRepartidor = null;
     let capaRuta = null;
@@ -991,6 +992,8 @@
       document.getElementById('ruta-distancia').innerHTML = '<span class="spin">⏳</span>';
       document.getElementById('ruta-tiempo').innerHTML = '--';
 
+      const btnViaje = document.getElementById('btn-iniciar-viaje');
+
       if(pedidoId) {
         const pedido = pedidosActivos.find(p => p.id === pedidoId);
         
@@ -1003,6 +1006,8 @@
         // Acciones exclusivas del pedido
         document.getElementById('btn-cancelar-ruta').style.display = 'block';
         document.getElementById('btn-completar-ruta').style.display = 'block';
+        btnViaje.style.display = 'flex'; // Mostramos el botón de viaje
+        
         document.getElementById('btn-cancelar-ruta').onclick = () => cancelarPedido(pedidoId);
         document.getElementById('btn-completar-ruta').onclick = () => completarPedido(pedidoId);
 
@@ -1013,21 +1018,21 @@
           });
         }
       } else {
-        // Modo solo GPS (desde CRM, no hay pedido activo)
+        // Modo solo GPS (desde el directorio CRM, no hay pedido activo)
         document.getElementById('ruta-chofer-asignado').textContent = 'Visualización GPS Libre';
         document.getElementById('ruta-lealtad-texto').textContent = '-';
         document.getElementById('btn-cancelar-ruta').style.display = 'none';
         document.getElementById('btn-completar-ruta').style.display = 'none';
+        btnViaje.style.display = 'none'; // Ocultamos el botón si no hay pedido
       }
 
-      const linkWaze = `https://waze.com/ul?ll=${destLat},${destLng}&navigate=yes`;
-      document.getElementById('btn-waze').onclick = () => window.open(linkWaze, '_blank');
-
+      // --- INICIALIZAR EL MAPA VISUAL ---
       if (!mapaRepartidor) {
           mapaRepartidor = L.map('mapa-repartidor', { zoomControl: false }).setView([10.1620, -67.9996], 13);
           L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png').addTo(mapaRepartidor);
       }
 
+      // Dibujar la ubicación estática inicial rápido
       setTimeout(() => {
           mapaRepartidor.invalidateSize();
           if (navigator.geolocation && destLat) {
@@ -1062,9 +1067,61 @@
               showToast('GPS no disponible', 'error');
           }
       }, 400); 
-    }
 
+      // --- LÓGICA DEL BOTÓN DE TRANSMISIÓN EN VIVO ---
+      btnViaje.innerHTML = '📍 Iniciar Navegación (En App)';
+      btnViaje.style.background = 'linear-gradient(135deg, #10b981, #059669)';
+
+      btnViaje.onclick = () => {
+        if (watchGpsId) {
+          // Detener
+          navigator.geolocation.clearWatch(watchGpsId);
+          watchGpsId = null;
+          btnViaje.innerHTML = '📍 Iniciar Navegación (En App)';
+          btnViaje.style.background = 'linear-gradient(135deg, #10b981, #059669)';
+          showToast('Navegación pausada');
+          return;
+        }
+
+        // Iniciar
+        btnViaje.innerHTML = '🛑 Detener Transmisión GPS';
+        btnViaje.style.background = 'var(--destructive)';
+        showToast('Iniciando ruta. El cliente te está viendo en vivo.', 'success');
+
+        watchGpsId = navigator.geolocation.watchPosition(async (pos) => {
+          const latAct = pos.coords.latitude;
+          const lngAct = pos.coords.longitude;
+
+          // Mueve tu camión en tu pantalla
+          if(marcadorA) { marcadorA.setLatLng([latAct, lngAct]); } 
+          else { marcadorA = L.marker([latAct, lngAct]).addTo(mapaRepartidor); }
+
+          // Sube la coordenada a Supabase para que el cliente la vea
+          if (pedidoId) {
+             await db.from('pedidos').update({ ubicacion_chofer: `${latAct},${lngAct}` }).eq('id', pedidoId);
+          }
+
+          // Dibuja la línea azul recalculada
+          try {
+            const res = await fetch(`https://router.project-osrm.org/route/v1/driving/${lngAct},${latAct};${destLng},${destLat}?geometries=geojson`);
+            const data = await res.json();
+            if(data.routes && data.routes[0]) {
+              if(capaRuta) mapaRepartidor.removeLayer(capaRuta);
+              capaRuta = L.geoJSON(data.routes[0].geometry, { style: { color: '#0ea5e9', weight: 6, opacity: 0.8 } }).addTo(mapaRepartidor);
+              document.getElementById('ruta-distancia').textContent = `${(data.routes[0].distance / 1000).toFixed(1)} km`;
+              document.getElementById('ruta-tiempo').textContent = `${Math.round(data.routes[0].duration / 60)} min`;
+            }
+          } catch(e) {}
+        }, (err) => console.log('Buscando señal GPS...'), { enableHighAccuracy: true });
+      };
+    }
     function cerrarRuta() {
+      // APAGAR EL GPS AL CERRAR LA VENTANA
+      if (watchGpsId) {
+        navigator.geolocation.clearWatch(watchGpsId);
+        watchGpsId = null;
+      }
+      
       const modal = document.getElementById('pantallaRutaOverlay');
       modal.classList.remove('active');
       setTimeout(() => modal.style.display = 'none', 300);
