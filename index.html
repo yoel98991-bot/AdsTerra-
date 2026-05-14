@@ -10,6 +10,9 @@
   
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
   <style>
     /* ========== VARIABLES GLOBALES ========== */
     :root {
@@ -66,10 +69,10 @@
       max-width: 380px;
     }
     .toast {
-      background: rgba(255, 255, 255, 0.85);
+      background: rgba(255, 255, 255, 0.95);
       backdrop-filter: blur(16px);
       -webkit-backdrop-filter: blur(16px);
-      border: 1px solid rgba(255, 255, 255, 0.4);
+      border: 1px solid rgba(0, 0, 0, 0.05);
       box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
       border-radius: 100px;
       padding: 12px 20px;
@@ -95,6 +98,9 @@
       from { opacity: 1; transform: translateY(0) scale(1); }
       to { opacity: 0; transform: translateY(-10px) scale(0.9); }
     }
+    
+    .spin { display: inline-block; animation: spin 1s linear infinite; }
+    @keyframes spin { 100% { transform: rotate(360deg); } }
 
     /* ========== UTILIDADES ========== */
     .truncate { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -119,7 +125,7 @@
 
     /* ========== FORMULARIOS & SELECTORES ========== */
     .date-picker-row, .input-row { display: flex; gap: 12px; align-items: flex-end; width: 100%; }
-    .picker-group { flex: 1; min-width: 0; }
+    .picker-group, .input-group { flex: 1; min-width: 0; margin-bottom: 16px; width: 100%;}
     .picker-group label, .input-group label {
       font-size: 11px; color: var(--text-secondary); font-weight: 700; text-transform: uppercase;
       letter-spacing: 0.8px; margin-bottom: 6px; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
@@ -139,13 +145,13 @@
     .btn-primary {
       background: linear-gradient(135deg, var(--tint), #0284c7); color: white; border: none;
       border-radius: var(--radius-sm); padding: 12px 20px; font-weight: 600; font-size: 16px;
-      cursor: pointer; display: flex; align-items: center; gap: 8px; transition: transform 0.15s ease, box-shadow 0.15s ease;
+      cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: transform 0.15s ease, box-shadow 0.15s ease;
       box-shadow: 0 4px 12px rgba(14, 165, 233, 0.25);
     }
     .btn-primary:active { transform: scale(0.96); box-shadow: 0 2px 6px rgba(14, 165, 233, 0.2); }
     .btn-small {
       padding: 6px 12px; font-size: 13px; background: #e0f2fe; color: var(--tint-hover);
-      border-radius: 8px; border: none; font-weight: 700;
+      border-radius: 8px; border: none; font-weight: 700; cursor: pointer;
     }
 
     /* ========== TOTAL TARJETA SUPERIOR ========== */
@@ -295,7 +301,7 @@
       background: var(--card-bg); width: 100%; max-width: 500px; border-radius: 28px 28px 0 0;
       padding: 24px 24px calc(env(safe-area-inset-bottom) + 30px);
       transform: translateY(100%); transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1); box-shadow: 0 -10px 40px rgba(0,0,0,0.1);
-      max-height: 80vh; overflow-y: auto; 
+      max-height: 85vh; overflow-y: auto; 
     }
     .modal-overlay.active .modal-sheet { transform: translateY(0); }
     
@@ -337,6 +343,27 @@
       display: flex; align-items: center; justify-content: center; cursor: pointer; transition: transform 0.15s;
     }
     .gasto-delete-btn:active { transform: scale(0.9); }
+
+    /* ========== PANTALLA MÓDULO DE REPARTIDOR (MAPA NATIVO) ========== */
+    #pantallaRutaOverlay {
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: var(--system-bg); z-index: 9999;
+      display: none; flex-direction: column; opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    #pantallaRutaOverlay.active { opacity: 1; }
+    #mapa-repartidor { flex: 1; width: 100%; z-index: 1; }
+    .leaflet-control-attribution { display: none !important; }
+    .ruta-header {
+      display: flex; align-items: center; justify-content: space-between; 
+      padding: calc(env(safe-area-inset-top) + 16px) 20px 16px 20px; 
+      background: white; box-shadow: 0 4px 10px rgba(0,0,0,0.05); z-index: 10;
+    }
+    .ruta-panel {
+      padding: 20px; padding-bottom: calc(env(safe-area-inset-bottom) + 20px); 
+      background: white; z-index: 10; border-radius: 24px 24px 0 0; margin-top: -20px; 
+      box-shadow: 0 -10px 20px rgba(0,0,0,0.05);
+    }
 
     /* ========== BARRA DE PESTAÑAS ========== */
     .tab-bar {
@@ -424,7 +451,7 @@
             <label>Agua Mineral</label>
             <div class="qty-group">
               <button class="btn-circle" onclick="cambiarCantidad('mineral', -1)">−</button>
-              <input type="number" id="cant-mineral" value="0" min="0" onchange="calcularTotalVenta()">
+              <input type="number" id="cant-mineral" value="0" min="0" onchange="calcularTotalVenta()" readonly>
               <button class="btn-circle" onclick="cambiarCantidad('mineral', 1)">+</button>
             </div>
           </div>
@@ -432,7 +459,7 @@
             <label>Saborizada</label>
             <div class="qty-group">
               <button class="btn-circle" onclick="cambiarCantidad('saborizada', -1)">−</button>
-              <input type="number" id="cant-saborizada" value="0" min="0" onchange="calcularTotalVenta()">
+              <input type="number" id="cant-saborizada" value="0" min="0" onchange="calcularTotalVenta()" readonly>
               <button class="btn-circle" onclick="cambiarCantidad('saborizada', 1)">+</button>
             </div>
           </div>
@@ -442,7 +469,7 @@
           <label>Envases Devueltos (Vacíos)</label>
           <div class="qty-group" style="width: 50%;">
             <button class="btn-circle" onclick="cambiarCantidad('devueltos', -1)">−</button>
-            <input type="number" id="cant-devueltos" value="0" min="0">
+            <input type="number" id="cant-devueltos" value="0" min="0" readonly>
             <button class="btn-circle" onclick="cambiarCantidad('devueltos', 1)">+</button>
           </div>
         </div>
@@ -527,7 +554,7 @@
     <div class="card settings-list">
       <div class="setting-row" onclick="abrirModalPrecios()">
         <div class="setting-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
-        <div class="setting-text">Gestión de Precios</div>
+        <div class="setting-text">Gestión de Precios y Costos</div>
         <div class="setting-arrow"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg></div>
       </div>
       
@@ -538,36 +565,16 @@
         <div class="setting-text">DirectLink (Portal Cliente)</div>
         <div class="setting-arrow"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg></div>
       </div>
-
-      <div class="setting-row" onclick="demoFeature('Repartidores y Rutas')">
-        <div class="setting-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg></div>
-        <div class="setting-text">Repartidores y Rutas</div>
-        <div class="setting-arrow"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg></div>
-      </div>
-      <div class="setting-row" onclick="demoFeature('Exportar Reportes (Excel)')">
-        <div class="setting-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 18 15 15"/></svg></div>
-        <div class="setting-text">Exportar Reportes (Excel)</div>
-        <div class="setting-arrow"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg></div>
-      </div>
     </div>
 
     <div class="section-title">Sistema</div>
     <div class="card settings-list">
-      <div class="setting-row" onclick="demoFeature('Configuración de WhatsApp')">
-        <div class="setting-icon" style="background: #dcfce7; color: #16a34a;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg></div>
-        <div class="setting-text">Respuestas Automáticas</div>
-        <div class="setting-arrow"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg></div>
-      </div>
       <div class="setting-row" onclick="loadDataFromSupabase()">
         <div class="setting-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21.5 12H16c-.7 2-2 3-4 3s-3.3-1-4-3H2.5"/><path d="M5.5 5.1L2 12v6c0 1.1.9 2 2 2h16a2 2 0 0 0 2-2v-6l-3.5-6.9A2 2 0 0 0 16.7 4H7.3a2 2 0 0 0-1.8 1.1z"/></svg></div>
         <div class="setting-text">Forzar Sincronización</div>
         <div class="setting-arrow"><span style="font-size: 12px; color: var(--text-secondary); margin-right: 8px;">Online</span></div>
       </div>
     </div>
-    
-    <button class="btn" style="background: #fee2e2; color: var(--destructive); width: 100%; margin-bottom: 24px; border-radius: var(--radius-sm); padding: 16px; font-weight: 700; border: none;" onclick="showToast('Cerrando sesión...', 'info')">
-      Cerrar Sesión
-    </button>
   </div>
 
   <button class="fab" id="fab-clientes" onclick="openClientModal()">
@@ -656,6 +663,36 @@
     </div>
   </div>
 
+  <div id="pantallaRutaOverlay">
+    <div class="ruta-header">
+      <h2 style="font-size: 18px; margin: 0; font-weight: 800; color: var(--text-primary);">📍 Módulo de Reparto</h2>
+      <button onclick="cerrarRuta()" style="background: #f1f5f9; border: none; padding: 8px 14px; border-radius: 10px; font-weight: 700; color: var(--text-secondary); cursor: pointer;">Volver</button>
+    </div>
+    
+    <div id="mapa-repartidor"></div>
+    
+    <div class="ruta-panel">
+      <h3 id="ruta-cliente-nombre" style="margin: 0 0 4px 0; font-size: 18px; font-weight: 800;">Cliente</h3>
+      <p id="ruta-cliente-dir" style="color: var(--text-secondary); font-size: 14px; margin: 0 0 16px 0; line-height: 1.4;" class="truncate">Dirección...</p>
+      
+      <div style="display: flex; gap: 12px; margin-bottom: 16px;">
+        <div style="flex: 1; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px; text-align: center;">
+           <div style="font-size: 11px; color: var(--text-secondary); font-weight: 700; text-transform: uppercase;">Distancia</div>
+           <div id="ruta-distancia" style="font-size: 18px; font-weight: 800; color: var(--text-primary);">-- km</div>
+        </div>
+        <div style="flex: 1; background: #e0f2fe; border: 1px solid #bae6fd; border-radius: 12px; padding: 12px; text-align: center;">
+           <div style="font-size: 11px; color: #0284c7; font-weight: 700; text-transform: uppercase;">Tiempo Est.</div>
+           <div id="ruta-tiempo" style="font-size: 18px; font-weight: 800; color: #0369a1;">-- min</div>
+        </div>
+      </div>
+      
+      <button id="btn-waze" class="btn-primary" style="width: 100%; background: linear-gradient(135deg, #10b981, #059669);">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polygon points="12 15 9 10 15 10 12 15"/></svg>
+        Iniciar viaje en Waze
+      </button>
+    </div>
+  </div>
+
   <div class="tab-bar">
     <div class="tab-item active" data-screen="inicio" onclick="switchTab('inicio')">
       <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
@@ -685,7 +722,25 @@
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFpaXB4ZnNzYm5wZnBlZmJibndtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3MDM2MzIsImV4cCI6MjA5NDI3OTYzMn0.CS_e43iE4ClLgqQULrm4mNm3ji71WQZQcdBNfg6lTHg';
     const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    // ========== SISTEMA DE NOTIFICACIONES TOAST ==========
+    // ========== ESTADOS LOCALES ==========
+    let ventas = [];
+    let stock = { mineral: 0, saborizada: 0, envasesVacios: 0 };
+    let clients = [];
+    let gastos = [];
+    let precios = { precioMineral: 8.5, precioSaborizada: 10.0, costoMineral: 4.0, costoSaborizada: 5.0 };
+    let precioMineral = 8.5;
+    let precioSaborizada = 10.0;
+    let costoProdMineral = 4.0;
+    let costoProdSaborizada = 5.0;
+    let editingClientId = null;
+
+    // ========== MAPAS (Variables Leaflet) ==========
+    let mapaRepartidor = null;
+    let capaRuta = null;
+    let marcadorA = null;
+    let marcadorB = null;
+
+    // ========== UTILIDADES & NAVEGACIÓN ==========
     function showToast(message, type = 'success') {
       const container = document.getElementById('toast-container');
       const toast = document.createElement('div');
@@ -702,51 +757,37 @@
       
       toast.innerHTML = `${iconSvg} <span>${escapeHtml(message)}</span>`;
       container.appendChild(toast);
-      
       setTimeout(() => { toast.remove(); }, 3000);
     }
 
-    // ========== DEMO FEATURES ==========
-    function demoFeature(featureName) {
-      showToast(`Módulo "${featureName}" en desarrollo para versión final`, 'info');
+    function escapeHtml(text) { 
+      return String(text).replace(/[&<>"]/g, m => ({'&':'&','<':'<','>':'>','"':'"'}[m])); 
     }
 
-    // ========== DIRECTLINK (COPIAR ENLACE CLIENTE) ==========
-    function copiarDirectLink() {
-      let storeCode = localStorage.getItem('aguabol_store_code');
-      if (!storeCode) {
-        const randomStr = Math.random().toString(36).substring(2, 6).toUpperCase();
-        storeCode = 'AGUA-' + randomStr;
-        localStorage.setItem('aguabol_store_code', storeCode);
-      }
-
-      const currentUrl = window.location.href;
-      let finalBase = currentUrl.substring(0, currentUrl.lastIndexOf('/'));
-      if (!currentUrl.includes('.html')) {
-         finalBase = currentUrl.endsWith('/') ? currentUrl.slice(0, -1) : currentUrl;
-      }
-      
-      const directLink = `${finalBase}/cliente.html?store=${storeCode}`;
-      
-      if (navigator.clipboard) {
-        navigator.clipboard.writeText(directLink).then(() => {
-          showToast(`Link copiado (Código: ${storeCode})`, 'success');
-        }).catch(err => {
-          console.error("Error copiando el link: ", err);
-          showToast('Error al copiar enlace', 'error');
-        });
-      } else {
-        const tempInput = document.createElement("input");
-        tempInput.value = directLink;
-        document.body.appendChild(tempInput);
-        tempInput.select();
-        document.execCommand("copy");
-        document.body.removeChild(tempInput);
-        showToast(`Link copiado (Código: ${storeCode})`, 'success');
-      }
+    function formatearBs(monto) { 
+      return 'Bs ' + monto.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ','); 
     }
 
-    // ========== NAVEGACIÓN Y TABS ==========
+    function animarNumero(id, endValue, duration) {
+      const obj = document.getElementById(id);
+      const isNegative = endValue < 0;
+      const absEnd = Math.abs(endValue);
+      let startTimestamp = null;
+      
+      const step = (timestamp) => {
+        if (!startTimestamp) startTimestamp = timestamp;
+        const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+        const easeOut = 1 - Math.pow(1 - progress, 3);
+        const currentVal = easeOut * absEnd;
+        const displayVal = isNegative ? -currentVal : currentVal;
+        obj.textContent = formatearBs(displayVal);
+        
+        if (progress < 1) window.requestAnimationFrame(step);
+        else obj.textContent = formatearBs(endValue);
+      };
+      window.requestAnimationFrame(step);
+    }
+
     function switchTab(screenId) {
       document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
       document.getElementById('screen-' + screenId).classList.add('active');
@@ -771,7 +812,6 @@
       overlay.addEventListener('click', function(e) { if (e.target === this) closeModal(this.id); });
     });
 
-    // ========== SUBIDA DE FOTO DE PERFIL ==========
     function previewAvatar(event) {
       const file = event.target.files[0];
       if (file) {
@@ -786,26 +826,38 @@
       }
     }
 
-    // ========== ESTADOS LOCALES (SINCRONIZADOS CON SUPABASE) ==========
-    let ventas = [];
-    let stock = { mineral: 0, saborizada: 0, envasesVacios: 0 };
-    let clients = [];
-    let gastos = [];
-    let precios = { precioMineral: 8.5, precioSaborizada: 10.0, costoMineral: 4.0, costoSaborizada: 5.0 };
-    let precioMineral = 8.5;
-    let precioSaborizada = 10.0;
-    let costoProdMineral = 4.0;
-    let costoProdSaborizada = 5.0;
+    function copiarDirectLink() {
+      let storeCode = localStorage.getItem('aguabol_store_code');
+      if (!storeCode) {
+        const randomStr = Math.random().toString(36).substring(2, 6).toUpperCase();
+        storeCode = 'AGUA-' + randomStr;
+        localStorage.setItem('aguabol_store_code', storeCode);
+      }
 
-    function formatearBs(monto) { return 'Bs ' + monto.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
-    function escapeHtml(text) { return String(text).replace(/[&<>"]/g, m => ({'&':'&','<':'<','>':'>','"':'"'}[m])); }
+      const currentUrl = window.location.href;
+      let finalBase = currentUrl.substring(0, currentUrl.lastIndexOf('/'));
+      if (!currentUrl.includes('.html')) finalBase = currentUrl.endsWith('/') ? currentUrl.slice(0, -1) : currentUrl;
+      
+      const directLink = `${finalBase}/cliente.html?store=${storeCode}`;
+      
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(directLink).then(() => showToast(`Link copiado (Código: ${storeCode})`, 'success'));
+      } else {
+        const tempInput = document.createElement("input");
+        tempInput.value = directLink;
+        document.body.appendChild(tempInput);
+        tempInput.select();
+        document.execCommand("copy");
+        document.body.removeChild(tempInput);
+        showToast(`Link copiado (Código: ${storeCode})`, 'success');
+      }
+    }
 
-    // ========== CARGAR DATOS DESDE SUPABASE ==========
+    // ========== CARGAR DATOS (SUPABASE) ==========
     async function loadDataFromSupabase() {
       showToast('Sincronizando datos...', 'info');
       try {
-        const { data: confData, error: errConf } = await db.from('configuracion').select('*').eq('id', 1).single();
-        if (errConf) console.error("🛑 ERROR SUPABASE (Cargar Precios):", errConf);
+        const { data: confData } = await db.from('configuracion').select('*').eq('id', 1).single();
         if (confData) {
           precios = {
             precioMineral: parseFloat(confData.precio_mineral),
@@ -813,57 +865,28 @@
             costoMineral: parseFloat(confData.costo_mineral),
             costoSaborizada: parseFloat(confData.costo_saborizada)
           };
-          precioMineral = precios.precioMineral;
-          precioSaborizada = precios.precioSaborizada;
-          costoProdMineral = precios.costoMineral;
-          costoProdSaborizada = precios.costoSaborizada;
+          precioMineral = precios.precioMineral; precioSaborizada = precios.precioSaborizada;
+          costoProdMineral = precios.costoMineral; costoProdSaborizada = precios.costoSaborizada;
         }
 
-        const { data: stockData, error: errStock } = await db.from('stock').select('*').eq('id', 1).single();
-        if (errStock) console.error("🛑 ERROR SUPABASE (Cargar Stock):", errStock);
+        const { data: stockData } = await db.from('stock').select('*').eq('id', 1).single();
         if (stockData) {
-          stock = {
-            mineral: stockData.mineral,
-            saborizada: stockData.saborizada,
-            envasesVacios: stockData.envases_vacios
-          };
+          stock = { mineral: stockData.mineral, saborizada: stockData.saborizada, envasesVacios: stockData.envases_vacios };
         }
 
-        const { data: clientsData, error: errCli } = await db.from('clientes').select('*');
-        if (errCli) console.error("🛑 ERROR SUPABASE (Cargar Clientes):", errCli);
+        const { data: clientsData } = await db.from('clientes').select('*');
         if (clientsData) {
-          clients = clientsData.map(c => ({
-            id: c.id,
-            name: c.nombre,
-            phone: c.telefono,
-            address: c.direccion,
-            frequency: c.frecuencia_dias ? c.frecuencia_dias.toString() : ''
-          }));
+          clients = clientsData.map(c => ({ id: c.id, name: c.nombre, phone: c.telefono, address: c.direccion, frequency: c.frecuencia_dias ? c.frecuencia_dias.toString() : '' }));
         }
 
-        const { data: gastosData, error: errGas } = await db.from('gastos').select('*');
-        if (errGas) console.error("🛑 ERROR SUPABASE (Cargar Gastos):", errGas);
+        const { data: gastosData } = await db.from('gastos').select('*');
         if (gastosData) {
-          gastos = gastosData.map(g => ({
-            id: g.id,
-            fecha: g.fecha,
-            desc: g.descripcion,
-            monto: parseFloat(g.monto)
-          }));
+          gastos = gastosData.map(g => ({ id: g.id, fecha: g.fecha, desc: g.descripcion, monto: parseFloat(g.monto) }));
         }
 
-        const { data: ventasData, error: errVen } = await db.from('ventas').select('*');
-        if (errVen) console.error("🛑 ERROR SUPABASE (Cargar Ventas):", errVen);
+        const { data: ventasData } = await db.from('ventas').select('*');
         if (ventasData) {
-          ventas = ventasData.map(v => ({
-            id: v.id,
-            fecha: v.fecha,
-            clienteId: v.cliente_id,
-            mineral: v.mineral,
-            saborizada: v.saborizada,
-            envasesDevueltos: v.envases_devueltos,
-            total: parseFloat(v.total)
-          }));
+          ventas = ventasData.map(v => ({ id: v.id, fecha: v.fecha, clienteId: v.cliente_id, mineral: v.mineral, saborizada: v.saborizada, envasesDevueltos: v.envases_devueltos, total: parseFloat(v.total) }));
         }
 
         cargarMovimiento();
@@ -872,12 +895,12 @@
         renderClientList();
         
       } catch (err) {
-        console.error("🛑 ERROR DE RED O EJECUCIÓN:", err);
+        console.error("Error al sincronizar:", err);
         showToast('Error al sincronizar', 'error');
       }
     }
 
-    // ========== PRECIOS Y COSTOS ==========
+    // ========== PRECIOS ==========
     function abrirModalPrecios() {
       document.getElementById('precioMineralInput').value = precioMineral;
       document.getElementById('precioSaborizadaInput').value = precioSaborizada;
@@ -897,93 +920,45 @@
       }
 
       precioMineral = pm; precioSaborizada = ps; costoProdMineral = cm; costoProdSaborizada = cs;
-      
       closeModal('modalPreciosOverlay');
       showToast('Guardando...', 'info');
 
-      const { error } = await db.from('configuracion').upsert({
-        id: 1,
-        precio_mineral: pm,
-        precio_saborizada: ps,
-        costo_mineral: cm,
-        costo_saborizada: cs
-      });
-
+      const { error } = await db.from('configuracion').upsert({ id: 1, precio_mineral: pm, precio_saborizada: ps, costo_mineral: cm, costo_saborizada: cs });
       if (!error) {
         showToast('Precios actualizados', 'success');
-        calcularTotalVenta();
-        cargarMovimiento();
+        calcularTotalVenta(); cargarMovimiento();
       } else {
-        console.error("🛑 ERROR SUPABASE (Precios):", error);
         showToast('Error al actualizar precios', 'error');
       }
     }
 
-    // ========== ANIMACIÓN DE NÚMEROS ==========
-    function animarNumero(id, endValue, duration) {
-      const obj = document.getElementById(id);
-      const isNegative = endValue < 0;
-      const absEnd = Math.abs(endValue);
-      let startTimestamp = null;
-      
-      const step = (timestamp) => {
-        if (!startTimestamp) startTimestamp = timestamp;
-        const progress = Math.min((timestamp - startTimestamp) / duration, 1);
-        const easeOut = 1 - Math.pow(1 - progress, 3);
-        const currentVal = easeOut * absEnd;
-        
-        const displayVal = isNegative ? -currentVal : currentVal;
-        obj.textContent = formatearBs(displayVal);
-        
-        if (progress < 1) {
-          window.requestAnimationFrame(step);
-        } else {
-          obj.textContent = formatearBs(endValue);
-        }
-      };
-      window.requestAnimationFrame(step);
-    }
-
-    // ========== INICIO Y FINANZAS ==========
+    // ========== FINANZAS Y GASTOS ==========
     function cargarMovimiento() {
       const mes = parseInt(document.getElementById('mes').value);
       const anio = parseInt(document.getElementById('anio').value);
       
-      const ventasMes = ventas.filter(v => {
-        const d = new Date(v.fecha + 'T12:00:00');
-        return d.getMonth() === mes && d.getFullYear() === anio;
-      });
-      
-      const gastosMes = gastos.filter(g => {
-        const d = new Date(g.fecha + 'T12:00:00');
-        return d.getMonth() === mes && d.getFullYear() === anio;
-      });
+      const ventasMes = ventas.filter(v => { const d = new Date(v.fecha + 'T12:00:00'); return d.getMonth() === mes && d.getFullYear() === anio; });
+      const gastosMes = gastos.filter(g => { const d = new Date(g.fecha + 'T12:00:00'); return d.getMonth() === mes && d.getFullYear() === anio; });
 
-      let totalIngresos = 0;
-      let costoProduccionTotal = 0;
-      let totalGastos = gastosMes.reduce((acc, g) => acc + g.monto, 0);
+      let totalIngresos = 0, costoProduccionTotal = 0, totalGastos = gastosMes.reduce((acc, g) => acc + g.monto, 0);
       let datosDiarios = {};
 
       ventasMes.forEach(v => {
         const dia = new Date(v.fecha + 'T12:00:00').getDate();
         if(!datosDiarios[dia]) datosDiarios[dia] = 0;
-        
         totalIngresos += v.total;
         costoProduccionTotal += (v.mineral * costoProdMineral) + (v.saborizada * costoProdSaborizada);
         datosDiarios[dia] += v.total;
       });
 
       const utilidadNeta = totalIngresos - costoProduccionTotal - totalGastos;
-      
       document.getElementById('utilidad-neta').style.color = utilidadNeta >= 0 ? 'var(--green)' : 'var(--destructive)';
-
       animarNumero('total-mes', totalIngresos, 1200);
       animarNumero('utilidad-neta', utilidadNeta, 1200);
 
       let barrasHTML = '';
       const maxDiario = Math.max(...Object.values(datosDiarios), 1);
       const diasEnMes = new Date(anio, mes + 1, 0).getDate();
-      
       const hoy = new Date();
       const esMesActual = (mes === hoy.getMonth() && anio === hoy.getFullYear());
       const diaActual = hoy.getDate();
@@ -991,11 +966,9 @@
       for (let dia = 1; dia <= diasEnMes; dia++) {
         const totalDia = datosDiarios[dia] || 0;
         const altura = Math.min((totalDia / maxDiario) * 100, 100);
-        
         const esHoy = esMesActual && dia === diaActual;
         const idDia = esHoy ? 'bar-dia-actual' : '';
         const claseLabel = esHoy ? 'bar-label hoy' : 'bar-label';
-
         barrasHTML += `<div class="bar-item" id="${idDia}"><div class="bar" style="height:0px;" data-height="${altura}"></div><span class="${claseLabel}">${dia}</span></div>`;
       }
       
@@ -1003,28 +976,14 @@
       grafico.innerHTML = barrasHTML;
 
       setTimeout(() => {
-        const bars = grafico.querySelectorAll('.bar');
-        bars.forEach(bar => {
-          bar.style.height = bar.getAttribute('data-height') + 'px';
-        });
+        grafico.querySelectorAll('.bar').forEach(bar => bar.style.height = bar.getAttribute('data-height') + 'px');
       }, 50);
 
       const container = document.getElementById('chart-container-scroll');
-      if (esMesActual) {
-        setTimeout(() => {
-          const barActual = document.getElementById('bar-dia-actual');
-          if (barActual) {
-            barActual.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
-          } else {
-            container.scrollLeft = container.scrollWidth;
-          }
-        }, 300);
-      } else {
-        container.scrollLeft = 0;
-      }
+      if (esMesActual) setTimeout(() => { const barActual = document.getElementById('bar-dia-actual'); if (barActual) barActual.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' }); }, 300);
+      else container.scrollLeft = 0;
     }
 
-    // ========== GASTOS ==========
     function abrirModalGasto() {
       document.getElementById('fecha-gasto').value = new Date().toISOString().split('T')[0];
       document.getElementById('desc-gasto').value = '';
@@ -1038,44 +997,23 @@
       const desc = document.getElementById('desc-gasto').value.trim();
       const monto = parseFloat(document.getElementById('monto-gasto').value);
 
-      if(!fecha || !desc || isNaN(monto) || monto <= 0) {
-        return showToast('Completa todos los campos', 'error');
-      }
+      if(!fecha || !desc || isNaN(monto) || monto <= 0) return showToast('Completa todos los campos', 'error');
 
       const id = crypto.randomUUID();
-      
       gastos.push({ id, fecha, desc, monto });
-      cargarMovimiento();
-      renderGastosList(); 
-      document.getElementById('desc-gasto').value = '';
-      document.getElementById('monto-gasto').value = '';
+      cargarMovimiento(); renderGastosList(); 
+      document.getElementById('desc-gasto').value = ''; document.getElementById('monto-gasto').value = '';
 
-      const { error } = await db.from('gastos').insert({
-        id: id,
-        fecha: fecha,
-        descripcion: desc,
-        monto: monto
-      });
-
-      if (!error) {
-        showToast('Gasto registrado', 'success');
-      } else {
-        console.error("🛑 ERROR SUPABASE (Gastos):", error);
-        showToast('Error guardando gasto en la nube', 'error');
-      }
+      const { error } = await db.from('gastos').insert({ id, fecha, descripcion: desc, monto });
+      if (!error) showToast('Gasto registrado', 'success');
+      else showToast('Error guardando gasto', 'error');
     }
 
     async function eliminarGasto(gastoId) {
       gastos = gastos.filter(g => g.id !== gastoId);
-      cargarMovimiento();
-      renderGastosList();
-      
+      cargarMovimiento(); renderGastosList();
       const { error } = await db.from('gastos').delete().eq('id', gastoId);
-      if(!error) {
-         showToast('Gasto eliminado', 'info');
-      } else {
-         console.error("🛑 ERROR SUPABASE (Eliminar Gasto):", error);
-      }
+      if(!error) showToast('Gasto eliminado', 'info');
     }
 
     function renderGastosList() {
@@ -1084,8 +1022,7 @@
       const anio = parseInt(document.getElementById('anio').value);
       
       const gastosMes = gastos.filter(g => {
-        const d = new Date(g.fecha + 'T12:00:00');
-        return d.getMonth() === mes && d.getFullYear() === anio;
+        const d = new Date(g.fecha + 'T12:00:00'); return d.getMonth() === mes && d.getFullYear() === anio;
       }).sort((a,b) => new Date(b.fecha) - new Date(a.fecha));
 
       if (gastosMes.length === 0) {
@@ -1101,7 +1038,7 @@
             <span class="gasto-date">${fecha}</span>
             <span class="gasto-desc">${escapeHtml(g.desc)}</span>
             <span class="gasto-monto">-${formatearBs(g.monto)}</span>
-            <button class="gasto-delete-btn" onclick="eliminarGasto('${g.id}')" title="Eliminar gasto">
+            <button class="gasto-delete-btn" onclick="eliminarGasto('${g.id}')">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
             </button>
           </div>`;
@@ -1109,7 +1046,7 @@
       container.innerHTML = html;
     }
 
-    // ========== VENTAS ==========
+    // ========== VENTAS E INVENTARIO ==========
     function llenarSelectClientes() {
       const select = document.getElementById('cliente-venta');
       select.innerHTML = '<option value="">Sin cliente</option>';
@@ -1157,106 +1094,54 @@
       const idVenta = crypto.randomUUID();
       const total = cantMineral * precioMineral + cantSaborizada * precioSaborizada;
 
-      stock.mineral -= cantMineral;
-      stock.saborizada -= cantSaborizada;
-      stock.envasesVacios = (stock.envasesVacios || 0) + devueltos;
-      
+      stock.mineral -= cantMineral; stock.saborizada -= cantSaborizada; stock.envasesVacios = (stock.envasesVacios || 0) + devueltos;
       ventas.push({ id: idVenta, fecha, clienteId, mineral: cantMineral, saborizada: cantSaborizada, envasesDevueltos: devueltos, total });
       
       actualizarStockUI();
-      document.getElementById('cant-mineral').value = 0;
-      document.getElementById('cant-saborizada').value = 0;
-      document.getElementById('cant-devueltos').value = 0;
-      calcularTotalVenta();
-      mostrarDeudaEnvases();
+      document.getElementById('cant-mineral').value = 0; document.getElementById('cant-saborizada').value = 0; document.getElementById('cant-devueltos').value = 0;
+      calcularTotalVenta(); mostrarDeudaEnvases(); renderClientSalesHistory(clienteId);
 
-      const { error: errVenta } = await db.from('ventas').insert({
-         id: idVenta,
-         fecha: fecha,
-         cliente_id: clienteId || null,
-         mineral: cantMineral,
-         saborizada: cantSaborizada,
-         envases_devueltos: devueltos,
-         total: total
-      });
-
-      if (errVenta) {
-         console.error("🛑 ERROR SUPABASE (Insertar Venta):", errVenta);
-         return showToast('Error al registrar en nube', 'error');
-      }
-
-      const { error: errStock } = await db.from('stock').upsert({
-         id: 1,
-         mineral: stock.mineral,
-         saborizada: stock.saborizada,
-         envases_vacios: stock.envasesVacios
-      });
-
-      if (errStock) {
-         console.error("🛑 ERROR SUPABASE (Actualizar Stock):", errStock);
-      } else {
-         showToast('Venta registrada con éxito', 'success');
-      }
+      const { error: errVenta } = await db.from('ventas').insert({ id: idVenta, fecha, cliente_id: clienteId || null, mineral: cantMineral, saborizada: cantSaborizada, envases_devueltos: devueltos, total });
+      if (errVenta) return showToast('Error al registrar en nube', 'error');
+      await db.from('stock').upsert({ id: 1, mineral: stock.mineral, saborizada: stock.saborizada, envases_vacios: stock.envasesVacios });
+      showToast('Venta registrada con éxito', 'success');
     }
 
-    // ========== INVENTARIO ==========
     async function cambiarStock(tipo, delta) {
       stock[tipo] = Math.max(0, stock[tipo] + delta);
       actualizarStockUI();
-
-      const { error } = await db.from('stock').upsert({
-         id: 1,
-         mineral: stock.mineral,
-         saborizada: stock.saborizada,
-         envases_vacios: stock.envasesVacios || 0
-      });
-      if(error) console.error("🛑 ERROR SUPABASE (Cambiar Stock):", error);
+      await db.from('stock').upsert({ id: 1, mineral: stock.mineral, saborizada: stock.saborizada, envases_vacios: stock.envasesVacios || 0 });
     }
 
     function actualizarStockUI() {
       document.getElementById('stock-mineral').textContent = stock.mineral;
       document.getElementById('stock-saborizada').textContent = stock.saborizada;
-      const totalEnvases = stock.mineral + stock.saborizada + (stock.envasesVacios || 0);
-      document.getElementById('total-envases-fisicos').textContent = totalEnvases;
+      document.getElementById('total-envases-fisicos').textContent = stock.mineral + stock.saborizada + (stock.envasesVacios || 0);
     }
 
-    // ========== CLIENTES (CRM Y MAPAS) ==========
-    let editingClientId = null;
-
+    // ========== CLIENTES Y MAPAS (MÓDULO REPARTIDOR) ==========
     function getClientStats(clienteId) {
       const clientSales = ventas.filter(v => v.clienteId === clienteId).sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
       let totMin = 0, totSab = 0, totDev = 0;
-      
-      clientSales.forEach(v => {
-        totMin += v.mineral; totSab += v.saborizada; totDev += (v.envasesDevueltos || 0);
-      });
+      clientSales.forEach(v => { totMin += v.mineral; totSab += v.saborizada; totDev += (v.envasesDevueltos || 0); });
       
       const deudaEnvases = (totMin + totSab) - totDev;
-      
       const client = clients.find(c => c.id === clienteId);
       let pedidoPendiente = false;
       
       if (clientSales.length > 0) {
         const diasDesdeUltima = Math.floor((new Date() - new Date(clientSales[0].fecha)) / (1000 * 60 * 60 * 24));
-        
         if (client && client.frequency && !isNaN(parseInt(client.frequency))) {
-          const freq = parseInt(client.frequency);
-          pedidoPendiente = diasDesdeUltima > freq * 1.3;
-        } else {
-          if (clientSales.length >= 2) {
-            let maxIter = Math.min(clientSales.length, 3);
-            let diasDiff = [];
-            for(let i = 0; i < maxIter - 1; i++){
-               const d1 = new Date(clientSales[i].fecha);
-               const d2 = new Date(clientSales[i+1].fecha);
-               diasDiff.push(Math.abs(d1 - d2) / (1000 * 60 * 60 * 24));
-            }
-            const avg = diasDiff.reduce((a,b)=>a+b, 0) / diasDiff.length;
-            pedidoPendiente = diasDesdeUltima > avg + 1;
+          pedidoPendiente = diasDesdeUltima > parseInt(client.frequency) * 1.3;
+        } else if (clientSales.length >= 2) {
+          let diasDiff = [];
+          for(let i = 0; i < Math.min(clientSales.length, 3) - 1; i++){
+             diasDiff.push(Math.abs(new Date(clientSales[i].fecha) - new Date(clientSales[i+1].fecha)) / (1000 * 60 * 60 * 24));
           }
+          const avg = diasDiff.reduce((a,b)=>a+b, 0) / diasDiff.length;
+          pedidoPendiente = diasDesdeUltima > avg + 1;
         }
       }
-
       return { totMin, totSab, deudaEnvases, pedidoPendiente };
     }
 
@@ -1275,45 +1160,46 @@
         const stats = getClientStats(client.id);
         const inicial = client.name.charAt(0).toUpperCase();
         
-        // Link de WhatsApp
-        const urlWa = `https://wa.me/${client.phone.replace(/[^0-9]/g, '')}?text=Hola%20${encodeURIComponent(client.name)},%20te%20escribimos%20de%20AguaBol.`;
-        
-        // LÓGICA DE LIMPIEZA DE DIRECCIÓN Y GENERACIÓN DE MAPA OFICIAL GOOGLE
+        // --- LIMPIEZA DE DIRECCIÓN Y EXTRACCIÓN DE COORDENADAS ---
         let direccionVisual = client.address || 'Sin dirección';
-        let urlMap = '#';
+        let destLat = null, destLng = null;
 
         if (client.address) {
            if (client.address.includes('| GPS:')) {
-               // Formato Nuevo del cliente
                const partes = client.address.split('| GPS:');
                direccionVisual = partes[0].trim();
-               // Extrae lat,lng y lo pone en la URL de búsqueda universal oficial
-               urlMap = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(partes[1].trim())}`;
+               const coords = partes[1].trim().split(',');
+               if(coords.length === 2) { destLat = parseFloat(coords[0]); destLng = parseFloat(coords[1]); }
            } 
            else if (client.address.includes('| Maps:')) {
-               // Formato Viejo (Tachado en pantalla), lo limpiamos aquí
                const partes = client.address.split('| Maps:');
                direccionVisual = partes[0].trim();
-               
-               // Intentamos extraer las coordenadas de la URL vieja si las tiene
                const match = partes[1].match(/(-?\d+\.\d+),(-?\d+\.\d+)/);
-               if(match) {
-                   urlMap = `https://www.google.com/maps/search/?api=1&query=${match[0]}`;
-               } else {
-                   urlMap = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(direccionVisual)}`;
-               }
-           } 
-           else {
-               // Es solo texto normal
-               urlMap = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(direccionVisual)}`;
+               if(match) { const coords = match[0].split(','); destLat = parseFloat(coords[0]); destLng = parseFloat(coords[1]); }
            }
         }
 
-        let badgeDeuda = '';
-        if(stats.deudaEnvases > 0) {
-           const alertClass = stats.deudaEnvases > 3 ? 'alert' : '';
-           badgeDeuda = `<span class="badge ${alertClass}">Debe ${stats.deudaEnvases} envase(s)</span>`;
+        // --- BOTÓN MAPA NATIVO O WAZE ---
+        let btnMapaHtml = '';
+        if (client.address) {
+          if (destLat !== null && destLng !== null) {
+            // Activa Ruta Nativa OpenSource
+            btnMapaHtml = `
+              <div class="action-btn map" style="background:#dbeafe; color:#2563eb;" onclick="event.stopPropagation(); abrirRuta(${destLat}, ${destLng}, '${escapeHtml(client.name)}', '${escapeHtml(direccionVisual)}')" title="Trazar Ruta de Entrega">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
+              </div>`;
+          } else {
+            // Activa Waze URL Búsqueda
+            const wazeBusqueda = `https://waze.com/ul?q=${encodeURIComponent(direccionVisual)}`;
+            btnMapaHtml = `
+              <div class="action-btn map" onclick="event.stopPropagation(); window.open('${wazeBusqueda}', '_blank')" title="Buscar en Waze">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              </div>`;
+          }
         }
+
+        const urlWa = `https://wa.me/${client.phone.replace(/[^0-9]/g, '')}?text=Hola%20${encodeURIComponent(client.name)},%20te%20escribimos%20de%20AguaBol.`;
+        let badgeDeuda = stats.deudaEnvases > 0 ? `<span class="badge ${stats.deudaEnvases > 3 ? 'alert' : ''}">Debe ${stats.deudaEnvases} envase(s)</span>` : '';
 
         html += `
           <div class="client-row" onclick="openEditModal('${client.id}')">
@@ -1331,16 +1217,12 @@
                 </div>
               </div>
             </div>
-            
             <div class="client-actions-bar">
                <div class="truncate" style="font-size:13px; color:var(--text-secondary); max-width:60%;">
                  ${escapeHtml(direccionVisual)}
                </div>
                <div class="action-icons">
-                 ${client.address ? `
-                 <div class="action-btn map" onclick="event.stopPropagation(); window.open('${urlMap}', '_blank')" title="Ver en Mapa">
-                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-                 </div>` : ''}
+                 ${btnMapaHtml}
                  <div class="action-btn whatsapp" onclick="event.stopPropagation(); window.open('${urlWa}', '_blank')" title="Contactar">
                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
                  </div>
@@ -1351,6 +1233,73 @@
       container.innerHTML = html;
     }
 
+    // ====== FUNCIONES DEL MODULO DE REPARTO NATIVO ======
+    function abrirRuta(destLat, destLng, nombreCliente, direccionCliente) {
+      const modal = document.getElementById('pantallaRutaOverlay');
+      modal.style.display = 'flex';
+      setTimeout(() => modal.classList.add('active'), 10);
+      
+      document.getElementById('ruta-cliente-nombre').textContent = nombreCliente;
+      document.getElementById('ruta-cliente-dir').textContent = direccionCliente;
+      document.getElementById('ruta-distancia').innerHTML = '<span class="spin">⏳</span>';
+      document.getElementById('ruta-tiempo').innerHTML = '--';
+
+      const linkWaze = `https://waze.com/ul?ll=${destLat},${destLng}&navigate=yes`;
+      document.getElementById('btn-waze').onclick = () => window.open(linkWaze, '_blank');
+
+      if (!mapaRepartidor) {
+          mapaRepartidor = L.map('mapa-repartidor', { zoomControl: false }).setView([10.1620, -67.9996], 13);
+          L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { attribution: '© OpenStreetMap' }).addTo(mapaRepartidor);
+      }
+
+      setTimeout(() => {
+          mapaRepartidor.invalidateSize();
+          if (navigator.geolocation) {
+              navigator.geolocation.getCurrentPosition(async (pos) => {
+                  const origenLat = pos.coords.latitude;
+                  const origenLng = pos.coords.longitude;
+
+                  if(marcadorA) mapaRepartidor.removeLayer(marcadorA);
+                  if(marcadorB) mapaRepartidor.removeLayer(marcadorB);
+                  if(capaRuta) mapaRepartidor.removeLayer(capaRuta);
+
+                  marcadorA = L.marker([origenLat, origenLng]).addTo(mapaRepartidor).bindPopup("Tu Ubicación");
+                  marcadorB = L.marker([destLat, destLng]).addTo(mapaRepartidor).bindPopup("Cliente");
+                  mapaRepartidor.fitBounds(L.latLngBounds([origenLat, origenLng], [destLat, destLng]), {padding: [50,50]});
+
+                  try {
+                      // Usar API Gratuita OSRM (Open Source Routing Machine)
+                      const urlRoute = `https://router.project-osrm.org/route/v1/driving/${origenLng},${origenLat};${destLng},${destLat}?geometries=geojson`;
+                      const res = await fetch(urlRoute);
+                      const data = await res.json();
+
+                      if(data.routes && data.routes[0]) {
+                          const coords = data.routes[0].geometry;
+                          capaRuta = L.geoJSON(coords, { style: { color: '#0ea5e9', weight: 6, opacity: 0.8 } }).addTo(mapaRepartidor);
+                          
+                          document.getElementById('ruta-distancia').textContent = `${(data.routes[0].distance / 1000).toFixed(1)} km`;
+                          document.getElementById('ruta-tiempo').textContent = `${Math.round(data.routes[0].duration / 60)} min`;
+                      } else {
+                          document.getElementById('ruta-distancia').textContent = 'Error';
+                      }
+                  } catch(e) { document.getElementById('ruta-distancia').textContent = 'Error'; }
+              }, (err) => {
+                  showToast('Activa el GPS de tu teléfono', 'error');
+                  document.getElementById('ruta-distancia').textContent = 'Sin GPS';
+              }, { enableHighAccuracy: true });
+          } else {
+              showToast('Navegador sin GPS', 'error');
+          }
+      }, 400); 
+    }
+
+    function cerrarRuta() {
+      const modal = document.getElementById('pantallaRutaOverlay');
+      modal.classList.remove('active');
+      setTimeout(() => modal.style.display = 'none', 300);
+    }
+
+    // ====== CRUD CLIENTES ======
     function openClientModal() {
       editingClientId = null;
       document.getElementById('modalClientTitle').textContent = 'Nuevo cliente';
@@ -1373,20 +1322,14 @@
       document.getElementById('clientAddress').value = client.address || '';
       document.getElementById('clientFrequency').value = client.frequency || '';
       document.getElementById('deleteClientContainer').style.display = 'block';
-      
       renderClientSalesHistory(id);
-      
       openModal('modalClientOverlay');
     }
 
     function renderClientSalesHistory(clientId) {
       const container = document.getElementById('clientSalesHistory');
       const clientSales = ventas.filter(v => v.clienteId === clientId).sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
-      
-      if (clientSales.length === 0) {
-        container.style.display = 'none';
-        return;
-      }
+      if (clientSales.length === 0) { container.style.display = 'none'; return; }
       
       container.style.display = 'block';
       let html = '<h3 style="margin-bottom:12px; font-size:16px;">Últimas ventas</h3>';
@@ -1396,16 +1339,8 @@
         let detalle = [];
         if (v.mineral > 0) detalle.push(`${v.mineral} Min`);
         if (v.saborizada > 0) detalle.push(`${v.saborizada} Sab`);
-        html += `
-          <div class="history-item">
-            <span class="history-date">${fecha}</span>
-            <span class="history-detail">${detalle.join(', ') || 'Sin detalle'}</span>
-            <span class="history-amount">${formatearBs(v.total)}</span>
-          </div>`;
+        html += `<div class="history-item"><span class="history-date">${fecha}</span><span class="history-detail">${detalle.join(', ') || 'Sin detalle'}</span><span class="history-amount">${formatearBs(v.total)}</span></div>`;
       });
-      if (clientSales.length > maxItems) {
-        html += `<div style="text-align:center; font-size:12px; color:var(--text-secondary); margin-top:8px;">Mostrando las ${maxItems} más recientes</div>`;
-      }
       container.innerHTML = html;
     }
 
@@ -1420,33 +1355,14 @@
       const isNew = !editingClientId;
       const cId = isNew ? crypto.randomUUID() : editingClientId;
       
-      if (isNew) {
-        clients.push({ id: cId, name, phone, address, frequency: frequency || '' });
-      } else {
-        const client = clients.find(c => c.id === cId);
-        if (client) Object.assign(client, { name, phone, address, frequency: frequency || '' });
-      }
+      if (isNew) { clients.push({ id: cId, name, phone, address, frequency: frequency || '' }); } 
+      else { const client = clients.find(c => c.id === cId); if (client) Object.assign(client, { name, phone, address, frequency: frequency || '' }); }
       
-      llenarSelectClientes();
-      renderClientList();
-      closeModal('modalClientOverlay');
+      llenarSelectClientes(); renderClientList(); closeModal('modalClientOverlay');
       
-      const payload = {
-         id: cId,
-         nombre: name,
-         telefono: phone,
-         direccion: address || null,
-         frecuencia_dias: frequency ? parseInt(frequency) : null
-      };
-
-      const { error } = await db.from('clientes').upsert(payload);
-
-      if(!error) {
-         showToast(isNew ? 'Cliente guardado correctamente' : 'Cliente actualizado', 'success');
-      } else {
-         console.error("🛑 ERROR SUPABASE (Clientes):", error);
-         showToast('Error al guardar en la nube', 'error');
-      }
+      const { error } = await db.from('clientes').upsert({ id: cId, nombre: name, telefono: phone, direccion: address || null, frecuencia_dias: frequency ? parseInt(frequency) : null });
+      if(!error) showToast(isNew ? 'Cliente guardado' : 'Cliente actualizado', 'success');
+      else showToast('Error al guardar en la nube', 'error');
     }
 
     async function deleteClient() {
@@ -1454,60 +1370,29 @@
       if (confirm('¿Eliminar este cliente de forma permanente?')) {
         const cId = editingClientId;
         clients = clients.filter(c => c.id !== cId);
-        llenarSelectClientes();
-        renderClientList();
-        closeModal('modalClientOverlay');
-        
+        llenarSelectClientes(); renderClientList(); closeModal('modalClientOverlay');
         const { error } = await db.from('clientes').delete().eq('id', cId);
-        if(!error) {
-           showToast('Cliente eliminado', 'info');
-        } else {
-           console.error("🛑 ERROR SUPABASE (Eliminar Cliente):", error);
-        }
+        if(!error) showToast('Cliente eliminado', 'info');
       }
     }
 
-    // ========== SUSCRIPCIÓN EN TIEMPO REAL ==========
+    // ========== SUBSCRIPCION EN TIEMPO REAL ==========
     function escucharCambiosClientes() {
       db.channel('cambios-clientes')
-        .on(
-          'postgres_changes', 
-          { event: '*', schema: 'public', table: 'clientes' }, 
-          (payload) => {
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'clientes' }, (payload) => {
             if (payload.eventType === 'INSERT') {
-              const nuevoCli = {
-                id: payload.new.id,
-                name: payload.new.nombre,
-                phone: payload.new.telefono,
-                address: payload.new.direccion,
-                frequency: payload.new.frecuencia_dias ? payload.new.frecuencia_dias.toString() : ''
-              };
-              if(!clients.some(c => c.id === nuevoCli.id)) {
-                clients.push(nuevoCli);
-                showToast(`Nuevo cliente: ${nuevoCli.name}`, 'info');
-              }
+              const nuevoCli = { id: payload.new.id, name: payload.new.nombre, phone: payload.new.telefono, address: payload.new.direccion, frequency: payload.new.frecuencia_dias ? payload.new.frecuencia_dias.toString() : '' };
+              if(!clients.some(c => c.id === nuevoCli.id)) { clients.push(nuevoCli); showToast(`Nuevo cliente: ${nuevoCli.name}`, 'info'); }
             } 
             else if (payload.eventType === 'UPDATE') {
               const index = clients.findIndex(c => c.id === payload.new.id);
-              if (index !== -1) {
-                clients[index] = {
-                  id: payload.new.id,
-                  name: payload.new.nombre,
-                  phone: payload.new.telefono,
-                  address: payload.new.direccion,
-                  frequency: payload.new.frecuencia_dias ? payload.new.frecuencia_dias.toString() : ''
-                };
-              }
+              if (index !== -1) { clients[index] = { id: payload.new.id, name: payload.new.nombre, phone: payload.new.telefono, address: payload.new.direccion, frequency: payload.new.frecuencia_dias ? payload.new.frecuencia_dias.toString() : '' }; }
             } 
             else if (payload.eventType === 'DELETE') {
               clients = clients.filter(c => c.id !== payload.old.id);
             }
-
-            renderClientList();
-            llenarSelectClientes();
-          }
-        )
-        .subscribe();
+            renderClientList(); llenarSelectClientes();
+        }).subscribe();
     }
 
     // ========== INICIALIZACIÓN ==========
@@ -1518,9 +1403,7 @@
       document.getElementById('anio').value = today.getFullYear();
       
       const savedAvatar = localStorage.getItem('agua_avatar');
-      if (savedAvatar) {
-        document.getElementById('profile-img').src = savedAvatar;
-      }
+      if (savedAvatar) document.getElementById('profile-img').src = savedAvatar;
 
       await loadDataFromSupabase();
       escucharCambiosClientes();
