@@ -7,6 +7,9 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="theme-color" content="#f4f6f9">
   <title>Agua 20L</title>
+  
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
   <style>
     /* ========== VARIABLES GLOBALES ========== */
     :root {
@@ -93,15 +96,10 @@
       to { opacity: 0; transform: translateY(-10px) scale(0.9); }
     }
 
-    /* ========== UTILIDADES ========== */
-    .truncate { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .flex-row { display: flex; align-items: center; gap: 8px; }
-
-    /* ========== ENCABEZADO ========== */
+    /* ========== ENCABEZADO Y TARJETAS ========== */
     .nav-bar { display: flex; align-items: center; justify-content: space-between; padding: 16px 0 24px 0; }
     .nav-title { font-size: 32px; font-weight: 800; letter-spacing: -0.8px; color: var(--text-primary); }
 
-    /* ========== TARJETAS ========== */
     .card {
       background: var(--card-bg); border-radius: var(--radius-md); padding: 22px;
       margin-bottom: 24px; box-shadow: var(--shadow-sm); border: 1px solid rgba(255,255,255,0.5);
@@ -111,15 +109,13 @@
       font-size: 18px; font-weight: 700; margin: 0 0 12px 4px; color: var(--text-primary);
       display: flex; align-items: center; justify-content: space-between;
     }
-    .section-title .title-left { display: flex; align-items: center; gap: 8px; }
-    .section-title svg { color: var(--tint); }
 
     /* ========== FORMULARIOS & SELECTORES ========== */
     .date-picker-row, .input-row { display: flex; gap: 12px; align-items: flex-end; width: 100%; }
-    .picker-group { flex: 1; min-width: 0; }
+    .picker-group, .input-group { flex: 1; min-width: 0; width: 100%; margin-bottom: 12px; }
     .picker-group label, .input-group label {
       font-size: 11px; color: var(--text-secondary); font-weight: 700; text-transform: uppercase;
-      letter-spacing: 0.8px; margin-bottom: 6px; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      letter-spacing: 0.8px; margin-bottom: 6px; display: block;
     }
     select, input {
       appearance: none; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: var(--radius-sm);
@@ -127,329 +123,107 @@
       width: 100%; font-weight: 600; outline: none; transition: all 0.2s ease;
     }
     select:focus, input:focus { border-color: var(--tint); background: #ffffff; box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15); }
-    select {
-      background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="%2394a3b8" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>');
-      background-repeat: no-repeat; background-position: right 14px center; padding-right: 40px;
-    }
-
+    
     /* ========== BOTONES ========== */
     .btn-primary {
       background: linear-gradient(135deg, var(--tint), #0284c7); color: white; border: none;
       border-radius: var(--radius-sm); padding: 12px 20px; font-weight: 600; font-size: 16px;
-      cursor: pointer; display: flex; align-items: center; gap: 8px; transition: transform 0.15s ease, box-shadow 0.15s ease;
+      cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%;
       box-shadow: 0 4px 12px rgba(14, 165, 233, 0.25);
     }
-    .btn-primary:active { transform: scale(0.96); box-shadow: 0 2px 6px rgba(14, 165, 233, 0.2); }
     .btn-small {
       padding: 6px 12px; font-size: 13px; background: #e0f2fe; color: var(--tint-hover);
-      border-radius: 8px; border: none; font-weight: 700;
+      border-radius: 8px; border: none; font-weight: 700; cursor: pointer;
     }
 
-    /* ========== TOTAL TARJETA SUPERIOR ========== */
+    /* ========== TOTALES Y GRÁFICOS ========== */
     .total-card {
       background: linear-gradient(135deg, var(--text-primary), #1f2937); border-radius: var(--radius-md);
       padding: 24px; margin-bottom: 24px; box-shadow: var(--shadow-md); display: flex; flex-direction: column; gap: 12px; color: white;
     }
-    .financial-row { display: flex; justify-content: space-between; align-items: flex-end; }
     .total-info { display: flex; flex-direction: column; }
     .total-label { font-size: 13px; color: #9ca3af; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;}
     .total-amount { font-size: 32px; font-weight: 800; color: white; letter-spacing: -0.5px;}
     .utilidad-amount { font-size: 18px; font-weight: 700; color: var(--green); }
 
-    /* ========== GRÁFICO ========== */
-    .chart-container { overflow-x: auto; white-space: nowrap; padding-bottom: 12px; scrollbar-width: none; }
-    .chart-container::-webkit-scrollbar { display: none; }
-    .bar-chart { display: flex; align-items: flex-end; gap: 8px; height: 140px; min-width: max-content; padding: 0 4px; }
-    .bar-item { display: flex; flex-direction: column; align-items: center; width: 28px; }
-    .bar {
-      width: 22px; background: linear-gradient(to top, #38bdf8, var(--tint)); border-radius: 6px 6px 4px 4px;
-      transition: height 0.8s cubic-bezier(0.34, 1.56, 0.64, 1); margin-bottom: 8px; box-shadow: 0 2px 8px rgba(14, 165, 233, 0.2);
-    }
-    .bar-label { font-size: 12px; color: var(--text-secondary); font-weight: 600; transition: all 0.3s ease; }
-    .bar-label.hoy { color: var(--tint); font-weight: 800; background: #e0f2fe; padding: 2px 6px; border-radius: 8px; }
-
-    /* ========== VENTAS ========== */
-    .venta-form { display: flex; flex-direction: column; gap: 20px; width: 100%; }
-    .qty-group {
-      display: flex; align-items: center; justify-content: space-between; gap: 6px;
-      background: #f8fafc; padding: 6px; border-radius: var(--radius-sm); border: 1px solid #e2e8f0; width: 100%;
-    }
-    .qty-group input { flex: 1; min-width: 0; text-align: center; font-weight: 700; font-size: 18px; background: transparent; border: none; padding: 4px 0; }
-    .total-venta { font-size: 28px; font-weight: 800; text-align: right; color: var(--text-primary); margin: 10px 0; }
-    .btn-circle {
-      width: 34px; height: 34px; flex-shrink: 0; border-radius: 17px; border: none; background: #e2e8f0; font-size: 20px; color: var(--text-primary);
-      display: flex; align-items: center; justify-content: center; cursor: pointer; outline: none; transition: all 0.2s;
-    }
-    .btn-circle:active { background: #cbd5e1; transform: scale(0.9); }
-
-    /* ========== INVENTARIO ========== */
+    /* ========== INVENTARIO & CLIENTES ========== */
     .stock-item { display: flex; align-items: center; justify-content: space-between; padding: 20px 0; border-bottom: 1px solid var(--separator); gap: 12px; }
-    .stock-item:last-child { border-bottom: none; padding-bottom: 0; }
-    .stock-item:first-child { padding-top: 4px; }
-    .stock-info { display: flex; align-items: center; gap: 14px; flex: 1; min-width: 0; }
-    .stock-icon { width: 50px; height: 50px; flex-shrink: 0; border-radius: 16px; display: flex; align-items: center; justify-content: center; }
-    .stock-icon.mineral { background: #e0f2fe; color: var(--tint); }
-    .stock-icon.saborizada { background: #fef3c7; color: #d97706; }
-    .stock-text-container { flex: 1; min-width: 0; }
     .stock-name { font-size: 17px; font-weight: 700; color: var(--text-primary); }
-    .stock-desc { font-size: 13px; color: var(--text-secondary); margin-top: 4px; font-weight: 500; }
-    .stock-counter { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
     .stock-qty { font-size: 20px; font-weight: 800; min-width: 36px; text-align: center; }
-
-    /* ========== CLIENTES (CRM) ========== */
-    .search-box {
-      background: var(--card-bg); border-radius: var(--radius-sm); padding: 12px 16px; margin-bottom: 20px;
-      display: flex; align-items: center; gap: 12px; box-shadow: var(--shadow-sm); border: 1px solid transparent; transition: border 0.2s;
-    }
-    .search-box:focus-within { border-color: var(--tint); }
-    .search-input { border: none; background: transparent; padding: 0; flex: 1; }
     
-    .client-list { background: var(--card-bg); border-radius: var(--radius-md); box-shadow: var(--shadow-sm); overflow: hidden; }
-    .client-row { display: flex; flex-direction: column; padding: 16px; border-bottom: 1px solid var(--separator); transition: background 0.2s ease; cursor: pointer; }
-    .client-row:active { background: #f8fafc; }
-    
-    .client-header { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
-    .client-avatar {
-      width: 44px; height: 44px; border-radius: 22px; background: linear-gradient(135deg, var(--tint), #0284c7);
-      color: white; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 800; flex-shrink: 0;
-    }
-    .client-info-main { flex: 1; min-width: 0; }
-    .client-name { font-size: 16px; font-weight: 700; color: var(--text-primary); margin-bottom: 4px; display: flex; align-items: center; gap: 8px;}
-    .client-stats { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 6px; }
-    
-    .badge {
-      font-size: 11px; font-weight: 700; padding: 4px 8px; border-radius: 6px; width: fit-content; display: flex; align-items: center; gap: 4px;
-    }
-    .badge.mineral { background: #e0f2fe; color: #0369a1; }
-    .badge.saborizada { background: #fef3c7; color: #b45309; }
-    .badge.alert { background: #fee2e2; color: #b91c1c; }
-    .badge.pending { background: #fef3c7; color: #b45309; border: 1px solid #fde68a;}
-    
-    .client-actions-bar { display: flex; align-items: center; justify-content: space-between; padding-top: 12px; border-top: 1px dashed #e2e8f0; }
-    .action-icons { display: flex; gap: 12px; }
-    .action-btn {
-      width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center;
-      background: #f1f5f9; color: var(--text-secondary); cursor: pointer; transition: all 0.2s;
-    }
-    .action-btn.whatsapp { background: #dcfce7; color: #16a34a; }
-    .action-btn.map { background: #e0f2fe; color: #0284c7; }
-    .action-btn:active { transform: scale(0.9); }
+    .client-list { background: var(--card-bg); border-radius: var(--radius-md); box-shadow: var(--shadow-sm); overflow: hidden; margin-top: 10px; }
+    .client-row { display: flex; flex-direction: column; padding: 16px; border-bottom: 1px solid var(--separator); cursor: pointer; }
+    .client-name { font-size: 16px; font-weight: 700; color: var(--text-primary); }
 
-    /* ========== PERFIL & SETTINGS ========== */
-    .profile-header {
-      display: flex; flex-direction: column; align-items: center; justify-content: center;
-      padding: 30px 20px; text-align: center;
-    }
-    .avatar-wrapper {
-      position: relative; width: 110px; height: 110px; margin-bottom: 16px;
-    }
-    .avatar-img {
-      width: 100%; height: 100%; object-fit: cover; border-radius: 50%;
-      box-shadow: 0 8px 24px rgba(14, 165, 233, 0.2); border: 4px solid white;
-      background-color: #e2e8f0;
-    }
-    .avatar-edit-btn {
-      position: absolute; bottom: 0; right: 0; width: 36px; height: 36px;
-      background: var(--tint); border: 3px solid white; border-radius: 50%;
-      display: flex; align-items: center; justify-content: center; color: white;
-      cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.1); transition: transform 0.2s;
-    }
-    .avatar-edit-btn:active { transform: scale(0.9); }
-    .profile-name { font-size: 22px; font-weight: 800; color: var(--text-primary); margin-bottom: 6px; }
-    .profile-role { font-size: 14px; color: var(--text-secondary); font-weight: 600; margin-bottom: 12px; }
-
-    .settings-list { padding: 0; margin-bottom: 24px; }
-    .setting-row {
-      display: flex; align-items: center; padding: 16px 20px;
-      border-bottom: 1px solid var(--separator); cursor: pointer; transition: background 0.2s;
-    }
-    .setting-row:last-child { border-bottom: none; }
-    .setting-row:active { background: #f8fafc; }
-    .setting-icon {
-      width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center;
-      margin-right: 14px; flex-shrink: 0; background: #f1f5f9; color: var(--tint);
-    }
-    .setting-text { flex: 1; font-size: 16px; font-weight: 600; color: var(--text-primary); }
-    .setting-arrow { color: #cbd5e1; display: flex; align-items: center; }
-
-    /* ========== FAB ========== */
-    .fab {
-      display: none; position: fixed; bottom: calc(env(safe-area-inset-bottom) + 90px); right: 24px;
-      width: 60px; height: 60px; border-radius: 30px; background: linear-gradient(135deg, var(--tint), #0284c7); color: white;
-      align-items: center; justify-content: center; box-shadow: var(--shadow-float); cursor: pointer; border: none; z-index: 100;
-    }
-    .fab.active-fab { display: flex; animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
-
-    /* ========== MODAL ========== */
+    /* ========== MODALES & PESTAÑAS ========== */
     .modal-overlay {
       display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
       background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
       z-index: 200; align-items: flex-end; justify-content: center; opacity: 0; transition: opacity 0.3s ease;
     }
     .modal-overlay.active { display: flex; opacity: 1; }
-    
     .modal-sheet {
       background: var(--card-bg); width: 100%; max-width: 500px; border-radius: 28px 28px 0 0;
       padding: 24px 24px calc(env(safe-area-inset-bottom) + 30px);
-      transform: translateY(100%); transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1); box-shadow: 0 -10px 40px rgba(0,0,0,0.1);
+      transform: translateY(100%); transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
       max-height: 80vh; overflow-y: auto; 
     }
     .modal-overlay.active .modal-sheet { transform: translateY(0); }
-    
-    .modal-handle { width: 40px; height: 5px; background: #e2e8f0; border-radius: 3px; margin: 0 auto 24px; }
     .modal-title { font-size: 22px; font-weight: 800; margin-bottom: 24px; text-align: center; }
     
-    .modal-actions { display: flex; gap: 16px; margin-top: 32px; }
-    .btn {
-      flex: 1; padding: 16px; border-radius: var(--radius-sm); font-size: 16px; font-weight: 700;
-      border: none; cursor: pointer; transition: transform 0.15s;
-    }
-    .btn:active { transform: scale(0.96); }
-    .btn-cancel { background: #f1f5f9; color: var(--text-primary); }
-    .btn-save { background: var(--tint); color: white; box-shadow: 0 4px 12px rgba(14, 165, 233, 0.3); }
-
-    /* ========== HISTORIAL DE CLIENTE ========== */
-    .client-history { margin-top: 24px; border-top: 1px solid var(--separator); padding-top: 20px; }
-    .history-item {
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 12px 0; border-bottom: 1px solid var(--separator); font-size: 13px;
-    }
-    .history-item:last-child { border-bottom: none; }
-    .history-date { color: var(--text-secondary); font-weight: 600; min-width: 70px; }
-    .history-detail { flex: 1; margin: 0 12px; }
-    .history-amount { font-weight: 700; color: var(--tint); }
-
-    /* ========== GASTOS LISTA EN MODAL ========== */
-    .gastos-list { margin-top: 24px; border-top: 1px solid var(--separator); padding-top: 20px; }
-    .gasto-item {
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 12px 0; border-bottom: 1px solid var(--separator); font-size: 13px;
-    }
-    .gasto-item:last-child { border-bottom: none; }
-    .gasto-date { color: var(--text-secondary); font-weight: 600; min-width: 70px; }
-    .gasto-desc { flex: 1; margin: 0 12px; }
-    .gasto-monto { font-weight: 700; color: var(--destructive); margin-right: 8px; }
-    .gasto-delete-btn {
-      width: 30px; height: 30px; border-radius: 8px; border: none; background: #fee2e2; color: var(--destructive);
-      display: flex; align-items: center; justify-content: center; cursor: pointer; transition: transform 0.15s;
-    }
-    .gasto-delete-btn:active { transform: scale(0.9); }
-
-    /* ========== BARRA DE PESTAÑAS ========== */
     .tab-bar {
-      position: fixed; bottom: 0; left: 0; right: 0; background: var(--tab-bg); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-      border-top: 1px solid rgba(0,0,0,0.05); display: flex; justify-content: space-around; align-items: center;
+      position: fixed; bottom: 0; left: 0; right: 0; background: var(--tab-bg); backdrop-filter: blur(20px); 
+      border-top: 1px solid rgba(0,0,0,0.05); display: flex; justify-content: space-around; align-items: center; 
       height: calc(env(safe-area-inset-bottom) + 70px); padding-bottom: env(safe-area-inset-bottom); z-index: 150;
     }
-    .tab-item {
-      flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
-      color: #94a3b8; font-size: 11px; font-weight: 600; gap: 6px; padding: 10px 0; transition: color 0.3s; cursor: pointer;
-    }
+    .tab-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #94a3b8; font-size: 11px; font-weight: 600; gap: 6px; padding: 10px 0; cursor: pointer; }
     .tab-item.active { color: var(--tint); }
   </style>
 </head>
 <body>
-  
   <div id="toast-container" class="toast-container"></div>
 
   <div id="screen-inicio" class="screen active">
     <div class="nav-bar"><span class="nav-title">Inicio</span></div>
-    <div class="card">
-      <div class="date-picker-row">
-        <div class="picker-group">
-          <label>Mes</label>
-          <select id="mes" onchange="cargarMovimiento()">
-            <option value="0">Enero</option><option value="1">Febrero</option><option value="2">Marzo</option>
-            <option value="3">Abril</option><option value="4" selected>Mayo</option><option value="5">Junio</option>
-            <option value="6">Julio</option><option value="7">Agosto</option><option value="8">Septiembre</option>
-            <option value="9">Octubre</option><option value="10">Noviembre</option><option value="11">Diciembre</option>
-          </select>
-        </div>
-        <div class="picker-group">
-          <label>Año</label>
-          <input type="number" id="anio" value="2026" min="2020" max="2030" onchange="cargarMovimiento()">
-        </div>
-      </div>
-    </div>
-
+    
     <div class="total-card">
-      <div class="financial-row">
-        <div class="total-info">
-          <span class="total-label">Ingresos del mes</span>
-          <span class="total-amount" id="total-mes">Bs 0.00</span>
-        </div>
+      <div class="total-info">
+        <span class="total-label">Ingresos Totales</span>
+        <span class="total-amount" id="total-mes">Bs 0.00</span>
       </div>
-      <div class="financial-row" style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: 12px;">
+      <div style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: 12px; display: flex; justify-content: space-between; align-items: center;">
         <div class="total-info">
-          <span class="total-label" style="color:#d1d5db;">Utilidad Neta Estimada</span>
+          <span class="total-label" style="color:#d1d5db;">Utilidad Neta</span>
           <span class="utilidad-amount" id="utilidad-neta">Bs 0.00</span>
         </div>
-        <button class="btn-small" onclick="abrirModalGasto()" style="background: rgba(255,255,255,0.2); color:white;">+ Gasto</button>
       </div>
     </div>
 
-    <div class="section-title">
-      <div class="title-left">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="1" y="6" width="22" height="12" rx="2"/><rect x="5" y="2" width="2" height="6"/><rect x="17" y="2" width="2" height="6"/></svg>
-        Ventas diarias
-      </div>
-    </div>
-    <div class="card chart-container" id="chart-container-scroll">
-      <div class="bar-chart" id="grafico"></div>
-    </div>
-  </div>
-
-  <div id="screen-ventas" class="screen">
-    <div class="nav-bar"><span class="nav-title">Ventas</span></div>
-    
     <div class="card">
-      <div class="venta-form">
-        <div class="picker-group">
-          <label>Fecha</label>
-          <input type="date" id="fecha-venta">
-        </div>
-        <div class="picker-group">
-          <label>Cliente (opcional)</label>
-          <select id="cliente-venta" onchange="mostrarDeudaEnvases()">
-            <option value="">Sin cliente</option>
-          </select>
-          <div id="deuda-envases-hint" style="font-size: 12px; color: var(--text-secondary); margin-top: 6px; display: none;"></div>
-        </div>
-        
-        <div class="input-row">
-          <div class="picker-group">
-            <label>Agua Mineral</label>
-            <div class="qty-group">
-              <button class="btn-circle" onclick="cambiarCantidad('mineral', -1)">−</button>
-              <input type="number" id="cant-mineral" value="0" min="0" onchange="calcularTotalVenta()">
-              <button class="btn-circle" onclick="cambiarCantidad('mineral', 1)">+</button>
-            </div>
-          </div>
-          <div class="picker-group">
-            <label>Saborizada</label>
-            <div class="qty-group">
-              <button class="btn-circle" onclick="cambiarCantidad('saborizada', -1)">−</button>
-              <input type="number" id="cant-saborizada" value="0" min="0" onchange="calcularTotalVenta()">
-              <button class="btn-circle" onclick="cambiarCantidad('saborizada', 1)">+</button>
-            </div>
-          </div>
-        </div>
-
-        <div class="picker-group">
-          <label>Envases Devueltos (Vacíos)</label>
-          <div class="qty-group" style="width: 50%;">
-            <button class="btn-circle" onclick="cambiarCantidad('devueltos', -1)">−</button>
-            <input type="number" id="cant-devueltos" value="0" min="0">
-            <button class="btn-circle" onclick="cambiarCantidad('devueltos', 1)">+</button>
-          </div>
-        </div>
-
-        <div class="total-venta" id="total-venta">Total: Bs 0.00</div>
-        <button class="btn-primary" style="justify-content: center; padding: 16px; margin-top: 8px;" onclick="registrarVenta()">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-          Registrar Venta
-        </button>
+      <div class="section-title">Registrar Venta</div>
+      <div class="input-group">
+        <label>Fecha</label>
+        <input type="date" id="fecha-venta">
       </div>
+      <div class="input-group">
+        <label>Cliente</label>
+        <select id="cliente-venta"></select>
+      </div>
+      <div class="input-row">
+        <div class="input-group">
+          <label>Mineral</label>
+          <input type="number" id="qty-mineral" value="0" min="0">
+        </div>
+        <div class="input-group">
+          <label>Saborizada</label>
+          <input type="number" id="qty-saborizada" value="0" min="0">
+        </div>
+        <div class="input-group">
+          <label>Envases Devueltos</label>
+          <input type="number" id="qty-devueltos" value="0" min="0">
+        </div>
+      </div>
+      <button class="btn-primary" onclick="registrarVenta()" style="margin-top: 10px;">Guardar Venta</button>
     </div>
   </div>
 
@@ -457,793 +231,269 @@
     <div class="nav-bar"><span class="nav-title">Inventario</span></div>
     <div class="card">
       <div class="stock-item">
-        <div class="stock-info">
-          <div class="stock-icon mineral"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/></svg></div>
-          <div class="stock-text-container">
-            <div class="stock-name truncate">Agua Mineral</div>
-            <div class="stock-desc truncate">Botellón 20 Litros</div>
-          </div>
-        </div>
-        <div class="stock-counter">
-          <button class="btn-circle" onclick="cambiarStock('mineral', -1)">−</button>
-          <span class="stock-qty" id="stock-mineral">0</span>
-          <button class="btn-circle" onclick="cambiarStock('mineral', 1)">+</button>
-        </div>
+        <div class="stock-name">Agua Mineral</div>
+        <div class="stock-qty" id="stock-mineral">0</div>
       </div>
       <div class="stock-item">
-        <div class="stock-info">
-          <div class="stock-icon saborizada"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/></svg></div>
-          <div class="stock-text-container">
-            <div class="stock-name truncate">Agua Saborizada</div>
-            <div class="stock-desc truncate">Botellón 20 Litros</div>
-          </div>
-        </div>
-        <div class="stock-counter">
-          <button class="btn-circle" onclick="cambiarStock('saborizada', -1)">−</button>
-          <span class="stock-qty" id="stock-saborizada">0</span>
-          <button class="btn-circle" onclick="cambiarStock('saborizada', 1)">+</button>
-        </div>
+        <div class="stock-name">Agua Saborizada</div>
+        <div class="stock-qty" id="stock-saborizada">0</div>
       </div>
-    </div>
-    
-    <div class="card">
-       <div class="section-title" style="font-size: 16px; margin-bottom: 0;">
-          <div class="title-left">Envases Físicos Totales</div>
-          <span id="total-envases-fisicos" style="font-size: 20px; font-weight: 800;">0</span>
-       </div>
+      <div class="stock-item">
+        <div class="stock-name">Envases Vacíos</div>
+        <div class="stock-qty" id="stock-vacios">0</div>
+      </div>
+      <button class="btn-primary" onclick="abrirModalStock()" style="margin-top: 16px;">Actualizar Stock Manual</button>
     </div>
   </div>
 
   <div id="screen-clientes" class="screen">
-    <div class="nav-bar"><span class="nav-title">Clientes</span></div>
-    <div class="search-box">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--text-secondary)" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-      <input type="text" class="search-input" placeholder="Buscar cliente..." id="searchInput" oninput="renderClientList()">
-    </div>
-    <div class="client-list" id="clientListContainer"></div>
-  </div>
-
-  <div id="screen-perfil" class="screen">
-    <div class="nav-bar"><span class="nav-title">Mi Negocio</span></div>
-    
-    <div class="card profile-header">
-      <div class="avatar-wrapper">
-        <input type="file" id="upload-avatar" accept="image/*" style="display: none;" onchange="previewAvatar(event)">
-        <img id="profile-img" class="avatar-img" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2394a3b8'><path d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/></svg>">
-        
-        <div class="avatar-edit-btn" onclick="document.getElementById('upload-avatar').click()">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
-        </div>
+    <div class="nav-bar"><span class="nav-title">Directorio CRM</span></div>
+    <button class="btn-primary" onclick="abrirModalCliente()">+ Nuevo Cliente</button>
+    <div class="client-list" id="lista-clientes">
       </div>
-      <div class="profile-name">AguaBol Admin</div>
-      <div class="profile-role">Propietario</div>
-      <span class="badge" style="background: #dcfce7; color: #16a34a; padding: 6px 12px; font-size: 12px;">Licencia Activa PRO</span>
-    </div>
-
-    <div class="section-title">Administración</div>
-    <div class="card settings-list">
-      <div class="setting-row" onclick="abrirModalPrecios()">
-        <div class="setting-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
-        <div class="setting-text">Gestión de Precios</div>
-        <div class="setting-arrow"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg></div>
-      </div>
-      <div class="setting-row" onclick="demoFeature('Repartidores y Rutas')">
-        <div class="setting-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg></div>
-        <div class="setting-text">Repartidores y Rutas</div>
-        <div class="setting-arrow"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg></div>
-      </div>
-      <div class="setting-row" onclick="demoFeature('Exportar Reportes (Excel)')">
-        <div class="setting-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 18 15 15"/></svg></div>
-        <div class="setting-text">Exportar Reportes (Excel)</div>
-        <div class="setting-arrow"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg></div>
-      </div>
-    </div>
-
-    <div class="section-title">Sistema</div>
-    <div class="card settings-list">
-      <div class="setting-row" onclick="demoFeature('Configuración de WhatsApp')">
-        <div class="setting-icon" style="background: #dcfce7; color: #16a34a;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg></div>
-        <div class="setting-text">Respuestas Automáticas</div>
-        <div class="setting-arrow"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg></div>
-      </div>
-      <div class="setting-row" onclick="showToast('Sincronizando con la nube...', 'success')">
-        <div class="setting-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21.5 12H16c-.7 2-2 3-4 3s-3.3-1-4-3H2.5"/><path d="M5.5 5.1L2 12v6c0 1.1.9 2 2 2h16a2 2 0 0 0 2-2v-6l-3.5-6.9A2 2 0 0 0 16.7 4H7.3a2 2 0 0 0-1.8 1.1z"/></svg></div>
-        <div class="setting-text">Copia de Seguridad</div>
-        <div class="setting-arrow"><span style="font-size: 12px; color: var(--text-secondary); margin-right: 8px;">Hoy, 09:00 AM</span></div>
-      </div>
-    </div>
-    
-    <button class="btn" style="background: #fee2e2; color: var(--destructive); width: 100%; margin-bottom: 24px; border-radius: var(--radius-sm); padding: 16px; font-weight: 700; border: none;" onclick="showToast('Cerrando sesión...', 'info')">
-      Cerrar Sesión
-    </button>
-  </div>
-
-  <button class="fab" id="fab-clientes" onclick="openClientModal()">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-  </button>
-
-  <!-- Modal de cliente -->
-  <div class="modal-overlay" id="modalClientOverlay">
-    <div class="modal-sheet">
-      <div class="modal-handle"></div>
-      <div class="modal-title" id="modalClientTitle">Nuevo cliente</div>
-      <div class="input-group">
-        <label>Nombre completo</label>
-        <input type="text" id="clientName" placeholder="Ej. Juan Pérez">
-      </div>
-      <div class="input-group">
-        <label>Teléfono (WhatsApp)</label>
-        <input type="tel" id="clientPhone" placeholder="+58 412 1234567">
-      </div>
-      <div class="input-group">
-        <label>Dirección</label>
-        <input type="text" id="clientAddress" placeholder="Calle, zona, ciudad">
-      </div>
-      <div class="input-group">
-        <label>Frecuencia de pedido (días)</label>
-        <input type="number" id="clientFrequency" placeholder="Opcional" min="1" step="1">
-      </div>
-      <div class="client-history" id="clientSalesHistory" style="display: none;"></div>
-      <div class="modal-actions">
-        <button class="btn btn-cancel" onclick="closeModal('modalClientOverlay')">Cancelar</button>
-        <button class="btn btn-save" onclick="saveClient()">Guardar</button>
-      </div>
-      <div style="margin-top: 16px; display: none;" id="deleteClientContainer">
-        <button class="btn" style="background: #fee2e2; color: var(--destructive); width: 100%;" onclick="deleteClient()">Eliminar cliente</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Modal de gasto (ahora con lista para eliminar) -->
-  <div class="modal-overlay" id="modalGastoOverlay">
-    <div class="modal-sheet">
-      <div class="modal-handle"></div>
-      <div class="modal-title">Registrar Gasto</div>
-      <div class="input-group">
-        <label>Fecha</label>
-        <input type="date" id="fecha-gasto">
-      </div>
-      <div class="input-group">
-        <label>Descripción</label>
-        <input type="text" id="desc-gasto" placeholder="Ej. Combustible, Etiquetas...">
-      </div>
-      <div class="input-group">
-        <label>Monto (Bs)</label>
-        <input type="number" id="monto-gasto" placeholder="0.00" step="0.01">
-      </div>
-      <div class="modal-actions">
-        <button class="btn btn-cancel" onclick="closeModal('modalGastoOverlay')">Cancelar</button>
-        <button class="btn btn-save" onclick="guardarGasto()">Registrar</button>
-      </div>
-      <!-- Lista de gastos del mes actual para eliminar -->
-      <div class="gastos-list" id="gastosListContainer"></div>
-    </div>
-  </div>
-
-  <!-- Modal de Gestión de Precios -->
-  <div class="modal-overlay" id="modalPreciosOverlay">
-    <div class="modal-sheet">
-      <div class="modal-handle"></div>
-      <div class="modal-title">Gestión de Precios</div>
-      <div class="input-group">
-        <label>Precio Mineral (Bs)</label>
-        <input type="number" id="precioMineralInput" step="0.01" min="0">
-      </div>
-      <div class="input-group">
-        <label>Precio Saborizada (Bs)</label>
-        <input type="number" id="precioSaborizadaInput" step="0.01" min="0">
-      </div>
-      <div class="input-group">
-        <label>Costo Prod. Mineral (Bs)</label>
-        <input type="number" id="costoMineralInput" step="0.01" min="0">
-      </div>
-      <div class="input-group">
-        <label>Costo Prod. Saborizada (Bs)</label>
-        <input type="number" id="costoSaborizadaInput" step="0.01" min="0">
-      </div>
-      <div class="modal-actions">
-        <button class="btn btn-cancel" onclick="closeModal('modalPreciosOverlay')">Cancelar</button>
-        <button class="btn btn-save" onclick="guardarPrecios()">Guardar</button>
-      </div>
-    </div>
   </div>
 
   <div class="tab-bar">
-    <div class="tab-item active" data-screen="inicio" onclick="switchTab('inicio')">
-      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-      <span>Inicio</span>
-    </div>
-    <div class="tab-item" data-screen="ventas" onclick="switchTab('ventas')">
-      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-      <span>Ventas</span>
-    </div>
-    <div class="tab-item" data-screen="inventario" onclick="switchTab('inventario')">
-      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
-      <span>Inventario</span>
-    </div>
-    <div class="tab-item" data-screen="clientes" onclick="switchTab('clientes')">
-      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/><line x1="16" y1="11" x2="22" y2="11"/><line x1="19" y1="8" x2="19" y2="14"/></svg>
-      <span>Clientes</span>
-    </div>
-    <div class="tab-item" data-screen="perfil" onclick="switchTab('perfil')">
-      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-      <span>Perfil</span>
+    <div class="tab-item active" onclick="switchTab('inicio', this)">Inicio</div>
+    <div class="tab-item" onclick="switchTab('inventario', this)">Inventario</div>
+    <div class="tab-item" onclick="switchTab('clientes', this)">Clientes</div>
+  </div>
+
+  <div id="modalCliente" class="modal-overlay">
+    <div class="modal-sheet">
+      <div class="modal-title">Cliente</div>
+      <input type="hidden" id="cli-id">
+      <div class="input-group">
+        <label>Nombre</label>
+        <input type="text" id="cli-nombre">
+      </div>
+      <div class="input-group">
+        <label>Teléfono</label>
+        <input type="text" id="cli-telefono">
+      </div>
+      <div class="input-group">
+        <label>Dirección</label>
+        <input type="text" id="cli-direccion">
+      </div>
+      <div class="input-group">
+        <label>Frecuencia de Compra (Días)</label>
+        <input type="number" id="cli-frecuencia" value="7">
+      </div>
+      <button class="btn-primary" onclick="guardarCliente()">Guardar Cliente</button>
+      <button class="btn-primary" onclick="cerrarModal('modalCliente')" style="background: var(--text-secondary); margin-top:10px;">Cancelar</button>
     </div>
   </div>
 
   <script>
-    // ========== SISTEMA DE NOTIFICACIONES TOAST ==========
-    function showToast(message, type = 'success') {
+    // ========== CONFIGURACIÓN SUPABASE ==========
+    const SUPABASE_URL = 'https://aiipxfssbnpfpefbbnwm.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFpaXB4ZnNzYm5wZnBlZmJibndtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3MDM2MzIsImV4cCI6MjA5NDI3OTYzMn0.CS_e43iE4ClLgqQULrm4mNm3ji71WQZQcdBNfg6lTHg';
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    // Variables Globales de Estado
+    let configPrecios = { precio_mineral: 8.5, precio_saborizada: 10.0, costo_mineral: 4.0, costo_saborizada: 5.0 };
+    let clientes = [];
+    let stock = { mineral: 0, saborizada: 0, envases_vacios: 0 };
+
+    // ========== FUNCIONES DE UTILIDAD ==========
+    function showToast(msg, type = 'info') {
       const container = document.getElementById('toast-container');
       const toast = document.createElement('div');
       toast.className = `toast ${type}`;
-      
-      let iconSvg = '';
-      if(type === 'success') {
-        iconSvg = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>`;
-      } else if (type === 'error') {
-        iconSvg = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>`;
-      } else {
-        iconSvg = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>`;
-      }
-      
-      toast.innerHTML = `${iconSvg} <span>${escapeHtml(message)}</span>`;
+      toast.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle></svg> <span>${msg}</span>`;
       container.appendChild(toast);
-      
-      setTimeout(() => { toast.remove(); }, 3000);
+      setTimeout(() => toast.remove(), 3000);
     }
 
-    // ========== DEMO FEATURES ==========
-    function demoFeature(featureName) {
-      showToast(`Módulo "${featureName}" en desarrollo para versión final`, 'info');
-    }
-
-    // ========== NAVEGACIÓN Y TABS ==========
-    function switchTab(screenId) {
+    function switchTab(tabId, el) {
       document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-      document.getElementById('screen-' + screenId).classList.add('active');
-      document.querySelectorAll('.tab-item').forEach(t => t.classList.toggle('active', t.dataset.screen === screenId));
+      document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+      document.getElementById(`screen-${tabId}`).classList.add('active');
+      el.classList.add('active');
+      
+      if(tabId === 'inicio') cargarDashboard();
+      if(tabId === 'inventario') cargarStock();
+      if(tabId === 'clientes') cargarClientes();
+    }
 
-      const fabBtn = document.getElementById('fab-clientes');
-      if(screenId === 'clientes') {
-        fabBtn.classList.add('active-fab');
-        renderClientList();
+    function abrirModalCliente(id = null) {
+      document.getElementById('modalCliente').classList.add('active');
+      if(id) {
+        const c = clientes.find(x => x.id === id);
+        document.getElementById('cli-id').value = c.id;
+        document.getElementById('cli-nombre').value = c.nombre;
+        document.getElementById('cli-telefono').value = c.telefono;
+        document.getElementById('cli-direccion').value = c.direccion || '';
+        document.getElementById('cli-frecuencia').value = c.frecuencia_dias || 7;
       } else {
-        fabBtn.classList.remove('active-fab');
-      }
-
-      if(screenId === 'inicio') cargarMovimiento();
-      if(screenId === 'inventario') actualizarStockUI();
-    }
-
-    function openModal(id) { document.getElementById(id).classList.add('active'); }
-    function closeModal(id) { document.getElementById(id).classList.remove('active'); }
-
-    document.querySelectorAll('.modal-overlay').forEach(overlay => {
-      overlay.addEventListener('click', function(e) { if (e.target === this) closeModal(this.id); });
-    });
-
-    // ========== SUBIDA DE FOTO DE PERFIL ==========
-    function previewAvatar(event) {
-      const file = event.target.files[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-          const imgData = e.target.result;
-          document.getElementById('profile-img').src = imgData;
-          localStorage.setItem('agua_avatar', imgData);
-          showToast('Foto de perfil actualizada', 'success');
-        }
-        reader.readAsDataURL(file);
+        document.getElementById('cli-id').value = '';
+        document.getElementById('cli-nombre').value = '';
+        document.getElementById('cli-telefono').value = '';
+        document.getElementById('cli-direccion').value = '';
+        document.getElementById('cli-frecuencia').value = 7;
       }
     }
 
-    // ========== PRECIOS Y COSTOS EDITABLES ==========
-    let precios = JSON.parse(localStorage.getItem('agua_precios') || '{"precioMineral":8.50,"precioSaborizada":10.00,"costoMineral":4.00,"costoSaborizada":5.00}');
-    let precioMineral = precios.precioMineral;
-    let precioSaborizada = precios.precioSaborizada;
-    let costoProdMineral = precios.costoMineral;
-    let costoProdSaborizada = precios.costoSaborizada;
-
-    function abrirModalPrecios() {
-      document.getElementById('precioMineralInput').value = precioMineral;
-      document.getElementById('precioSaborizadaInput').value = precioSaborizada;
-      document.getElementById('costoMineralInput').value = costoProdMineral;
-      document.getElementById('costoSaborizadaInput').value = costoProdSaborizada;
-      openModal('modalPreciosOverlay');
+    function cerrarModal(modalId) {
+      document.getElementById(modalId).classList.remove('active');
     }
 
-    function guardarPrecios() {
-      const pm = parseFloat(document.getElementById('precioMineralInput').value);
-      const ps = parseFloat(document.getElementById('precioSaborizadaInput').value);
-      const cm = parseFloat(document.getElementById('costoMineralInput').value);
-      const cs = parseFloat(document.getElementById('costoSaborizadaInput').value);
-      
-      if (isNaN(pm) || isNaN(ps) || isNaN(cm) || isNaN(cs) || pm < 0 || ps < 0 || cm < 0 || cs < 0) {
-        showToast('Ingresa valores válidos', 'error');
-        return;
+    // ========== SUPABASE FETCH & CRUD ==========
+    
+    async function cargarConfiguracion() {
+      const { data, error } = await supabase.from('configuracion').select('*').eq('id', 1).single();
+      if (data) configPrecios = data;
+    }
+
+    async function cargarStock() {
+      const { data, error } = await supabase.from('stock').select('*').eq('id', 1).single();
+      if (data) {
+        stock = data;
+        document.getElementById('stock-mineral').innerText = stock.mineral;
+        document.getElementById('stock-saborizada').innerText = stock.saborizada;
+        document.getElementById('stock-vacios').innerText = stock.envases_vacios;
       }
-
-      precioMineral = pm;
-      precioSaborizada = ps;
-      costoProdMineral = cm;
-      costoProdSaborizada = cs;
-      
-      precios = { precioMineral, precioSaborizada, costoMineral: cm, costoSaborizada: cs };
-      localStorage.setItem('agua_precios', JSON.stringify(precios));
-      
-      closeModal('modalPreciosOverlay');
-      showToast('Precios actualizados correctamente', 'success');
-      calcularTotalVenta();
-      cargarMovimiento();
     }
 
-    // ========== BASE DE DATOS LOCAL ==========
-    let ventas = JSON.parse(localStorage.getItem('agua_ventas') || '[{"id":"1714651200000","fecha":"2026-05-02","clienteId":"c1","mineral":2,"saborizada":0,"envasesDevueltos":2,"total":17},{"id":"1714910400000","fecha":"2026-05-05","clienteId":"c2","mineral":1,"saborizada":1,"envasesDevueltos":2,"total":18.5},{"id":"1715169600000","fecha":"2026-05-08","clienteId":"c5","mineral":5,"saborizada":2,"envasesDevueltos":5,"total":62.5},{"id":"1715342400000","fecha":"2026-05-10","clienteId":"c3","mineral":3,"saborizada":0,"envasesDevueltos":3,"total":25.5},{"id":"1715428800000","fecha":"2026-05-11","clienteId":"c4","mineral":0,"saborizada":2,"envasesDevueltos":2,"total":20},{"id":"1715515200000","fecha":"2026-05-12","clienteId":"c1","mineral":2,"saborizada":1,"envasesDevueltos":2,"total":27},{"id":"1715601600000","fecha":"2026-05-13","clienteId":"c5","mineral":4,"saborizada":2,"envasesDevueltos":6,"total":54}]');
-    let stock = JSON.parse(localStorage.getItem('agua_stock') || '{"mineral": 85, "saborizada": 42, "envasesVacios": 215}');
-    let clients = JSON.parse(localStorage.getItem('agua_clientes') || '[{"id":"c1","name":"Juan Pérez","phone":"+59171234567","address":"Av. Blanco Galindo Km 3","frequency":""},{"id":"c2","name":"María Gómez","phone":"+59178901234","address":"Calle Los Pinos #123","frequency":""},{"id":"c3","name":"Carlos Ruiz","phone":"+59165432109","address":"Zona Sur, Barrio Obrajes","frequency":""},{"id":"c4","name":"Ana López","phone":"+59172345678","address":"Av. América y Libertador","frequency":""},{"id":"c5","name":"Restaurante El Buen Gusto","phone":"+59169876543","address":"Plaza Principal","frequency":"7"}]');
-    let gastos = JSON.parse(localStorage.getItem('agua_gastos') || '[{"id":"g1","fecha":"2026-05-03","desc":"Combustible reparto","monto":120},{"id":"g2","fecha":"2026-05-07","desc":"Mantenimiento preventivo","monto":250},{"id":"g3","fecha":"2026-05-11","desc":"Insumos de limpieza","monto":45}]');
-
-    function saveDB(key, data) { localStorage.setItem(key, JSON.stringify(data)); }
-    function formatearBs(monto) { return 'Bs ' + monto.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
-    function escapeHtml(text) { return String(text).replace(/[&<>"]/g, m => ({'&':'&','<':'<','>':'>','"':'"'}[m])); }
-
-    // ========== ANIMACIÓN DE NÚMEROS MEJORADA (MANEJA NEGATIVOS) ==========
-    function animarNumero(id, endValue, duration) {
-      const obj = document.getElementById(id);
-      const isNegative = endValue < 0;
-      const absEnd = Math.abs(endValue);
-      let startTimestamp = null;
-      
-      const step = (timestamp) => {
-        if (!startTimestamp) startTimestamp = timestamp;
-        const progress = Math.min((timestamp - startTimestamp) / duration, 1);
-        const easeOut = 1 - Math.pow(1 - progress, 3);
-        const currentVal = easeOut * absEnd;
+    async function cargarClientes() {
+      const { data, error } = await supabase.from('clientes').select('*').order('nombre', { ascending: true });
+      if (data) {
+        clientes = data;
         
-        const displayVal = isNegative ? -currentVal : currentVal;
-        obj.textContent = formatearBs(displayVal);
-        
-        if (progress < 1) {
-          window.requestAnimationFrame(step);
-        } else {
-          obj.textContent = formatearBs(endValue);
-        }
-      };
-      window.requestAnimationFrame(step);
-    }
+        // Llenar Select de Ventas
+        const select = document.getElementById('cliente-venta');
+        select.innerHTML = '<option value="">Seleccione un cliente...</option>';
+        data.forEach(c => select.innerHTML += `<option value="${c.id}">${c.nombre}</option>`);
 
-    // ========== INICIO Y FINANZAS ==========
-    function cargarMovimiento() {
-      const mes = parseInt(document.getElementById('mes').value);
-      const anio = parseInt(document.getElementById('anio').value);
-      
-      const ventasMes = ventas.filter(v => {
-        const d = new Date(v.fecha + 'T12:00:00');
-        return d.getMonth() === mes && d.getFullYear() === anio;
-      });
-      
-      const gastosMes = gastos.filter(g => {
-        const d = new Date(g.fecha + 'T12:00:00');
-        return d.getMonth() === mes && d.getFullYear() === anio;
-      });
-
-      let totalIngresos = 0;
-      let costoProduccionTotal = 0;
-      let totalGastos = gastosMes.reduce((acc, g) => acc + g.monto, 0);
-      let datosDiarios = {};
-
-      ventasMes.forEach(v => {
-        const dia = new Date(v.fecha + 'T12:00:00').getDate();
-        if(!datosDiarios[dia]) datosDiarios[dia] = 0;
-        
-        totalIngresos += v.total;
-        costoProduccionTotal += (v.mineral * costoProdMineral) + (v.saborizada * costoProdSaborizada);
-        datosDiarios[dia] += v.total;
-      });
-
-      const utilidadNeta = totalIngresos - costoProduccionTotal - totalGastos;
-      
-      document.getElementById('utilidad-neta').style.color = utilidadNeta >= 0 ? 'var(--green)' : 'var(--destructive)';
-
-      animarNumero('total-mes', totalIngresos, 1200);
-      animarNumero('utilidad-neta', utilidadNeta, 1200);
-
-      let barrasHTML = '';
-      const maxDiario = Math.max(...Object.values(datosDiarios), 1);
-      const diasEnMes = new Date(anio, mes + 1, 0).getDate();
-      
-      const hoy = new Date();
-      const esMesActual = (mes === hoy.getMonth() && anio === hoy.getFullYear());
-      const diaActual = hoy.getDate();
-
-      for (let dia = 1; dia <= diasEnMes; dia++) {
-        const totalDia = datosDiarios[dia] || 0;
-        const altura = Math.min((totalDia / maxDiario) * 100, 100);
-        
-        const esHoy = esMesActual && dia === diaActual;
-        const idDia = esHoy ? 'bar-dia-actual' : '';
-        const claseLabel = esHoy ? 'bar-label hoy' : 'bar-label';
-
-        barrasHTML += `<div class="bar-item" id="${idDia}"><div class="bar" style="height:0px;" data-height="${altura}"></div><span class="${claseLabel}">${dia}</span></div>`;
-      }
-      
-      const grafico = document.getElementById('grafico');
-      grafico.innerHTML = barrasHTML;
-
-      setTimeout(() => {
-        const bars = grafico.querySelectorAll('.bar');
-        bars.forEach(bar => {
-          bar.style.height = bar.getAttribute('data-height') + 'px';
+        // Llenar Directorio CRM
+        const list = document.getElementById('lista-clientes');
+        list.innerHTML = '';
+        data.forEach(c => {
+          list.innerHTML += `
+            <div class="client-row" onclick="abrirModalCliente('${c.id}')">
+              <div class="client-name">${c.nombre}</div>
+              <div style="font-size: 12px; color: var(--text-secondary);">${c.telefono} • Frecuencia: ${c.frecuencia_dias} días</div>
+            </div>`;
         });
-      }, 50);
-
-      const container = document.getElementById('chart-container-scroll');
-      if (esMesActual) {
-        setTimeout(() => {
-          const barActual = document.getElementById('bar-dia-actual');
-          if (barActual) {
-            barActual.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
-          } else {
-            container.scrollLeft = container.scrollWidth;
-          }
-        }, 300);
-      } else {
-        container.scrollLeft = 0;
       }
     }
 
-    // ========== GASTOS (MODAL CON LISTA PARA ELIMINAR) ==========
-    function abrirModalGasto() {
-      document.getElementById('fecha-gasto').value = new Date().toISOString().split('T')[0];
-      document.getElementById('desc-gasto').value = '';
-      document.getElementById('monto-gasto').value = '';
-      renderGastosList();
-      openModal('modalGastoOverlay');
-    }
-
-    function guardarGasto() {
-      const fecha = document.getElementById('fecha-gasto').value;
-      const desc = document.getElementById('desc-gasto').value.trim();
-      const monto = parseFloat(document.getElementById('monto-gasto').value);
-
-      if(!fecha || !desc || isNaN(monto) || monto <= 0) {
-        showToast('Completa todos los campos', 'error');
-        return;
-      }
-
-      gastos.push({ id: Date.now().toString(), fecha, desc, monto });
-      saveDB('agua_gastos', gastos);
-      cargarMovimiento();
-      renderGastosList(); // refrescar lista
-      showToast('Gasto registrado exitosamente', 'info');
-    }
-
-    function eliminarGasto(gastoId) {
-      gastos = gastos.filter(g => g.id !== gastoId);
-      saveDB('agua_gastos', gastos);
-      cargarMovimiento();
-      renderGastosList();
-      showToast('Gasto eliminado', 'info');
-    }
-
-    function renderGastosList() {
-      const container = document.getElementById('gastosListContainer');
-      const mes = parseInt(document.getElementById('mes').value);
-      const anio = parseInt(document.getElementById('anio').value);
+    async function cargarDashboard() {
+      // Calcular ingresos y utilidad total
+      const { data: ventas, error: errVentas } = await supabase.from('ventas').select('*');
+      const { data: gastos, error: errGastos } = await supabase.from('gastos').select('*');
       
-      const gastosMes = gastos.filter(g => {
-        const d = new Date(g.fecha + 'T12:00:00');
-        return d.getMonth() === mes && d.getFullYear() === anio;
-      }).sort((a,b) => new Date(b.fecha) - new Date(a.fecha));
+      let totalIngresos = 0;
+      let costosTotales = 0;
 
-      if (gastosMes.length === 0) {
-        container.innerHTML = '<p style="text-align:center; color:var(--text-secondary); padding:20px;">No hay gastos este mes</p>';
-        return;
+      if (ventas) {
+        ventas.forEach(v => {
+          totalIngresos += Number(v.total);
+          costosTotales += (v.mineral * configPrecios.costo_mineral) + (v.saborizada * configPrecios.costo_saborizada);
+        });
       }
 
-      let html = '<h3 style="margin-bottom:12px; font-size:16px;">Gastos del mes</h3>';
-      gastosMes.forEach(g => {
-        const fecha = new Date(g.fecha + 'T12:00:00').toLocaleDateString('es-ES', { day:'2-digit', month:'2-digit' });
-        html += `
-          <div class="gasto-item">
-            <span class="gasto-date">${fecha}</span>
-            <span class="gasto-desc">${escapeHtml(g.desc)}</span>
-            <span class="gasto-monto">-${formatearBs(g.monto)}</span>
-            <button class="gasto-delete-btn" onclick="eliminarGasto('${g.id}')" title="Eliminar gasto">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-            </button>
-          </div>`;
-      });
-      container.innerHTML = html;
+      let totalGastos = 0;
+      if (gastos) gastos.forEach(g => totalGastos += Number(g.monto));
+
+      let utilidadNeta = totalIngresos - costosTotales - totalGastos;
+
+      document.getElementById('total-mes').innerText = `Bs ${totalIngresos.toFixed(2)}`;
+      document.getElementById('utilidad-neta').innerText = `Bs ${utilidadNeta.toFixed(2)}`;
     }
 
-    // ========== VENTAS ==========
-    function llenarSelectClientes() {
-      const select = document.getElementById('cliente-venta');
-      select.innerHTML = '<option value="">Sin cliente</option>';
-      clients.forEach(c => select.innerHTML += `<option value="${c.id}">${escapeHtml(c.name)}</option>`);
-    }
+    // ========== ACCIONES (WRITES) ==========
 
-    function mostrarDeudaEnvases() {
-      const clienteId = document.getElementById('cliente-venta').value;
-      const hint = document.getElementById('deuda-envases-hint');
-      if(clienteId) {
-        const stats = getClientStats(clienteId);
-        hint.style.display = 'block';
-        hint.textContent = `Este cliente debe ${stats.deudaEnvases} envase(s).`;
-        hint.style.color = stats.deudaEnvases > 2 ? 'var(--destructive)' : 'var(--text-secondary)';
+    async function guardarCliente() {
+      const id = document.getElementById('cli-id').value;
+      const nombre = document.getElementById('cli-nombre').value;
+      const telefono = document.getElementById('cli-telefono').value;
+      const direccion = document.getElementById('cli-direccion').value;
+      const frecuencia_dias = parseInt(document.getElementById('cli-frecuencia').value) || 7;
+
+      if (!nombre || !telefono) return showToast('Nombre y teléfono requeridos', 'error');
+
+      const payload = { nombre, telefono, direccion, frecuencia_dias };
+
+      let error;
+      if (id) {
+        const { error: updateErr } = await supabase.from('clientes').update(payload).eq('id', id);
+        error = updateErr;
       } else {
-        hint.style.display = 'none';
+        payload.id = crypto.randomUUID(); // Generar ID único
+        const { error: insertErr } = await supabase.from('clientes').insert([payload]);
+        error = insertErr;
+      }
+
+      if (error) {
+        showToast('Error al guardar', 'error');
+        console.error(error);
+      } else {
+        showToast('Cliente guardado', 'success');
+        cerrarModal('modalCliente');
+        cargarClientes();
       }
     }
 
-    function calcularTotalVenta() {
-      const min = parseInt(document.getElementById('cant-mineral').value) || 0;
-      const sab = parseInt(document.getElementById('cant-saborizada').value) || 0;
-      const total = min * precioMineral + sab * precioSaborizada;
-      document.getElementById('total-venta').textContent = `Total: ${formatearBs(total)}`;
-    }
-
-    function cambiarCantidad(tipo, delta) {
-      const input = document.getElementById('cant-' + tipo);
-      input.value = Math.max(0, (parseInt(input.value) || 0) + delta);
-      calcularTotalVenta();
-    }
-
-    function registrarVenta() {
+    async function registrarVenta() {
       const fecha = document.getElementById('fecha-venta').value;
-      const clienteId = document.getElementById('cliente-venta').value;
-      const cantMineral = parseInt(document.getElementById('cant-mineral').value) || 0;
-      const cantSaborizada = parseInt(document.getElementById('cant-saborizada').value) || 0;
-      const devueltos = parseInt(document.getElementById('cant-devueltos').value) || 0;
+      const cliente_id = document.getElementById('cliente-venta').value;
+      const mineral = parseInt(document.getElementById('qty-mineral').value) || 0;
+      const saborizada = parseInt(document.getElementById('qty-saborizada').value) || 0;
+      const envases_devueltos = parseInt(document.getElementById('qty-devueltos').value) || 0;
 
-      if (!fecha) return showToast('Selecciona la fecha', 'error');
-      if (cantMineral === 0 && cantSaborizada === 0) return showToast('Ingresa al menos un botellón', 'error');
-      if (cantMineral > stock.mineral) return showToast('Stock insuficiente de Mineral', 'error');
-      if (cantSaborizada > stock.saborizada) return showToast('Stock insuficiente Saborizada', 'error');
-
-      stock.mineral -= cantMineral;
-      stock.saborizada -= cantSaborizada;
-      stock.envasesVacios = (stock.envasesVacios || 0) + devueltos;
-      saveDB('agua_stock', stock);
-      actualizarStockUI();
-
-      const total = cantMineral * precioMineral + cantSaborizada * precioSaborizada;
-      ventas.push({ id: Date.now().toString(), fecha, clienteId, mineral: cantMineral, saborizada: cantSaborizada, envasesDevueltos: devueltos, total });
-      saveDB('agua_ventas', ventas);
-
-      document.getElementById('cant-mineral').value = 0;
-      document.getElementById('cant-saborizada').value = 0;
-      document.getElementById('cant-devueltos').value = 0;
-      calcularTotalVenta();
-      mostrarDeudaEnvases();
-      
-      showToast('Venta registrada con éxito', 'success');
-    }
-
-    // ========== INVENTARIO ==========
-    function cambiarStock(tipo, delta) {
-      stock[tipo] = Math.max(0, stock[tipo] + delta);
-      saveDB('agua_stock', stock);
-      actualizarStockUI();
-    }
-
-    function actualizarStockUI() {
-      document.getElementById('stock-mineral').textContent = stock.mineral;
-      document.getElementById('stock-saborizada').textContent = stock.saborizada;
-      const totalEnvases = stock.mineral + stock.saborizada + (stock.envasesVacios || 0);
-      document.getElementById('total-envases-fisicos').textContent = totalEnvases;
-    }
-
-    // ========== CLIENTES (CRM MEJORADO) ==========
-    let editingClientId = null;
-
-    function getClientStats(clienteId) {
-      const clientSales = ventas.filter(v => v.clienteId === clienteId).sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
-      let totMin = 0, totSab = 0, totDev = 0;
-      
-      clientSales.forEach(v => {
-        totMin += v.mineral; totSab += v.saborizada; totDev += (v.envasesDevueltos || 0);
-      });
-      
-      const deudaEnvases = (totMin + totSab) - totDev;
-      
-      const client = clients.find(c => c.id === clienteId);
-      let pedidoPendiente = false;
-      
-      if (clientSales.length > 0) {
-        const diasDesdeUltima = Math.floor((new Date() - new Date(clientSales[0].fecha)) / (1000 * 60 * 60 * 24));
-        
-        if (client && client.frequency && !isNaN(parseInt(client.frequency))) {
-          const freq = parseInt(client.frequency);
-          pedidoPendiente = diasDesdeUltima > freq * 1.3;
-        } else {
-          if (clientSales.length >= 2) {
-            let maxIter = Math.min(clientSales.length, 3);
-            let diasDiff = [];
-            for(let i = 0; i < maxIter - 1; i++){
-               const d1 = new Date(clientSales[i].fecha);
-               const d2 = new Date(clientSales[i+1].fecha);
-               diasDiff.push(Math.abs(d1 - d2) / (1000 * 60 * 60 * 24));
-            }
-            const avg = diasDiff.reduce((a,b)=>a+b, 0) / diasDiff.length;
-            pedidoPendiente = diasDesdeUltima > avg + 1;
-          }
-        }
+      if (!cliente_id || (mineral === 0 && saborizada === 0)) {
+        return showToast('Complete cliente y cantidades', 'error');
       }
 
-      return { totMin, totSab, deudaEnvases, pedidoPendiente };
-    }
-
-    function renderClientList() {
-      const search = document.getElementById('searchInput').value.toLowerCase().trim();
-      const filtered = clients.filter(c => c.name.toLowerCase().includes(search) || c.phone.includes(search));
-      const container = document.getElementById('clientListContainer');
-      
-      if (filtered.length === 0) {
-        container.innerHTML = `<div style="padding:40px 20px; text-align:center; color:var(--text-secondary);">No se encontraron clientes.</div>`;
-        return;
+      // Validar Stock
+      if (mineral > stock.mineral || saborizada > stock.saborizada) {
+        return showToast('Stock insuficiente', 'error');
       }
-      
-      let html = '';
-      filtered.forEach(client => {
-        const stats = getClientStats(client.id);
-        const inicial = client.name.charAt(0).toUpperCase();
-        const urlWa = `https://wa.me/${client.phone.replace(/[^0-9]/g, '')}?text=Hola%20${encodeURIComponent(client.name)},%20te%20escribimos%20de%20AguaBol.`;
-        const urlMap = client.address ? `https://maps.google.com/?q=${encodeURIComponent(client.address)}` : '#';
 
-        let badgeDeuda = '';
-        if(stats.deudaEnvases > 0) {
-           const alertClass = stats.deudaEnvases > 3 ? 'alert' : '';
-           badgeDeuda = `<span class="badge ${alertClass}">Debe ${stats.deudaEnvases} envase(s)</span>`;
-        }
+      // Calcular Total
+      const total = (mineral * configPrecios.precio_mineral) + (saborizada * configPrecios.precio_saborizada);
 
-        html += `
-          <div class="client-row" onclick="openEditModal('${client.id}')">
-            <div class="client-header">
-              <div class="client-avatar">${inicial}</div>
-              <div class="client-info-main">
-                <div class="client-name">
-                  <span class="truncate">${escapeHtml(client.name)}</span>
-                  ${stats.pedidoPendiente ? '<span class="badge pending">Pedido Pendiente</span>' : ''}
-                </div>
-                <div class="client-stats">
-                  <span class="badge mineral">${stats.totMin} Min</span>
-                  <span class="badge saborizada">${stats.totSab} Sab</span>
-                  ${badgeDeuda}
-                </div>
-              </div>
-            </div>
-            
-            <div class="client-actions-bar">
-               <div class="truncate" style="font-size:13px; color:var(--text-secondary); max-width:60%;">
-                 ${escapeHtml(client.address || 'Sin dirección')}
-               </div>
-               <div class="action-icons">
-                 ${client.address ? `
-                 <div class="action-btn map" onclick="event.stopPropagation(); window.open('${urlMap}', '_blank')">
-                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-                 </div>` : ''}
-                 <div class="action-btn whatsapp" onclick="event.stopPropagation(); window.open('${urlWa}', '_blank')">
-                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-                 </div>
-               </div>
-            </div>
-          </div>`;
-      });
-      container.innerHTML = html;
-    }
+      // 1. Insertar Venta
+      const { error: errVenta } = await supabase.from('ventas').insert([{
+        id: crypto.randomUUID(),
+        fecha, cliente_id, mineral, saborizada, envases_devueltos, total
+      }]);
 
-    function openClientModal() {
-      editingClientId = null;
-      document.getElementById('modalClientTitle').textContent = 'Nuevo cliente';
-      document.getElementById('clientName').value = '';
-      document.getElementById('clientPhone').value = '';
-      document.getElementById('clientAddress').value = '';
-      document.getElementById('clientFrequency').value = '';
-      document.getElementById('deleteClientContainer').style.display = 'none';
-      document.getElementById('clientSalesHistory').style.display = 'none';
-      openModal('modalClientOverlay');
-    }
-
-    function openEditModal(id) {
-      const client = clients.find(c => c.id === id);
-      if (!client) return;
-      editingClientId = id;
-      document.getElementById('modalClientTitle').textContent = 'Editar cliente';
-      document.getElementById('clientName').value = client.name;
-      document.getElementById('clientPhone').value = client.phone;
-      document.getElementById('clientAddress').value = client.address || '';
-      document.getElementById('clientFrequency').value = client.frequency || '';
-      document.getElementById('deleteClientContainer').style.display = 'block';
-      
-      renderClientSalesHistory(id);
-      
-      openModal('modalClientOverlay');
-    }
-
-    function renderClientSalesHistory(clientId) {
-      const container = document.getElementById('clientSalesHistory');
-      const clientSales = ventas.filter(v => v.clienteId === clientId).sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
-      
-      if (clientSales.length === 0) {
-        container.style.display = 'none';
-        return;
+      if (errVenta) {
+        console.error(errVenta);
+        return showToast('Error al registrar venta', 'error');
       }
-      
-      container.style.display = 'block';
-      let html = '<h3 style="margin-bottom:12px; font-size:16px;">Últimas ventas</h3>';
-      const maxItems = 10;
-      clientSales.slice(0, maxItems).forEach(v => {
-        const fecha = new Date(v.fecha + 'T12:00:00').toLocaleDateString('es-ES', { day:'2-digit', month:'2-digit', year:'numeric' });
-        let detalle = [];
-        if (v.mineral > 0) detalle.push(`${v.mineral} Min`);
-        if (v.saborizada > 0) detalle.push(`${v.saborizada} Sab`);
-        html += `
-          <div class="history-item">
-            <span class="history-date">${fecha}</span>
-            <span class="history-detail">${detalle.join(', ') || 'Sin detalle'}</span>
-            <span class="history-amount">${formatearBs(v.total)}</span>
-          </div>`;
-      });
-      if (clientSales.length > maxItems) {
-        html += `<div style="text-align:center; font-size:12px; color:var(--text-secondary); margin-top:8px;">Mostrando las ${maxItems} más recientes</div>`;
-      }
-      container.innerHTML = html;
-    }
 
-    function saveClient() {
-      const name = document.getElementById('clientName').value.trim();
-      const phone = document.getElementById('clientPhone').value.trim();
-      const address = document.getElementById('clientAddress').value.trim();
-      const frequency = document.getElementById('clientFrequency').value.trim();
-      
-      if (!name || !phone) return showToast('Nombre y teléfono son obligatorios', 'error');
-      
-      const isNew = !editingClientId;
-      if (editingClientId) {
-        const client = clients.find(c => c.id === editingClientId);
-        if (client) Object.assign(client, { name, phone, address, frequency: frequency || '' });
-      } else {
-        clients.push({ id: Date.now().toString(), name, phone, address, frequency: frequency || '' });
-      }
-      
-      saveDB('agua_clientes', clients);
-      llenarSelectClientes();
-      renderClientList();
-      closeModal('modalClientOverlay');
-      
-      showToast(isNew ? 'Cliente guardado correctamente' : 'Cliente actualizado', 'success');
-    }
+      // 2. Actualizar Stock
+      const { error: errStock } = await supabase.from('stock').update({
+        mineral: stock.mineral - mineral,
+        saborizada: stock.saborizada - saborizada,
+        envases_vacios: stock.envases_vacios + envases_devueltos
+      }).eq('id', 1);
 
-    function deleteClient() {
-      if (!editingClientId) return;
-      if (confirm('¿Eliminar este cliente de forma permanente?')) {
-        clients = clients.filter(c => c.id !== editingClientId);
-        saveDB('agua_clientes', clients);
-        llenarSelectClientes();
-        renderClientList();
-        closeModal('modalClientOverlay');
-        showToast('Cliente eliminado', 'info');
-      }
+      showToast('Venta registrada exitosamente', 'success');
+      
+      // Resetear Formulario
+      document.getElementById('qty-mineral').value = 0;
+      document.getElementById('qty-saborizada').value = 0;
+      document.getElementById('qty-devueltos').value = 0;
+      
+      cargarStock();
+      cargarDashboard();
     }
 
     // ========== INICIALIZACIÓN ==========
-    document.addEventListener('DOMContentLoaded', () => {
+    document.addEventListener('DOMContentLoaded', async () => {
       document.getElementById('fecha-venta').value = new Date().toISOString().split('T')[0];
-      const today = new Date();
-      document.getElementById('mes').value = today.getMonth();
-      document.getElementById('anio').value = today.getFullYear();
       
-      cargarMovimiento();
-      actualizarStockUI();
-      llenarSelectClientes();
-
-      const savedAvatar = localStorage.getItem('agua_avatar');
-      if (savedAvatar) {
-        document.getElementById('profile-img').src = savedAvatar;
-      }
+      showToast('Conectando a Supabase...', 'info');
+      
+      // Cargar dependencias iniciales
+      await cargarConfiguracion();
+      await cargarStock();
+      await cargarClientes();
+      await cargarDashboard();
     });
   </script>
 </body>
