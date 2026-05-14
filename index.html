@@ -1301,7 +1301,7 @@
         // Link de WhatsApp
         const urlWa = `https://wa.me/${client.phone.replace(/[^0-9]/g, '')}?text=Hola%20${encodeURIComponent(client.name)},%20te%20escribimos%20de%20AguaBol.`;
         
-        // Lógica de Google Maps 100% Nativa y Gratis
+        // Lógica de Google Maps 100% Nativa y Gratis (CORREGIDA)
         let urlMap = '#';
         if (client.address) {
            let queryBusqueda = client.address;
@@ -1309,7 +1309,7 @@
                // Extrae las coordenadas si vienen del botón GPS del cliente
                queryBusqueda = client.address.split('| GPS:')[1].trim();
            }
-           // Genera el Universal Link
+           // Genera el Universal Link OFICIAL de Google Maps
            urlMap = `https://maps.google.com/?q=${encodeURIComponent(queryBusqueda)}`;
         }
 
