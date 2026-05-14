@@ -587,7 +587,7 @@
         <input type="tel" id="clientPhone" placeholder="+58 412 1234567">
       </div>
       <div class="input-group">
-        <label>Dirección (Agrega | GPS: lat,lng opcional)</label>
+        <label>Dirección</label>
         <input type="text" id="clientAddress" placeholder="Calle, zona, ciudad">
       </div>
       <div class="input-group">
@@ -713,25 +713,19 @@
 
     // ========== DIRECTLINK (COPIAR ENLACE CLIENTE) ==========
     function copiarDirectLink() {
-      // 1. Buscamos si ya existe un código de tienda para este administrador
       let storeCode = localStorage.getItem('aguabol_store_code');
-      
-      // 2. Si no existe, creamos uno alfanumérico único aleatorio
       if (!storeCode) {
         const randomStr = Math.random().toString(36).substring(2, 6).toUpperCase();
-        storeCode = 'AGUA-' + randomStr; // Ej: AGUA-B7X9
+        storeCode = 'AGUA-' + randomStr;
         localStorage.setItem('aguabol_store_code', storeCode);
       }
 
-      // 3. Obtenemos la ruta exacta donde está alojado tu administrador (Ej: GitHub Pages)
       const currentUrl = window.location.href;
-      // Quitamos el nombre del archivo actual si existe en la URL para obtener la carpeta base
       let finalBase = currentUrl.substring(0, currentUrl.lastIndexOf('/'));
       if (!currentUrl.includes('.html')) {
          finalBase = currentUrl.endsWith('/') ? currentUrl.slice(0, -1) : currentUrl;
       }
       
-      // 4. Armamos el enlace final con el código único
       const directLink = `${finalBase}/cliente.html?store=${storeCode}`;
       
       if (navigator.clipboard) {
@@ -785,7 +779,7 @@
         reader.onload = function(e) {
           const imgData = e.target.result;
           document.getElementById('profile-img').src = imgData;
-          localStorage.setItem('agua_avatar', imgData); // Solo mantenemos avatar local
+          localStorage.setItem('agua_avatar', imgData);
           showToast('Foto de perfil actualizada', 'success');
         }
         reader.readAsDataURL(file);
@@ -810,7 +804,6 @@
     async function loadDataFromSupabase() {
       showToast('Sincronizando datos...', 'info');
       try {
-        // Configuraciones / Precios
         const { data: confData, error: errConf } = await db.from('configuracion').select('*').eq('id', 1).single();
         if (errConf) console.error("🛑 ERROR SUPABASE (Cargar Precios):", errConf);
         if (confData) {
@@ -826,7 +819,6 @@
           costoProdSaborizada = precios.costoSaborizada;
         }
 
-        // Stock
         const { data: stockData, error: errStock } = await db.from('stock').select('*').eq('id', 1).single();
         if (errStock) console.error("🛑 ERROR SUPABASE (Cargar Stock):", errStock);
         if (stockData) {
@@ -837,7 +829,6 @@
           };
         }
 
-        // Clientes
         const { data: clientsData, error: errCli } = await db.from('clientes').select('*');
         if (errCli) console.error("🛑 ERROR SUPABASE (Cargar Clientes):", errCli);
         if (clientsData) {
@@ -850,7 +841,6 @@
           }));
         }
 
-        // Gastos
         const { data: gastosData, error: errGas } = await db.from('gastos').select('*');
         if (errGas) console.error("🛑 ERROR SUPABASE (Cargar Gastos):", errGas);
         if (gastosData) {
@@ -862,7 +852,6 @@
           }));
         }
 
-        // Ventas
         const { data: ventasData, error: errVen } = await db.from('ventas').select('*');
         if (errVen) console.error("🛑 ERROR SUPABASE (Cargar Ventas):", errVen);
         if (ventasData) {
@@ -877,7 +866,6 @@
           }));
         }
 
-        // Refrescar UI con datos traídos
         cargarMovimiento();
         actualizarStockUI();
         llenarSelectClientes();
@@ -888,7 +876,6 @@
         showToast('Error al sincronizar', 'error');
       }
     }
-
 
     // ========== PRECIOS Y COSTOS ==========
     function abrirModalPrecios() {
@@ -909,13 +896,11 @@
         return showToast('Ingresa valores válidos', 'error');
       }
 
-      // Actualizar localmente rápido
       precioMineral = pm; precioSaborizada = ps; costoProdMineral = cm; costoProdSaborizada = cs;
       
       closeModal('modalPreciosOverlay');
       showToast('Guardando...', 'info');
 
-      // Actualizar en Supabase
       const { error } = await db.from('configuracion').upsert({
         id: 1,
         precio_mineral: pm,
@@ -1059,14 +1044,12 @@
 
       const id = crypto.randomUUID();
       
-      // Actualizar local
       gastos.push({ id, fecha, desc, monto });
       cargarMovimiento();
       renderGastosList(); 
       document.getElementById('desc-gasto').value = '';
       document.getElementById('monto-gasto').value = '';
 
-      // Enviar a Supabase
       const { error } = await db.from('gastos').insert({
         id: id,
         fecha: fecha,
@@ -1083,12 +1066,10 @@
     }
 
     async function eliminarGasto(gastoId) {
-      // Actualizar Local
       gastos = gastos.filter(g => g.id !== gastoId);
       cargarMovimiento();
       renderGastosList();
       
-      // Eliminar de Supabase
       const { error } = await db.from('gastos').delete().eq('id', gastoId);
       if(!error) {
          showToast('Gasto eliminado', 'info');
@@ -1176,7 +1157,6 @@
       const idVenta = crypto.randomUUID();
       const total = cantMineral * precioMineral + cantSaborizada * precioSaborizada;
 
-      // Actualizar Local Optimo
       stock.mineral -= cantMineral;
       stock.saborizada -= cantSaborizada;
       stock.envasesVacios = (stock.envasesVacios || 0) + devueltos;
@@ -1190,7 +1170,6 @@
       calcularTotalVenta();
       mostrarDeudaEnvases();
 
-      // Guardar en Supabase - Venta
       const { error: errVenta } = await db.from('ventas').insert({
          id: idVenta,
          fecha: fecha,
@@ -1206,7 +1185,6 @@
          return showToast('Error al registrar en nube', 'error');
       }
 
-      // Guardar en Supabase - Stock
       const { error: errStock } = await db.from('stock').upsert({
          id: 1,
          mineral: stock.mineral,
@@ -1224,9 +1202,8 @@
     // ========== INVENTARIO ==========
     async function cambiarStock(tipo, delta) {
       stock[tipo] = Math.max(0, stock[tipo] + delta);
-      actualizarStockUI(); // Actualizar UI rápido
+      actualizarStockUI();
 
-      // Subir a Supabase
       const { error } = await db.from('stock').upsert({
          id: 1,
          mineral: stock.mineral,
@@ -1243,7 +1220,7 @@
       document.getElementById('total-envases-fisicos').textContent = totalEnvases;
     }
 
-    // ========== CLIENTES (CRM) ==========
+    // ========== CLIENTES (CRM Y MAPAS) ==========
     let editingClientId = null;
 
     function getClientStats(clienteId) {
@@ -1285,7 +1262,7 @@
 
     function renderClientList() {
       const search = document.getElementById('searchInput').value.toLowerCase().trim();
-      const filtered = clients.filter(c => c.name.toLowerCase().includes(search) || c.phone.includes(search));
+      const filtered = clients.filter(c => c.name.toLowerCase().includes(search) || (c.phone && c.phone.includes(search)));
       const container = document.getElementById('clientListContainer');
       
       if (filtered.length === 0) {
@@ -1301,16 +1278,35 @@
         // Link de WhatsApp
         const urlWa = `https://wa.me/${client.phone.replace(/[^0-9]/g, '')}?text=Hola%20${encodeURIComponent(client.name)},%20te%20escribimos%20de%20AguaBol.`;
         
-        // Lógica de Google Maps 100% Nativa y Gratis (CORREGIDA)
+        // LÓGICA DE LIMPIEZA DE DIRECCIÓN Y GENERACIÓN DE MAPA OFICIAL GOOGLE
+        let direccionVisual = client.address || 'Sin dirección';
         let urlMap = '#';
+
         if (client.address) {
-           let queryBusqueda = client.address;
            if (client.address.includes('| GPS:')) {
-               // Extrae las coordenadas si vienen del botón GPS del cliente
-               queryBusqueda = client.address.split('| GPS:')[1].trim();
+               // Formato Nuevo del cliente
+               const partes = client.address.split('| GPS:');
+               direccionVisual = partes[0].trim();
+               // Extrae lat,lng y lo pone en la URL de búsqueda universal oficial
+               urlMap = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(partes[1].trim())}`;
+           } 
+           else if (client.address.includes('| Maps:')) {
+               // Formato Viejo (Tachado en pantalla), lo limpiamos aquí
+               const partes = client.address.split('| Maps:');
+               direccionVisual = partes[0].trim();
+               
+               // Intentamos extraer las coordenadas de la URL vieja si las tiene
+               const match = partes[1].match(/(-?\d+\.\d+),(-?\d+\.\d+)/);
+               if(match) {
+                   urlMap = `https://www.google.com/maps/search/?api=1&query=${match[0]}`;
+               } else {
+                   urlMap = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(direccionVisual)}`;
+               }
+           } 
+           else {
+               // Es solo texto normal
+               urlMap = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(direccionVisual)}`;
            }
-           // Genera el Universal Link OFICIAL de Google Maps
-           urlMap = `https://maps.google.com/?q=${encodeURIComponent(queryBusqueda)}`;
         }
 
         let badgeDeuda = '';
@@ -1338,14 +1334,14 @@
             
             <div class="client-actions-bar">
                <div class="truncate" style="font-size:13px; color:var(--text-secondary); max-width:60%;">
-                 ${escapeHtml(client.address || 'Sin dirección')}
+                 ${escapeHtml(direccionVisual)}
                </div>
                <div class="action-icons">
                  ${client.address ? `
-                 <div class="action-btn map" onclick="event.stopPropagation(); window.open('${urlMap}', '_blank')">
+                 <div class="action-btn map" onclick="event.stopPropagation(); window.open('${urlMap}', '_blank')" title="Ver en Mapa">
                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
                  </div>` : ''}
-                 <div class="action-btn whatsapp" onclick="event.stopPropagation(); window.open('${urlWa}', '_blank')">
+                 <div class="action-btn whatsapp" onclick="event.stopPropagation(); window.open('${urlWa}', '_blank')" title="Contactar">
                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
                  </div>
                </div>
@@ -1424,7 +1420,6 @@
       const isNew = !editingClientId;
       const cId = isNew ? crypto.randomUUID() : editingClientId;
       
-      // Actualizar Local
       if (isNew) {
         clients.push({ id: cId, name, phone, address, frequency: frequency || '' });
       } else {
@@ -1436,7 +1431,6 @@
       renderClientList();
       closeModal('modalClientOverlay');
       
-      // Subir a Supabase
       const payload = {
          id: cId,
          nombre: name,
@@ -1459,13 +1453,11 @@
       if (!editingClientId) return;
       if (confirm('¿Eliminar este cliente de forma permanente?')) {
         const cId = editingClientId;
-        // Eliminar Local
         clients = clients.filter(c => c.id !== cId);
         llenarSelectClientes();
         renderClientList();
         closeModal('modalClientOverlay');
         
-        // Eliminar Supabase
         const { error } = await db.from('clientes').delete().eq('id', cId);
         if(!error) {
            showToast('Cliente eliminado', 'info');
@@ -1482,10 +1474,7 @@
           'postgres_changes', 
           { event: '*', schema: 'public', table: 'clientes' }, 
           (payload) => {
-            console.log('Cambio detectado en clientes (Realtime):', payload);
-            
             if (payload.eventType === 'INSERT') {
-              // Si es un cliente nuevo, lo añadimos al array local
               const nuevoCli = {
                 id: payload.new.id,
                 name: payload.new.nombre,
@@ -1493,15 +1482,12 @@
                 address: payload.new.direccion,
                 frequency: payload.new.frecuencia_dias ? payload.new.frecuencia_dias.toString() : ''
               };
-              
-              // Solo insertar si no existe (evita duplicados si fue creado por este mismo cliente)
               if(!clients.some(c => c.id === nuevoCli.id)) {
                 clients.push(nuevoCli);
                 showToast(`Nuevo cliente: ${nuevoCli.name}`, 'info');
               }
             } 
             else if (payload.eventType === 'UPDATE') {
-              // Actualizar datos del cliente
               const index = clients.findIndex(c => c.id === payload.new.id);
               if (index !== -1) {
                 clients[index] = {
@@ -1514,11 +1500,9 @@
               }
             } 
             else if (payload.eventType === 'DELETE') {
-              // Eliminar
               clients = clients.filter(c => c.id !== payload.old.id);
             }
 
-            // Refrescar las vistas
             renderClientList();
             llenarSelectClientes();
           }
@@ -1538,10 +1522,7 @@
         document.getElementById('profile-img').src = savedAvatar;
       }
 
-      // 1. Llamar datos desde Supabase
       await loadDataFromSupabase();
-
-      // 2. Activar la escucha en tiempo real de los clientes
       escucharCambiosClientes();
     });
   </script>
