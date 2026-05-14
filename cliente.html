@@ -426,9 +426,9 @@
         let clientId;
         let direccionConCoords = direccion;
 
-        // Si fijó el GPS, agregamos el link de Google Maps a la dirección para el Administrador
-        if (gpsCoords && !direccion.includes('Maps:')) {
-           direccionConCoords = `${direccion} | Maps: https://maps.google.com/?q=${gpsCoords.lat},${gpsCoords.lng}`;
+        // Formato limpio para las coordenadas (Sin Google Links largos)
+        if (gpsCoords && !direccion.includes('GPS:')) {
+           direccionConCoords = `${direccion} | GPS: ${gpsCoords.lat},${gpsCoords.lng}`;
         }
 
         if (existCli && existCli.length > 0) {
@@ -540,10 +540,10 @@
 
       const idPedido = crypto.randomUUID();
       
-      // Si ya tiene las coordenadas guardadas, evitamos duplicar la etiqueta "Maps:"
+      // Formato limpio para las coordenadas en el pedido (Sin Google Links largos)
       let dirFinal = clienteDatos.direccion;
-      if (gpsCoords && !dirFinal.includes('Maps:')) {
-         dirFinal = `${clienteDatos.direccion} | Maps: https://maps.google.com/?q=${gpsCoords.lat},${gpsCoords.lng}`;
+      if (gpsCoords && !dirFinal.includes('GPS:')) {
+         dirFinal = `${clienteDatos.direccion} | GPS: ${gpsCoords.lat},${gpsCoords.lng}`;
       }
 
       try {
