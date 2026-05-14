@@ -6,7 +6,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="theme-color" content="#f4f6f9">
-  <title>Agua 20L</title>
+  <title>Agua 20L - Admin</title>
   
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
@@ -530,6 +530,15 @@
         <div class="setting-text">Gestión de Precios</div>
         <div class="setting-arrow"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg></div>
       </div>
+      
+      <div class="setting-row" onclick="copiarDirectLink()">
+        <div class="setting-icon" style="background: #e0f2fe; color: #0284c7;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+        </div>
+        <div class="setting-text">DirectLink (Portal Cliente)</div>
+        <div class="setting-arrow"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg></div>
+      </div>
+
       <div class="setting-row" onclick="demoFeature('Repartidores y Rutas')">
         <div class="setting-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg></div>
         <div class="setting-text">Repartidores y Rutas</div>
@@ -700,6 +709,29 @@
     // ========== DEMO FEATURES ==========
     function demoFeature(featureName) {
       showToast(`Módulo "${featureName}" en desarrollo para versión final`, 'info');
+    }
+
+    // ========== DIRECTLINK (COPIAR ENLACE CLIENTE) ==========
+    function copiarDirectLink() {
+      const baseUrl = window.location.origin;
+      const directLink = `${baseUrl}/cliente.html?store=admin-default`;
+      
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(directLink).then(() => {
+          showToast('DirectLink copiado al portapapeles', 'success');
+        }).catch(err => {
+          console.error("Error copiando el link: ", err);
+          showToast('Error al copiar enlace', 'error');
+        });
+      } else {
+        const tempInput = document.createElement("input");
+        tempInput.value = directLink;
+        document.body.appendChild(tempInput);
+        tempInput.select();
+        document.execCommand("copy");
+        document.body.removeChild(tempInput);
+        showToast('DirectLink copiado al portapapeles', 'success');
+      }
     }
 
     // ========== NAVEGACIÓN Y TABS ==========
@@ -1412,6 +1444,57 @@
       }
     }
 
+    // ========== SUSCRIPCIÓN EN TIEMPO REAL ==========
+    function escucharCambiosClientes() {
+      db.channel('cambios-clientes')
+        .on(
+          'postgres_changes', 
+          { event: '*', schema: 'public', table: 'clientes' }, 
+          (payload) => {
+            console.log('Cambio detectado en clientes (Realtime):', payload);
+            
+            if (payload.eventType === 'INSERT') {
+              // Si es un cliente nuevo, lo añadimos al array local
+              const nuevoCli = {
+                id: payload.new.id,
+                name: payload.new.nombre,
+                phone: payload.new.telefono,
+                address: payload.new.direccion,
+                frequency: payload.new.frecuencia_dias ? payload.new.frecuencia_dias.toString() : ''
+              };
+              
+              // Solo insertar si no existe (evita duplicados si fue creado por este mismo cliente)
+              if(!clients.some(c => c.id === nuevoCli.id)) {
+                clients.push(nuevoCli);
+                showToast(`Nuevo cliente: ${nuevoCli.name}`, 'info');
+              }
+            } 
+            else if (payload.eventType === 'UPDATE') {
+              // Actualizar datos del cliente
+              const index = clients.findIndex(c => c.id === payload.new.id);
+              if (index !== -1) {
+                clients[index] = {
+                  id: payload.new.id,
+                  name: payload.new.nombre,
+                  phone: payload.new.telefono,
+                  address: payload.new.direccion,
+                  frequency: payload.new.frecuencia_dias ? payload.new.frecuencia_dias.toString() : ''
+                };
+              }
+            } 
+            else if (payload.eventType === 'DELETE') {
+              // Eliminar
+              clients = clients.filter(c => c.id !== payload.old.id);
+            }
+
+            // Refrescar las vistas
+            renderClientList();
+            llenarSelectClientes();
+          }
+        )
+        .subscribe();
+    }
+
     // ========== INICIALIZACIÓN ==========
     document.addEventListener('DOMContentLoaded', async () => {
       document.getElementById('fecha-venta').value = new Date().toISOString().split('T')[0];
@@ -1424,8 +1507,11 @@
         document.getElementById('profile-img').src = savedAvatar;
       }
 
-      // Llamar datos desde Supabase
+      // 1. Llamar datos desde Supabase
       await loadDataFromSupabase();
+
+      // 2. Activar la escucha en tiempo real de los clientes
+      escucharCambiosClientes();
     });
   </script>
 </body>
