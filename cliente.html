@@ -4,306 +4,442 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
   <meta name="theme-color" content="#f4f6f9">
-  <title>AguaBol - Pedido Express</title>
+  <title>AguaBol - Tu Agua a Domicilio</title>
   
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
+    /* ========== VARIABLES GLOBALES ========== */
     :root { 
       --tint: #0ea5e9; --tint-hover: #0284c7; --bg: #f4f6f9; --card: #ffffff; 
-      --text-main: #111827; --text-muted: #6b7280; --green: #10b981;
+      --text-main: #111827; --text-muted: #6b7280; --green: #10b981; --gold: #f59e0b;
+      --radius-md: 20px; --radius-sm: 14px;
     }
     
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif; -webkit-tap-highlight-color: transparent;}
     
-    body { background: var(--bg); color: var(--text-main); padding: 20px; padding-bottom: 40px; padding-top: env(safe-area-inset-top); }
+    body { background: var(--bg); color: var(--text-main); padding-bottom: calc(env(safe-area-inset-bottom) + 80px); padding-top: env(safe-area-inset-top); overflow-x: hidden; }
     
-    .header { text-align: center; margin-bottom: 24px; margin-top: 10px; }
-    .header h1 { font-size: 28px; font-weight: 800; color: var(--tint); display: flex; align-items: center; justify-content: center; gap: 8px;}
-    
-    .card { background: var(--card); padding: 20px; border-radius: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.04); margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.5); }
-    .card-title { font-size: 16px; font-weight: 800; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; color: var(--text-main);}
+    /* ========== ANIMACIONES ========== */
+    .screen { display: none; padding: 20px; animation: fadeSlideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+    .screen.active { display: block; }
+    @keyframes fadeSlideUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes popIn { 0% { transform: scale(0.8); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+
+    /* ========== HEADER ========== */
+    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; margin-top: 10px; }
+    .header-greeting { font-size: 24px; font-weight: 800; color: var(--text-main); }
+    .header-subtitle { font-size: 14px; color: var(--text-muted); font-weight: 600; margin-top: 4px; }
+    .avatar-mini { width: 44px; height: 44px; border-radius: 22px; background: linear-gradient(135deg, var(--tint), #0284c7); color: white; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 18px; box-shadow: 0 4px 10px rgba(14, 165, 233, 0.3);}
+
+    /* ========== COMPONENTES BASE ========== */
+    .card { background: var(--card); padding: 20px; border-radius: var(--radius-md); box-shadow: 0 8px 24px rgba(0,0,0,0.03); margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.8); }
+    .section-title { font-size: 18px; font-weight: 800; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; color: var(--text-main);}
     
     .input-group { margin-bottom: 16px; }
-    .input-group label { display: block; font-size: 12px; font-weight: 700; color: var(--text-muted); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;}
-    input { width: 100%; padding: 14px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; font-size: 16px; font-weight: 600; outline: none; transition: border-color 0.2s; color: var(--text-main);}
-    input:focus { border-color: var(--tint); background: #fff; box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.1); }
+    .input-group label { display: block; font-size: 12px; font-weight: 700; color: var(--text-muted); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;}
+    input { width: 100%; padding: 16px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: var(--radius-sm); font-size: 16px; font-weight: 600; outline: none; transition: all 0.2s; color: var(--text-main);}
+    input:focus { border-color: var(--tint); background: #fff; box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.1); }
     
-    .btn { width: 100%; padding: 16px; background: linear-gradient(135deg, var(--tint), #0284c7); color: white; border: none; border-radius: 14px; font-size: 16px; font-weight: 800; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 8px; box-shadow: 0 4px 12px rgba(14, 165, 233, 0.25); transition: transform 0.1s;}
-    .btn:active { transform: scale(0.97); }
-    .btn:disabled { opacity: 0.7; cursor: not-allowed; }
+    .btn { width: 100%; padding: 16px; background: linear-gradient(135deg, var(--tint), #0284c7); color: white; border: none; border-radius: var(--radius-sm); font-size: 16px; font-weight: 800; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 8px; box-shadow: 0 6px 16px rgba(14, 165, 233, 0.25); transition: transform 0.15s;}
+    .btn:active { transform: scale(0.96); }
+    .btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
     
-    .btn-gps { background: #e0f2fe; color: #0284c7; box-shadow: none; margin-top: 10px; padding: 12px; font-size: 14px; }
-    .btn-gps.success { background: #dcfce7; color: #16a34a; }
+    .btn-gps { background: #f0f9ff; color: var(--tint-hover); box-shadow: none; margin-top: 10px; padding: 14px; font-size: 14px; border: 1px dashed #bae6fd;}
+    .btn-gps.success { background: #dcfce7; color: #16a34a; border-color: #86efac; }
+
+    /* ========== PRODUCTOS (CARRITO) ========== */
+    .product-row { display: flex; align-items: center; justify-content: space-between; padding: 16px; background: #f8fafc; border-radius: 16px; margin-bottom: 12px; border: 1px solid #f1f5f9; }
+    .product-info { display: flex; align-items: center; gap: 14px; }
+    .product-icon { width: 48px; height: 48px; border-radius: 14px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; background: white; box-shadow: 0 2px 8px rgba(0,0,0,0.04);}
+    .product-icon.min svg { color: var(--tint); } .product-icon.sab svg { color: var(--gold); }
     
-    .product-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #f1f5f9; }
-    .product-row:last-child { border-bottom: none; }
-    .product-info { display: flex; align-items: center; gap: 12px; }
-    .product-icon { width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;}
-    .product-icon.min { background: #e0f2fe; color: var(--tint); }
-    .product-icon.sab { background: #fef3c7; color: #d97706; }
+    .qty-control { display: flex; align-items: center; background: white; border-radius: 12px; border: 1px solid #e2e8f0; padding: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.02);}
+    .qty-btn { width: 34px; height: 34px; border-radius: 8px; border: none; background: #f1f5f9; font-size: 20px; font-weight: bold; color: var(--text-main); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: background 0.1s;}
+    .qty-btn:active { background: #e2e8f0; }
+    .qty-val { font-size: 18px; font-weight: 800; width: 36px; text-align: center; }
+
+    .checkout-bar { display: flex; justify-content: space-between; align-items: center; margin-top: 24px; padding-top: 20px; border-top: 2px dashed #e2e8f0; }
     
-    .qty-control { display: flex; align-items: center; background: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0; padding: 4px; }
-    .qty-btn { width: 36px; height: 36px; border-radius: 10px; border: none; background: #e2e8f0; font-size: 20px; font-weight: bold; color: var(--text-main); display: flex; align-items: center; justify-content: center; cursor: pointer; }
-    .qty-btn:active { background: #cbd5e1; }
-    .qty-val { font-size: 18px; font-weight: 800; width: 40px; text-align: center; }
-    
-    .total-container { display: flex; justify-content: space-between; align-items: flex-end; margin: 20px 0; padding-top: 16px; border-top: 2px dashed #e2e8f0; }
-    
-    #toast { display: none; position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); color: var(--text-main); padding: 14px 24px; border-radius: 30px; font-weight: 800; z-index: 1000; box-shadow: 0 10px 25px rgba(0,0,0,0.1); border: 1px solid rgba(0,0,0,0.05); align-items: center; gap: 10px; width: 90%; max-width: 350px;}
-    
+    /* ========== TARJETA DE LEALTAD ========== */
+    .loyalty-card { background: linear-gradient(135deg, #1e293b, #0f172a); border-radius: 24px; padding: 24px; color: white; position: relative; overflow: hidden; box-shadow: 0 12px 30px rgba(15, 23, 42, 0.4);}
+    .loyalty-card::after { content:''; position:absolute; top:-50%; right:-20%; width:200px; height:200px; background: radial-gradient(circle, rgba(14,165,233,0.2) 0%, transparent 70%); border-radius:50%; }
+    .stamps-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-top: 24px; position: relative; z-index: 2;}
+    .stamp-spot { aspect-ratio: 1; border-radius: 50%; border: 2px dashed rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.2); transition: all 0.3s; position: relative;}
+    .stamp-spot.filled { background: var(--tint); border-style: solid; border-color: var(--tint); animation: popIn 0.4s cubic-bezier(0.16, 1, 0.3, 1); box-shadow: 0 0 15px rgba(14,165,233,0.5);}
+    .stamp-spot.free { border-color: var(--gold); background: rgba(245, 158, 11, 0.1); }
+    .stamp-spot.free.filled { background: linear-gradient(135deg, #fbbf24, #d97706); border-color: transparent; box-shadow: 0 0 20px rgba(245,158,11,0.6);}
+    .stamp-spot svg { width: 60%; height: 60%; color: white; opacity: 0.2; }
+    .stamp-spot.filled svg { opacity: 1; }
+
+    /* ========== TABS BOTTOM NAVIGATION ========== */
+    .tab-bar { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-top: 1px solid rgba(0,0,0,0.05); display: flex; justify-content: space-around; align-items: center; height: calc(env(safe-area-inset-bottom) + 70px); padding-bottom: env(safe-area-inset-bottom); z-index: 150; }
+    .tab-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #94a3b8; font-size: 11px; font-weight: 700; gap: 6px; padding: 10px 0; transition: color 0.2s; cursor: pointer; }
+    .tab-item.active { color: var(--tint); }
+    .tab-item svg { transition: transform 0.2s; }
+    .tab-item.active svg { transform: translateY(-2px); }
+
+    /* ========== TOAST NOTIFICATION ========== */
+    #toast { display: none; position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); color: var(--text-main); padding: 14px 24px; border-radius: 30px; font-weight: 800; z-index: 1000; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border: 1px solid rgba(0,0,0,0.05); align-items: center; gap: 10px; width: 90%; max-width: 350px; animation: fadeSlideUp 0.3s forwards;}
     .spinner { border: 3px solid rgba(255,255,255,0.3); border-radius: 50%; border-top: 3px solid white; width: 20px; height: 20px; animation: spin 1s linear infinite; display: none; }
-    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
   </style>
 </head>
 <body>
 
-  <div id="toast"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> <span id="toast-msg">¡Pedido enviado!</span></div>
+  <div id="toast"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> <span id="toast-msg">¡Pedido enviado con éxito!</span></div>
 
-  <div class="header">
-    <h1><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg> AguaBol</h1>
-    <p style="color: var(--text-muted); font-size: 14px; font-weight: 600; margin-top: 4px;">Recarga rápida a domicilio</p>
-  </div>
+  <div id="screen-pedido" class="screen active">
+    <div class="header">
+      <div>
+        <div class="header-greeting">Hola, <span id="display-name">Invitado</span> 👋</div>
+        <div class="header-subtitle">¿Qué te llevamos hoy?</div>
+      </div>
+      <div class="avatar-mini" id="header-avatar">I</div>
+    </div>
 
-  <div class="card" id="form-datos">
-    <div class="card-title">
-      <div style="width:24px; height:24px; background:var(--tint); color:white; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:12px;">1</div>
-      Tus Datos
+    <div class="card" style="padding: 12px; background: transparent; border: none; box-shadow: none;">
+      <div class="product-row">
+        <div class="product-info">
+          <div class="product-icon min"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/></svg></div>
+          <div>
+            <div style="font-weight: 800; font-size: 16px;">Agua Mineral</div>
+            <div style="font-size: 13px; color: var(--text-muted); font-weight: 600;" id="precio-min-label">Bs 8.50</div>
+          </div>
+        </div>
+        <div class="qty-control">
+          <button class="qty-btn" onclick="cambiarCantidad(-1, 'min')">−</button>
+          <div class="qty-val" id="qty-min">1</div>
+          <button class="qty-btn" onclick="cambiarCantidad(1, 'min')">+</button>
+        </div>
+      </div>
+
+      <div class="product-row">
+        <div class="product-info">
+          <div class="product-icon sab"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/></svg></div>
+          <div>
+            <div style="font-weight: 800; font-size: 16px;">Saborizada</div>
+            <div style="font-size: 13px; color: var(--text-muted); font-weight: 600;" id="precio-sab-label">Bs 10.00</div>
+          </div>
+        </div>
+        <div class="qty-control">
+          <button class="qty-btn" onclick="cambiarCantidad(-1, 'sab')">−</button>
+          <div class="qty-val" id="qty-sab">0</div>
+          <button class="qty-btn" onclick="cambiarCantidad(1, 'sab')">+</button>
+        </div>
+      </div>
     </div>
-    
-    <div class="input-group">
-      <label>Nombre completo *</label>
-      <input type="text" id="nombre" placeholder="Ej. Juan Pérez">
-    </div>
-    
-    <div class="input-group">
-      <label>Teléfono (WhatsApp) *</label>
-      <input type="tel" id="telefono" placeholder="Ej. 04121234567">
-    </div>
-    
-    <div class="input-group">
-      <label>Dirección de Entrega</label>
-      <input type="text" id="direccion" placeholder="Ej. Urb. El Centro, Calle 2, Casa 4">
+
+    <div class="card">
+      <div class="section-title"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg> Entregar a:</div>
+      <p id="resumen-direccion" style="font-size: 14px; font-weight: 600; color: var(--text-muted); line-height: 1.5; margin-bottom: 12px;">No has configurado tu dirección. Ve a tu Perfil.</p>
+      
       <button class="btn btn-gps" id="btn-gps" onclick="obtenerGPS()">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg>
-        Compartir mi ubicación exacta (GPS)
+        Compartir mi GPS exacto (Recomendado)
       </button>
+
+      <div class="checkout-bar">
+        <div>
+          <div style="font-size: 12px; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Total a Pagar</div>
+          <div style="font-size: 26px; font-weight: 800; color: var(--text-main);" id="total-pago">Bs 8.50</div>
+        </div>
+        <button class="btn" style="width: auto; padding: 16px 28px;" onclick="enviarPedido()" id="btn-enviar">
+          <span id="btn-text">Pedir Ahora</span>
+          <div class="spinner" id="btn-spinner"></div>
+        </button>
+      </div>
     </div>
   </div>
 
-  <div class="card" id="form-pedido">
-    <div class="card-title">
-      <div style="width:24px; height:24px; background:var(--tint); color:white; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:12px;">2</div>
-      Tu Pedido
-    </div>
+  <div id="screen-lealtad" class="screen">
+    <div class="header" style="justify-content: center;"><h1 style="font-size:24px; font-weight:800;">🎁 Club AguaBol</h1></div>
     
-    <div class="product-row">
-      <div class="product-info">
-        <div class="product-icon min"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/></svg></div>
-        <div>
-          <div style="font-weight: 800; font-size: 15px;">Agua Mineral</div>
-          <div style="font-size: 13px; color: var(--text-muted); font-weight: 600;" id="precio-min-label">Bs 8.50 c/u</div>
+    <div class="loyalty-card">
+      <h2 style="font-size: 20px; font-weight: 800; margin-bottom: 6px;">Tarjeta de Cliente</h2>
+      <p style="font-size: 14px; color: rgba(255,255,255,0.7); font-weight: 600;">Acumula 10 compras y el próximo botellón es GRATIS.</p>
+      
+      <div class="stamps-grid" id="stamps-container">
         </div>
-      </div>
-      <div class="qty-control">
-        <button class="qty-btn" onclick="cambiarCantidad(-1, 'min')">−</button>
-        <div class="qty-val" id="qty-min">1</div>
-        <button class="qty-btn" onclick="cambiarCantidad(1, 'min')">+</button>
+      
+      <div style="margin-top: 24px; background: rgba(0,0,0,0.2); padding: 12px; border-radius: 12px; text-align: center;">
+        <span style="font-size: 14px; font-weight: 700;"><span id="botellones-faltantes" style="color:var(--gold); font-size:16px;">Cargando...</span> para tu premio</span>
       </div>
     </div>
 
-    <div class="product-row">
-      <div class="product-info">
-        <div class="product-icon sab"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/></svg></div>
-        <div>
-          <div style="font-weight: 800; font-size: 15px;">Saborizada</div>
-          <div style="font-size: 13px; color: var(--text-muted); font-weight: 600;" id="precio-sab-label">Bs 10.00 c/u</div>
-        </div>
-      </div>
-      <div class="qty-control">
-        <button class="qty-btn" onclick="cambiarCantidad(-1, 'sab')">−</button>
-        <div class="qty-val" id="qty-sab">0</div>
-        <button class="qty-btn" onclick="cambiarCantidad(1, 'sab')">+</button>
-      </div>
+    <div class="card" style="margin-top: 20px; text-align: center; padding: 30px 20px;">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--tint)" stroke-width="1.5" style="margin-bottom: 16px; opacity: 0.5;"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+      <h3 style="font-size: 16px; font-weight: 800; margin-bottom: 8px;">¿Cómo funciona?</h3>
+      <p style="font-size: 14px; color: var(--text-muted); font-weight: 600; line-height: 1.5;">Tus compras están vinculadas a tu número de WhatsApp. Cada vez que tu pedido sea entregado, verás un sello nuevo aquí.</p>
     </div>
-    
-    <div class="total-container">
-      <div style="font-size: 14px; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Total a Pagar</div>
-      <div style="font-size: 28px; font-weight: 800; color: var(--tint);" id="total-pago">Bs 8.50</div>
-    </div>
+  </div>
 
-    <button class="btn" onclick="enviarPedido()" id="btn-enviar">
-      <span id="btn-text">🚀 Confirmar Pedido</span>
-      <div class="spinner" id="btn-spinner"></div>
-    </button>
+  <div id="screen-perfil" class="screen">
+    <div class="header" style="justify-content: center;"><h1 style="font-size:24px; font-weight:800;">⚙️ Mi Perfil</h1></div>
+    
+    <div class="card">
+      <div class="section-title">Datos Personales</div>
+      <div class="input-group">
+        <label>Nombre y Apellido</label>
+        <input type="text" id="perfil-nombre" placeholder="Ej. Carlos Mendoza">
+      </div>
+      <div class="input-group">
+        <label>Teléfono (WhatsApp)</label>
+        <input type="tel" id="perfil-telefono" placeholder="Ej. 04121234567">
+      </div>
+      <div class="input-group">
+        <label>Dirección Predeterminada</label>
+        <input type="text" id="perfil-direccion" placeholder="Ej. Urb. El Centro, Calle 2, Casa 4">
+      </div>
+      <button class="btn" style="margin-top: 24px;" onclick="guardarPerfilLocally()">Guardar Perfil</button>
+    </div>
+  </div>
+
+  <div class="tab-bar">
+    <div class="tab-item active" onclick="switchTab('pedido')">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      <span>Inicio</span>
+    </div>
+    <div class="tab-item" onclick="switchTab('lealtad')">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+      <span>Lealtad</span>
+    </div>
+    <div class="tab-item" onclick="switchTab('perfil')">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      <span>Perfil</span>
+    </div>
   </div>
 
   <script>
     // ========== CONFIGURACIÓN SUPABASE ==========
-    const SUPABASE_URL = 'https://aiipxfssbnpfpefbbnwm.supabase.co';
-    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFpaXB4ZnNzYm5wZnBlZmJibndtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3MDM2MzIsImV4cCI6MjA5NDI3OTYzMn0.CS_e43iE4ClLgqQULrm4mNm3ji71WQZQcdBNfg6lTHg';
-    const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    const db = window.supabase.createClient('https://aiipxfssbnpfpefbbnwm.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFpaXB4ZnNzYm5wZnBlZmJibndtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3MDM2MzIsImV4cCI6MjA5NDI3OTYzMn0.CS_e43iE4ClLgqQULrm4mNm3ji71WQZQcdBNfg6lTHg');
     
-    // Variables globales
     let coordenadasGPS = null;
-    let pMin = 8.5; // Precio por defecto
-    let pSab = 10.0; // Precio por defecto
+    let pMin = 8.5; 
+    let pSab = 10.0;
+    let totalBotellonesHistorico = 0; // Para la tarjeta de lealtad
 
-    // Función para formatear moneda
-    function formatearBs(monto) { 
-      return 'Bs ' + monto.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ','); 
+    // ========== NAVEGACIÓN TABS ==========
+    function switchTab(tabId) {
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      document.getElementById('screen-' + tabId).classList.add('active');
+      
+      const tabs = document.querySelectorAll('.tab-item');
+      tabs.forEach(t => t.classList.remove('active'));
+      
+      if(tabId === 'pedido') tabs[0].classList.add('active');
+      if(tabId === 'lealtad') { tabs[1].classList.add('active'); cargarLealtad(); }
+      if(tabId === 'perfil') tabs[2].classList.add('active');
     }
 
-    // ========== OBTENER PRECIOS REALES DE LA BASE DE DATOS ==========
-    async function cargarPrecios() {
+    // ========== UTILIDADES ==========
+    function formatearBs(monto) { return 'Bs ' + monto.toFixed(2); }
+    
+    function showToast(msg, isError = false) {
+      const toast = document.getElementById('toast');
+      document.getElementById('toast-msg').innerText = msg;
+      toast.style.borderColor = isError ? 'var(--destructive)' : '#86efac';
+      toast.style.display = 'flex';
+      setTimeout(() => { toast.style.display = 'none'; }, 3000);
+    }
+
+    // ========== CARGAR DATOS DE INICIO ==========
+    async function inicializarApp() {
+      // 1. Cargar Precios Reales
       try {
         const { data } = await db.from('configuracion').select('precio_mineral, precio_saborizada').eq('id', 1).single();
-        if (data) {
-          pMin = parseFloat(data.precio_mineral);
-          pSab = parseFloat(data.precio_saborizada);
-          document.getElementById('precio-min-label').innerText = formatearBs(pMin) + ' c/u';
-          document.getElementById('precio-sab-label').innerText = formatearBs(pSab) + ' c/u';
-          calcularTotal(); // Recalcular con los nuevos precios
-        }
-      } catch (error) {
-        console.log("Cargando precios por defecto.");
+        if (data) { pMin = parseFloat(data.precio_mineral); pSab = parseFloat(data.precio_saborizada); }
+      } catch (e) { console.log("Usando precios default"); }
+      
+      document.getElementById('precio-min-label').innerText = formatearBs(pMin);
+      document.getElementById('precio-sab-label').innerText = formatearBs(pSab);
+      calcularTotal();
+
+      // 2. Cargar Perfil de Memoria Local
+      const nom = localStorage.getItem('aguabol_nombre') || '';
+      const tel = localStorage.getItem('aguabol_telefono') || '';
+      const dir = localStorage.getItem('aguabol_direccion') || '';
+
+      if (nom) {
+        document.getElementById('display-name').innerText = nom.split(' ')[0];
+        document.getElementById('header-avatar').innerText = nom.charAt(0).toUpperCase();
+        document.getElementById('perfil-nombre').value = nom;
       }
+      if (tel) document.getElementById('perfil-telefono').value = tel;
+      if (dir) {
+        document.getElementById('perfil-direccion').value = dir;
+        document.getElementById('resumen-direccion').innerText = dir;
+      }
+      
+      dibujarTarjetaLealtad(0); // Dibuja vacía inicialmente
     }
 
-    // ========== LÓGICA DEL CARRITO ==========
+    // ========== PERFIL ==========
+    function guardarPerfilLocally() {
+      const n = document.getElementById('perfil-nombre').value.trim();
+      const t = document.getElementById('perfil-telefono').value.trim();
+      const d = document.getElementById('perfil-direccion').value.trim();
+
+      if(!n || !t) return showToast("Nombre y Teléfono son obligatorios", true);
+
+      localStorage.setItem('aguabol_nombre', n);
+      localStorage.setItem('aguabol_telefono', t);
+      localStorage.setItem('aguabol_direccion', d);
+
+      document.getElementById('display-name').innerText = n.split(' ')[0];
+      document.getElementById('header-avatar').innerText = n.charAt(0).toUpperCase();
+      document.getElementById('resumen-direccion').innerText = d || "Sin dirección especificada";
+      
+      showToast("Perfil guardado. ¡Listo para pedir!");
+      setTimeout(() => switchTab('pedido'), 1000);
+    }
+
+    // ========== CARRITO Y PEDIDO ==========
     function cambiarCantidad(val, tipo) {
       const el = document.getElementById('qty-' + tipo);
-      let num = Math.max(0, parseInt(el.innerText) + val);
-      el.innerText = num;
+      el.innerText = Math.max(0, parseInt(el.innerText) + val);
       calcularTotal();
     }
 
     function calcularTotal() {
       const qMin = parseInt(document.getElementById('qty-min').innerText);
       const qSab = parseInt(document.getElementById('qty-sab').innerText);
-      const total = (qMin * pMin) + (qSab * pSab);
-      document.getElementById('total-pago').innerText = formatearBs(total);
+      document.getElementById('total-pago').innerText = formatearBs((qMin * pMin) + (qSab * pSab));
     }
 
-    // ========== LÓGICA DE GPS ==========
     function obtenerGPS() {
-      const btnGps = document.getElementById('btn-gps');
+      const btn = document.getElementById('btn-gps');
       if (navigator.geolocation) {
-        btnGps.innerHTML = '⏳ Obteniendo ubicación...';
+        btn.innerHTML = '⏳ Obteniendo...';
         navigator.geolocation.getCurrentPosition(
-          (pos) => {
+          pos => {
             coordenadasGPS = `${pos.coords.latitude},${pos.coords.longitude}`;
-            btnGps.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> GPS Capturado con éxito';
-            btnGps.classList.add('success');
+            btn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> GPS Capturado';
+            btn.classList.add('success');
           }, 
-          (err) => { 
-            alert("No pudimos obtener tu ubicación. Por favor revisa si tienes el GPS encendido en tu teléfono o escribe tu dirección manualmente."); 
-            btnGps.innerHTML = '📍 Intentar de nuevo'; 
-          },
-          { enableHighAccuracy: true, timeout: 10000 }
+          err => { showToast("No se pudo obtener el GPS.", true); btn.innerHTML = '📍 Intentar GPS de nuevo'; },
+          { enableHighAccuracy: true }
         );
-      } else {
-        alert("Tu navegador no soporta GPS.");
       }
     }
 
-    // ========== ENVÍO DEL PEDIDO A SUPABASE ==========
     async function enviarPedido() {
-      const nombre = document.getElementById('nombre').value.trim();
-      const telefono = document.getElementById('telefono').value.trim();
-      let direccion = document.getElementById('direccion').value.trim();
+      // Tomamos datos del perfil siempre (asegurando que existan)
+      const n = localStorage.getItem('aguabol_nombre');
+      const t = localStorage.getItem('aguabol_telefono');
+      let d = localStorage.getItem('aguabol_direccion') || '';
+      
+      if(!n || !t) {
+        showToast("Por favor, completa tu Perfil primero", true);
+        switchTab('perfil');
+        return;
+      }
+
       const qMin = parseInt(document.getElementById('qty-min').innerText);
       const qSab = parseInt(document.getElementById('qty-sab').innerText);
 
-      // 1. Validaciones
-      if(!nombre || !telefono) {
-        alert("⚠️ Por favor, ingresa tu nombre y teléfono para poder contactarte.");
-        return;
-      }
-      if(qMin === 0 && qSab === 0) {
-        alert("⚠️ Debes pedir al menos un botellón para realizar el pedido.");
-        return;
-      }
+      if(qMin === 0 && qSab === 0) return showToast("Añade al menos un botellón", true);
 
-      // 2. Estado de carga en el botón
       const btn = document.getElementById('btn-enviar');
       document.getElementById('btn-text').innerText = "Procesando...";
       document.getElementById('btn-spinner').style.display = "block";
       btn.disabled = true;
 
-      // 3. Formatear la dirección si hay GPS
-      if (coordenadasGPS) {
-        direccion = direccion ? `${direccion} | GPS: ${coordenadasGPS}` : `Ubicación enviada por GPS | GPS: ${coordenadasGPS}`;
-      } else if (!direccion) {
-        direccion = "Sin dirección especificada";
-      }
+      // Formatear dirección
+      if (coordenadasGPS) d = d ? `${d} | GPS: ${coordenadasGPS}` : `GPS | GPS: ${coordenadasGPS}`;
+      else if (!d) d = "Sin dirección (Contactar)";
 
       try {
-        // 4. Crear o buscar Cliente (Lógica inteligente con teléfono)
-        // Buscamos si el teléfono ya existe para no duplicar clientes
+        // 1. Manejo inteligente del cliente (Buscar o Crear)
         let clienteId = crypto.randomUUID();
-        const { data: clienteExistente } = await db.from('clientes').select('id').eq('telefono', telefono).maybeSingle();
+        const { data: cliExistente } = await db.from('clientes').select('id').eq('telefono', t).maybeSingle();
         
-        if (clienteExistente) {
-          clienteId = clienteExistente.id;
-          // Actualizamos sus datos (por si se mudó de dirección)
-          await db.from('clientes').update({ nombre: nombre, direccion: direccion }).eq('id', clienteId);
+        if (cliExistente) {
+          clienteId = cliExistente.id;
+          await db.from('clientes').update({ nombre: n, direccion: d }).eq('id', clienteId);
         } else {
-          // Creamos uno nuevo
-          await db.from('clientes').insert({ id: clienteId, nombre: nombre, telefono: telefono, direccion: direccion });
+          await db.from('clientes').insert({ id: clienteId, nombre: n, telefono: t, direccion: d });
         }
 
-        // 5. Crear el pedido
-        const itemsJson = { mineral: qMin, saborizada: qSab };
-        const montoTotal = (qMin * pMin) + (qSab * pSab);
-        const pedidoId = crypto.randomUUID();
+        // 2. Insertar en Pedidos (Esto dispara el Realtime en el Admin)
+        const items = { mineral: qMin, saborizada: qSab };
+        const monto = (qMin * pMin) + (qSab * pSab);
         
-        const { error: errorPedido } = await db.from('pedidos').insert({
-          id: pedidoId,
-          cliente_id: clienteId,
-          items: itemsJson,
-          monto_total: montoTotal,
-          estado: 'pendiente'
+        const { error } = await db.from('pedidos').insert({
+          id: crypto.randomUUID(), cliente_id: clienteId, items: items, monto_total: monto, estado: 'pendiente'
         });
 
-        if (errorPedido) throw errorPedido;
+        if (error) throw error;
 
-        // 6. Guardar en memoria para la próxima vez
-        localStorage.setItem('aguabol_cliente_nombre', nombre);
-        localStorage.setItem('aguabol_cliente_telefono', telefono);
-        localStorage.setItem('aguabol_cliente_dir', document.getElementById('direccion').value);
-
-        // 7. Éxito
-        document.getElementById('toast').style.display = 'flex';
+        showToast("¡Pedido enviado a la central!");
         
-        // Recargar la página después de 3 segundos
+        // Reset interfaz
         setTimeout(() => {
-          window.location.reload();
-        }, 3000);
+          document.getElementById('qty-min').innerText = "1";
+          document.getElementById('qty-sab').innerText = "0";
+          calcularTotal();
+          document.getElementById('btn-text').innerText = "Pedir Ahora";
+          document.getElementById('btn-spinner').style.display = "none";
+          btn.disabled = false;
+        }, 2000);
 
-      } catch (error) {
-        console.error("Error al enviar:", error);
-        alert("❌ Hubo un error de conexión al enviar el pedido. Por favor intenta de nuevo.");
-        document.getElementById('btn-text').innerText = "🚀 Confirmar Pedido";
+      } catch (err) {
+        showToast("Error de conexión. Intenta de nuevo.", true);
+        document.getElementById('btn-text').innerText = "Pedir Ahora";
         document.getElementById('btn-spinner').style.display = "none";
         btn.disabled = false;
       }
     }
 
-    // ========== INICIALIZACIÓN ==========
-    document.addEventListener('DOMContentLoaded', () => {
-      // Cargar precios de la base de datos
-      cargarPrecios();
+    // ========== TARJETA DE LEALTAD (MÁGICA) ==========
+    async function cargarLealtad() {
+      const tel = localStorage.getItem('aguabol_telefono');
+      if(!tel) return dibujarTarjetaLealtad(0);
 
-      // Cargar datos guardados del cliente (si pidió antes)
-      const nomGuardado = localStorage.getItem('aguabol_cliente_nombre');
-      const telGuardado = localStorage.getItem('aguabol_cliente_telefono');
-      const dirGuardada = localStorage.getItem('aguabol_cliente_dir');
+      try {
+        // Buscamos el ID del cliente basado en su teléfono
+        const { data: cli } = await db.from('clientes').select('id').eq('telefono', tel).maybeSingle();
+        if(!cli) return dibujarTarjetaLealtad(0);
 
-      if (nomGuardado) document.getElementById('nombre').value = nomGuardado;
-      if (telGuardado) document.getElementById('telefono').value = telGuardado;
-      if (dirGuardada) document.getElementById('direccion').value = dirGuardada;
-    });
+        // Buscamos todas sus compras históricas "Entregadas" en la tabla ventas
+        const { data: ventasCli } = await db.from('ventas').select('mineral, saborizada').eq('cliente_id', cli.id);
+        
+        let totalC = 0;
+        if(ventasCli) {
+          ventasCli.forEach(v => { totalC += (v.mineral || 0) + (v.saborizada || 0); });
+        }
+        dibujarTarjetaLealtad(totalC);
+
+      } catch (error) {
+        console.log("Error cargando lealtad", error);
+      }
+    }
+
+    function dibujarTarjetaLealtad(totalComprados) {
+      const container = document.getElementById('stamps-container');
+      container.innerHTML = '';
+      
+      const puntosActuales = totalComprados % 10; // Ciclos de 10
+      const faltan = 10 - puntosActuales;
+      
+      document.getElementById('botellones-faltantes').innerText = `Te faltan ${faltan} compras`;
+
+      for (let i = 1; i <= 10; i++) {
+        const esPremio = (i === 10);
+        const estaLleno = (i <= puntosActuales);
+        
+        let clases = 'stamp-spot';
+        if (esPremio) clases += ' free';
+        if (estaLleno) clases += ' filled';
+
+        const svgAgua = `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.5c-3.31 0-6-2.63-6-5.87 0-3.31 3.86-9.17 5.25-11.23.38-.56 1.12-.56 1.5 0 1.39 2.06 5.25 7.92 5.25 11.23 0 3.24-2.69 5.87-6 5.87z"/></svg>`;
+        const svgPremio = `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.4 7.4h7.6l-6.2 4.6 2.4 7.4-6.2-4.6-6.2 4.6 2.4-7.4-6.2-4.6h7.6z"/></svg>`;
+
+        container.innerHTML += `<div class="${clases}">${esPremio ? svgPremio : svgAgua}</div>`;
+      }
+    }
+
+    // Iniciar
+    document.addEventListener('DOMContentLoaded', inicializarApp);
   </script>
 </body>
 </html>
