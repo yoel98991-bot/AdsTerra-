@@ -13,10 +13,8 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
 
   <style>
-    /* ========== iOS SYSTEM VARIABLES ========== */
     :root { 
       --tint: #0ea5e9; 
-      --tint-hover: #0284c7; 
       --bg: #F2F2F7; 
       --card: #FFFFFF; 
       --text-main: #000000; 
@@ -29,14 +27,11 @@
     }
     
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif; -webkit-tap-highlight-color: transparent; -webkit-font-smoothing: antialiased; }
-    
     html, body { width: 100%; height: 100dvh; overflow: hidden; background: var(--bg); color: var(--text-main); overscroll-behavior-y: none; }
     
-    /* ========== ANIMACIONES ========== */
     @keyframes fadeSlideUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-    /* ========== ONBOARDING ========== */
     #auth-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 1000; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 24px; transition: opacity 0.4s ease, transform 0.4s ease; }
     #auth-screen.hidden { opacity: 0; transform: scale(1.02); pointer-events: none; }
     .auth-card { width: 100%; max-width: 360px; text-align: center; }
@@ -48,7 +43,6 @@
     #registro-campos { max-height: 0; opacity: 0; overflow: hidden; transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1); }
     #registro-campos.visible { max-height: 200px; opacity: 1; margin-top: 8px; }
 
-    /* ========== APP PRINCIPAL ========== */
     #main-app { display: none; width: 100%; height: 100%; position: relative; }
     #main-app.visible { display: block; animation: fadeIn 0.4s; }
     
@@ -60,7 +54,6 @@
     .screen { display: none; position: absolute; top: 0; left: 0; right: 0; bottom: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: calc(env(safe-area-inset-top) + 100px) 20px calc(env(safe-area-inset-bottom) + 120px) 20px; }
     .screen.active { display: block; animation: fadeSlideUp 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) forwards; }
 
-    /* ========== LISTAS iOS ========== */
     .ios-list { background: var(--card); border-radius: var(--radius-md); overflow: hidden; margin-bottom: 24px; }
     .list-header { font-size: 13px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; margin: 0 0 8px 12px; letter-spacing: 0.5px; }
     .list-row { display: flex; align-items: center; justify-content: space-between; padding: 16px; position: relative; }
@@ -74,65 +67,38 @@
     .stepper-btn { width: 32px; height: 32px; border: none; background: transparent; font-size: 20px; color: var(--tint); font-weight: 400; cursor: pointer; display: flex; align-items: center; justify-content: center; }
     .stepper-val { font-size: 16px; font-weight: 600; width: 30px; text-align: center; }
 
-    /* ========== RASTREO LIVE ========== */
-    #tracking-card { display: none; background: var(--card); border-radius: var(--radius-lg); overflow: hidden; margin-bottom: 24px; box-shadow: 0 10px 40px -10px rgba(0,0,0,0.1); }
-    #mapa-cliente { width: 100%; height: 320px; background: #E5E5EA; z-index: 1;}
-    .live-status { padding: 16px; background: rgba(255,255,255,0.9); backdrop-filter: blur(10px); position: absolute; top: 16px; left: 16px; right: 16px; border-radius: 100px; z-index: 10; display: flex; align-items: center; gap: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+    /* ========== OVERLAY DE RASTREO (PANTALLA COMPLETA) ========== */
+    #tracking-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 2000; background: var(--bg); display: none; flex-direction: column; }
+    #tracking-overlay.active { display: flex; }
+    #mapa-cliente { flex: 1; width: 100%; z-index: 1; }
+    .leaflet-control-attribution { display: none !important; }
+
+    .tracking-header { position: absolute; top: calc(env(safe-area-inset-top) + 20px); left: 20px; right: 20px; z-index: 1000; display: flex; align-items: center; justify-content: space-between; }
+    .btn-back { width: 44px; height: 44px; border-radius: 22px; background: white; border: none; box-shadow: 0 4px 12px rgba(0,0,0,0.1); display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text-primary); }
+    .live-badge { background: rgba(255,255,255,0.9); backdrop-filter: blur(10px); padding: 10px 18px; border-radius: 100px; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); font-weight: 700; font-size: 14px; }
     .live-dot { width: 10px; height: 10px; background: var(--green); border-radius: 50%; animation: pulseLive 1.5s infinite; }
     @keyframes pulseLive { 0% { box-shadow: 0 0 0 0 rgba(52, 199, 89, 0.6); } 70% { box-shadow: 0 0 0 8px rgba(52, 199, 89, 0); } 100% { box-shadow: 0 0 0 0 rgba(52, 199, 89, 0); } }
 
-    /* ========== TARJETA LEALTAD (ANIMACIÓN EN CASCADA) ========== */
-    .wallet-card { 
-      background: linear-gradient(135deg, #1C1C1E, #3A3A3C); 
-      border-radius: 20px; padding: 24px; color: white; position: relative; overflow: hidden; 
-      box-shadow: 0 15px 30px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.1); margin-top: 10px; 
-    }
-    .wallet-card::before {
-      content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
-      background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.05) 50%, rgba(255,255,255,0) 100%);
-      transform: rotate(30deg); pointer-events: none;
-    }
-    
+    .tracking-panel { position: absolute; bottom: 0; left: 0; right: 0; background: white; z-index: 1000; border-radius: 28px 28px 0 0; padding: 24px 20px calc(env(safe-area-inset-bottom) + 20px); box-shadow: 0 -10px 30px rgba(0,0,0,0.1); transform: translateY(0); transition: transform 0.3s; }
+    .panel-row { display: flex; gap: 12px; margin-bottom: 12px; }
+    .panel-stat { flex: 1; border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px; text-align: center; }
+    .panel-stat-label { font-size: 11px; color: var(--text-muted); font-weight: 700; text-transform: uppercase; }
+    .panel-stat-value { font-size: 18px; font-weight: 800; color: var(--text-primary); margin-top: 4px; }
+
+    /* ========== OTROS ========== */
+    .wallet-card { background: linear-gradient(135deg, #1C1C1E, #3A3A3C); border-radius: 20px; padding: 24px; color: white; position: relative; overflow: hidden; box-shadow: 0 15px 30px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.1); margin-top: 10px; }
+    .wallet-card::before { content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.05) 50%, rgba(255,255,255,0) 100%); transform: rotate(30deg); pointer-events: none; }
     .stamps-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-top: 24px; position: relative; z-index: 2; }
-    
-    .stamp-spot { 
-      aspect-ratio: 1; border-radius: 50%; border: 1.5px solid rgba(255,255,255,0.15); 
-      display: flex; align-items: center; justify-content: center; 
-      background: rgba(0,0,0,0.2);
-    }
-
-    .stamp-spot.filled { 
-      background: rgba(0,0,0,0.2); 
-      border-color: rgba(255,255,255,0.15); 
-      animation: fillStamp 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; 
-    }
-    .stamp-spot.free.filled { 
-      background: rgba(0,0,0,0.2); 
-      border-color: var(--gold); 
-      animation: fillFreeStamp 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; 
-    }
+    .stamp-spot { aspect-ratio: 1; border-radius: 50%; border: 1.5px solid rgba(255,255,255,0.15); display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.2); }
+    .stamp-spot.filled { border-color: var(--tint); animation: fillStamp 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
+    .stamp-spot.free.filled { border-color: var(--gold); animation: fillFreeStamp 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
     .stamp-spot.free { border-color: var(--gold); }
-
-    @keyframes fillStamp {
-      0% { transform: scale(1); background: rgba(0,0,0,0.2); border-color: rgba(255,255,255,0.15); }
-      50% { transform: scale(1.15); background: var(--tint); border-color: var(--tint); box-shadow: 0 0 15px rgba(14, 165, 233, 0.6); }
-      100% { transform: scale(1); background: var(--tint); border-color: var(--tint); }
-    }
-    @keyframes fillFreeStamp {
-      0% { transform: scale(1); background: rgba(0,0,0,0.2); border-color: var(--gold); }
-      50% { transform: scale(1.15); background: var(--gold); border-color: var(--gold); box-shadow: 0 0 15px rgba(255, 149, 0, 0.6); }
-      100% { transform: scale(1); background: var(--gold); border-color: var(--gold); }
-    }
-
+    @keyframes fillStamp { 0% { transform: scale(1); background: rgba(0,0,0,0.2); } 50% { transform: scale(1.15); background: var(--tint); box-shadow: 0 0 15px rgba(14,165,233,0.6); } 100% { transform: scale(1); background: var(--tint); } }
+    @keyframes fillFreeStamp { 0% { transform: scale(1); background: rgba(0,0,0,0.2); } 50% { transform: scale(1.15); background: var(--gold); box-shadow: 0 0 15px rgba(255,149,0,0.6); } 100% { transform: scale(1); background: var(--gold); } }
     .stamp-spot svg { opacity: 0.2; transform: scale(0.8); }
     .stamp-spot.filled svg { animation: popIcon 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
-    
-    @keyframes popIcon {
-      0% { opacity: 0.2; transform: scale(0.5); }
-      100% { opacity: 1; transform: scale(1); }
-    }
+    @keyframes popIcon { 0% { opacity: 0.2; transform: scale(0.5); } 100% { opacity: 1; transform: scale(1); } }
 
-    /* ========== BOTONES Y NAVEGACIÓN ========== */
     .btn-primary { width: 100%; padding: 16px; background: var(--tint); color: white; border: none; border-radius: var(--radius-md); font-size: 17px; font-weight: 600; cursor: pointer; transition: transform 0.1s; }
     .btn-primary:active { transform: scale(0.96); opacity: 0.9; }
     .btn-secondary { background: #E5E5EA; color: var(--tint); margin-top: 10px; }
@@ -169,7 +135,6 @@
   </div>
 
   <div id="main-app">
-    
     <div class="glass-header">
       <div>
         <div class="header-subtitle" id="header-fecha">Hacer Pedido</div>
@@ -179,16 +144,6 @@
     </div>
 
     <div id="screen-pedido" class="screen active">
-      <div id="tracking-card">
-        <div style="position: relative;">
-          <div class="live-status"><div class="live-dot"></div> <span style="font-size: 14px; font-weight: 600;">Repartidor en camino</span></div>
-          <div id="mapa-cliente"></div>
-        </div>
-        <div style="padding: 20px; display: flex; align-items: center; justify-content: space-between;">
-          <div><p style="font-size: 17px; font-weight: 600;">Tu pedido se acerca</p><p style="font-size: 14px; color: var(--text-muted); margin-top: 2px;">Mantente atento para recibirlo.</p></div>
-        </div>
-      </div>
-
       <div id="catalogo-container">
         <div class="list-header">CATÁLOGO DE PRODUCTOS</div>
         <div class="ios-list">
@@ -217,6 +172,31 @@
       </div>
     </div>
 
+    <!-- OVERLAY DE RASTREO A PANTALLA COMPLETA -->
+    <div id="tracking-overlay">
+      <div class="tracking-header">
+        <button class="btn-back" onclick="cerrarTracking()">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
+        <div class="live-badge"><div class="live-dot"></div> Repartidor en vivo</div>
+      </div>
+      <div id="mapa-cliente"></div>
+      <div class="tracking-panel">
+        <div style="font-size: 20px; font-weight: 800; margin-bottom: 16px;" id="tracking-nombre-cliente">Cargando...</div>
+        <div class="panel-row">
+          <div class="panel-stat">
+            <div class="panel-stat-label">Distancia</div>
+            <div class="panel-stat-value" id="tracking-distancia">-- km</div>
+          </div>
+          <div class="panel-stat">
+            <div class="panel-stat-label">Tiempo Est.</div>
+            <div class="panel-stat-value" id="tracking-tiempo">-- min</div>
+          </div>
+        </div>
+        <p style="color: var(--text-muted); font-size: 14px; text-align: center; margin-top: 8px;" id="tracking-direccion">...</p>
+      </div>
+    </div>
+
     <div id="screen-lealtad" class="screen">
       <div class="wallet-card">
         <div style="display: flex; justify-content: space-between; align-items: center; position: relative; z-index: 2;">
@@ -224,7 +204,6 @@
           <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
         </div>
         <div class="stamps-grid" id="stamps-container"></div>
-        
         <div id="status-lealtad" style="margin-top: 24px; text-align: center; font-size: 15px; font-weight: 500; background: rgba(255,255,255,0.1); padding: 12px; border-radius: 12px; position: relative; z-index: 2; transition: all 0.3s ease;">Cargando...</div>
       </div>
       <p style="text-align: center; font-size: 13px; color: var(--text-muted); margin-top: 16px;">Acumula 10 compras y el próximo botellón corre por nuestra cuenta.</p>
@@ -246,46 +225,30 @@
       <div class="tab-item" onclick="switchTab('lealtad', 'Regalo')"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 12v10H4V12"/><path d="M2 7h20v5H2z"/><path d="M12 22V7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg> Club</div>
       <div class="tab-item" onclick="switchTab('perfil', 'Ajustes')"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> Perfil</div>
     </div>
-
   </div>
 
   <script>
     const db = window.supabase.createClient('https://aiipxfssbnpfpefbbnwm.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFpaXB4ZnNzYm5wZnBlZmJibndtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3MDM2MzIsImV4cCI6MjA5NDI3OTYzMn0.CS_e43iE4ClLgqQULrm4mNm3ji71WQZQcdBNfg6lTHg');
     
     let usuarioActual = null, coordsGPS = null, pMin = 8.5, pSab = 10, esRegistro = false;
-    let mapa = null, markRep = null, markCasa = null;
+    let mapa = null, markRep = null, markCasa = null, rutaLayer = null;
+    let pedidoActivo = null;
 
     const dias = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
     document.getElementById('header-fecha').innerText = dias[new Date().getDay()].toUpperCase();
 
-    // ========== REGISTRO DE NOTIFICACIONES PUSH PARA EL CLIENTE ==========
+    // ========== REGISTRO DE NOTIFICACIONES PUSH ==========
     async function registrarPushCliente(clienteId) {
       const Push = Capacitor.Plugins.PushNotifications;
-      if (!Push) {
-        console.warn('Plugin Push no disponible');
-        return;
-      }
+      if (!Push) return;
       let permiso = await Push.checkPermissions();
-      if (permiso.receive !== 'granted') {
-        permiso = await Push.requestPermissions();
-      }
-      if (permiso.receive !== 'granted') {
-        console.warn('Permiso de notificaciones denegado');
-        return;
-      }
+      if (permiso.receive !== 'granted') permiso = await Push.requestPermissions();
+      if (permiso.receive !== 'granted') return;
       await Push.register();
       Push.addListener('registration', async (token) => {
-        console.log('Token FCM del cliente:', token.value);
-        const { error } = await db.from('dispositivos').upsert({
-          user_id: clienteId,
-          fcm_token: token.value,
-          plataforma: 'android',
-          updated_at: new Date().toISOString()
+        await db.from('dispositivos').upsert({
+          user_id: clienteId, fcm_token: token.value, plataforma: 'android', updated_at: new Date().toISOString()
         }, { onConflict: 'user_id' });
-        if (!error) console.log('Token del cliente guardado en Supabase');
-      });
-      Push.addListener('pushNotificationReceived', (notif) => {
-        console.log('Notificación recibida:', notif);
       });
     }
 
@@ -302,7 +265,6 @@
       if (tel.length < 10) return showToast("Número inválido", true);
       const btn = document.getElementById('btn-auth');
       btn.disabled = true; btn.innerText = "Cargando...";
-
       if (!esRegistro) {
         const { data: user } = await db.from('clientes').select('*').eq('telefono', tel).maybeSingle();
         if (user) { usuarioActual = user; guardarLocal(user); iniciarApp(); } 
@@ -342,43 +304,80 @@
       calcularTotal();
     }
 
+    // ========== MAPA Y RASTREO ==========
+    function inicializarMapa() {
+      if (mapa) return;
+      mapa = L.map('mapa-cliente', { zoomControl: true, zoomControl: { position: 'bottomright' } }).setView([10.162, -67.999], 14);
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png').addTo(mapa);
+    }
+
+    async function actualizarRuta(ubicacionChofer) {
+      if (!usuarioActual?.direccion) return;
+      const coordsCliente = usuarioActual.direccion.includes('| GPS:') ? usuarioActual.direccion.split('| GPS:')[1].split(',') : null;
+      if (!coordsCliente) return;
+      const latC = parseFloat(coordsCliente[0]), lngC = parseFloat(coordsCliente[1]);
+      const [latR, lngR] = ubicacionChofer.split(',').map(Number);
+      if (!markCasa) markCasa = L.marker([latC, lngC]).addTo(mapa).bindPopup('Mi ubicación');
+      // Icono personalizado del repartidor (círculo azul con camión)
+      const iconoRepartidor = L.divIcon({
+        html: `<div style="width:44px;height:44px;background:var(--tint);border-radius:22px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(14,165,233,0.5);border:3px solid white;">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><rect x="1" y="3" width="15" height="11"/><polygon points="16 8 20 3 22 3 19 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+        </div>`,
+        className: '',
+        iconSize: [44, 44],
+        iconAnchor: [22, 22]
+      });
+      if (!markRep) markRep = L.marker([latR, lngR], { icon: iconoRepartidor }).addTo(mapa).bindPopup('Repartidor');
+      else markRep.setLatLng([latR, lngR]);
+      mapa.panTo([latR, lngR]);
+      // Calcular ruta OSRM
+      try {
+        const res = await fetch(`https://router.project-osrm.org/route/v1/driving/${lngR},${latR};${lngC},${latC}?geometries=geojson`);
+        const data = await res.json();
+        if (data.routes?.[0]) {
+          if (rutaLayer) mapa.removeLayer(rutaLayer);
+          rutaLayer = L.geoJSON(data.routes[0].geometry, { style: { color: '#0ea5e9', weight: 5, opacity: 0.8 } }).addTo(mapa);
+          document.getElementById('tracking-distancia').innerText = `${(data.routes[0].distance / 1000).toFixed(1)} km`;
+          document.getElementById('tracking-tiempo').innerText = `${Math.round(data.routes[0].duration / 60)} min`;
+        }
+      } catch(e) {}
+    }
+
     async function chequearPedidoActivo() {
       if(!usuarioActual) return;
       const { data: p } = await db.from('pedidos').select('*').eq('cliente_id', usuarioActual.id).in('estado',['pendiente','en_camino']).order('created_at',{ascending:false}).limit(1).maybeSingle();
-      
-      const cat = document.getElementById('catalogo-container'); const trk = document.getElementById('tracking-card'); const chk = document.getElementById('checkout-bar');
-
+      pedidoActivo = p;
+      const overlay = document.getElementById('tracking-overlay');
       if (p && p.estado === 'en_camino') {
-        cat.style.display = 'none'; chk.style.display = 'none'; trk.style.display = 'block';
-        if (!mapa) {
-          mapa = L.map('mapa-cliente', { zoomControl:false, dragging:false }).setView([10.162, -67.999], 14);
-          L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png').addTo(mapa);
-        }
+        overlay.classList.add('active');
+        inicializarMapa();
         setTimeout(() => mapa.invalidateSize(), 300);
-        if (usuarioActual.direccion && usuarioActual.direccion.includes('| GPS:')) {
-          const c = usuarioActual.direccion.split('| GPS:')[1].split(',');
-          if(!markCasa) markCasa = L.marker([c[0],c[1]]).addTo(mapa);
-        }
+        document.getElementById('tracking-nombre-cliente').innerText = 'Tu pedido está en camino';
+        document.getElementById('tracking-direccion').innerText = usuarioActual.direccion?.split('|')[0] || '';
         if (p.ubicacion_chofer) {
-          const c = p.ubicacion_chofer.split(',');
-          if(!markRep) markRep = L.marker([c[0],c[1]], {icon: L.divIcon({html:'<div style="font-size:24px;filter:drop-shadow(0 4px 6px rgba(0,0,0,0.2));">🚚</div>', className:'', iconSize:[30,30]})}).addTo(mapa);
-          else markRep.setLatLng([c[0],c[1]]);
-          mapa.panTo([c[0],c[1]]);
+          actualizarRuta(p.ubicacion_chofer);
         }
       } else {
-        cat.style.display = 'block'; chk.style.display = 'flex'; trk.style.display = 'none';
+        overlay.classList.remove('active');
+        if (rutaLayer) { mapa?.removeLayer(rutaLayer); rutaLayer = null; }
       }
+      // Mostrar/ocultar catálogo
+      const cat = document.getElementById('catalogo-container');
+      const chk = document.getElementById('checkout-bar');
+      cat.style.display = (p && p.estado === 'en_camino') ? 'none' : 'block';
+      chk.style.display = (p && p.estado === 'en_camino') ? 'none' : 'flex';
     }
 
+    function cerrarTracking() {
+      document.getElementById('tracking-overlay').classList.remove('active');
+    }
+
+    // ========== CATÁLOGO Y PEDIDO ==========
     function switchTab(id, titulo) {
       document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
       document.getElementById('screen-' + id).classList.add('active');
       document.getElementById('header-titulo').innerText = titulo;
       document.querySelectorAll('.tab-item').forEach((t, i) => t.classList.toggle('active', (id==='pedido'&&i===0)||(id==='lealtad'&&i===1)||(id==='perfil'&&i===2)));
-      
-      const chk = document.getElementById('checkout-bar');
-      chk.style.display = (id === 'pedido' && document.getElementById('tracking-card').style.display !== 'block') ? 'flex' : 'none';
-
       if(id === 'lealtad') cargarLealtad();
     }
 
@@ -407,10 +406,8 @@
       const m = parseInt(document.getElementById('qty-min').innerText);
       const s = parseInt(document.getElementById('qty-sab').innerText);
       if (m+s === 0) return showToast("Añade productos al catálogo", true);
-      
       let dir = usuarioActual.direccion;
       if (coordsGPS) dir = (dir ? dir.split('|')[0] : "Mi Ubicación") + ` | GPS: ${coordsGPS}`;
-      
       const { error } = await db.from('pedidos').insert({ id: crypto.randomUUID(), cliente_id: usuarioActual.id, items: { mineral: m, saborizada: s }, monto_total: (m*pMin + s*pSab), estado: 'pendiente' });
       if (!error) { showToast("¡Pedido confirmado!"); document.getElementById('qty-min').innerText="1"; document.getElementById('qty-sab').innerText="0"; calcularTotal(); chequearPedidoActivo(); }
     }
@@ -418,43 +415,16 @@
     async function cargarLealtad() {
       const { data: v } = await db.from('ventas').select('mineral, saborizada').eq('cliente_id', usuarioActual.id);
       let tot = 0; v?.forEach(x => tot += (x.mineral+x.saborizada));
-      
-      let pts = tot % 10;
-      if (pts === 0 && tot > 0) {
-        pts = 10; 
-      }
-      
+      let pts = tot % 10; if (pts === 0 && tot > 0) pts = 10;
       const faltan = 10 - pts;
       const lblStatus = document.getElementById('status-lealtad');
-      
-      if (faltan === 0) {
-        lblStatus.innerHTML = "¡Felicidades! Tienes un botellón GRATIS 🎉";
-        lblStatus.style.background = "rgba(255, 149, 0, 0.2)";
-        lblStatus.style.color = "var(--gold)";
-      } else {
-        lblStatus.innerHTML = `Te faltan ${faltan} sellos para tu regalo`;
-        lblStatus.style.background = "rgba(255,255,255,0.1)";
-        lblStatus.style.color = "white";
-      }
-      
-      const cont = document.getElementById('stamps-container'); 
-      cont.innerHTML = '';
-      
+      if (faltan === 0) { lblStatus.innerHTML = "¡Felicidades! Tienes un botellón GRATIS 🎉"; lblStatus.style.background = "rgba(255, 149, 0, 0.2)"; lblStatus.style.color = "var(--gold)"; }
+      else { lblStatus.innerHTML = `Te faltan ${faltan} sellos para tu regalo`; lblStatus.style.background = "rgba(255,255,255,0.1)"; lblStatus.style.color = "white"; }
+      const cont = document.getElementById('stamps-container'); cont.innerHTML = '';
       for (let i = 1; i <= 10; i++) {
-        const isFilled = i <= pts;
-        const isFree = i === 10;
-        const delay = isFilled ? (i * 0.12) : 0; 
-        
-        let clases = 'stamp-spot';
-        if (isFree) clases += ' free';
-        if (isFilled) clases += ' filled';
-
-        cont.innerHTML += `
-          <div class="${clases}" style="animation-delay: ${delay}s">
-            <svg viewBox="0 0 24 24" width="22" height="22" fill="white" style="animation-delay: ${delay}s">
-              <path d="M12 21.5c-3.3 0-6-2.6-6-5.8 0-3.3 3.8-9.1 5.2-11.2.3-.5 1.1-.5 1.5 0 1.4 2 5.3 7.9 5.3 11.2 0 3.2-2.7 5.8-6 5.8z"/>
-            </svg>
-          </div>`;
+        const isFilled = i <= pts, isFree = i === 10, delay = isFilled ? (i * 0.12) : 0;
+        let clases = 'stamp-spot' + (isFree ? ' free' : '') + (isFilled ? ' filled' : '');
+        cont.innerHTML += `<div class="${clases}" style="animation-delay: ${delay}s"><svg viewBox="0 0 24 24" width="22" height="22" fill="white"><path d="M12 21.5c-3.3 0-6-2.6-6-5.8 0-3.3 3.8-9.1 5.2-11.2.3-.5 1.1-.5 1.5 0 1.4 2 5.3 7.9 5.3 11.2 0 3.2-2.7 5.8-6 5.8z"/></svg></div>`;
       }
     }
 
