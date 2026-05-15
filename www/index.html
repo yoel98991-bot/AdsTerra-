@@ -388,49 +388,38 @@
        </div>
     </div>
   </div>
-<div id="screen-perfil" class="screen">
-  <div class="nav-bar"><span class="nav-title">Mi Negocio</span></div>
-  
-  <div class="card profile-header">
-    <div class="avatar-wrapper">
-      <input type="file" id="upload-avatar" accept="image/*" style="display: none;" onchange="subirLogoPerfil(event)">
-      <img id="profile-img" class="avatar-img" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2394a3b8'><path d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/></svg>">
-      <div class="avatar-edit-btn" onclick="document.getElementById('upload-avatar').click()">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+
+  <div id="screen-perfil" class="screen">
+    <div class="nav-bar"><span class="nav-title">Mi Negocio</span></div>
+    
+    <div class="card profile-header">
+      <div class="avatar-wrapper">
+        <input type="file" id="upload-avatar" accept="image/*" style="display: none;" onchange="subirLogoPerfil(event)">
+        <img id="profile-img" class="avatar-img" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2394a3b8'><path d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/></svg>">
+        <div class="avatar-edit-btn" onclick="document.getElementById('upload-avatar').click()">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+        </div>
+      </div>
+      <div class="profile-name">AguaBol Admin</div>
+      <div class="profile-role">Propietario</div>
+      <span class="badge" style="background: #dcfce7; color: #16a34a; padding: 6px 12px; font-size: 12px;">Licencia Activa PRO</span>
+    </div>
+
+    <div class="section-title">Administración</div>
+    <div class="card settings-list">
+      <div class="setting-row" onclick="abrirModalPrecios()">
+        <div class="setting-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
+        <div class="setting-text">Gestión de Precios y Costos</div>
+        <div class="setting-arrow"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg></div>
+      </div>
+      <div class="setting-row" onclick="copiarDirectLink()">
+        <div class="setting-icon" style="background: #e0f2fe; color: #0284c7;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+        </div>
+        <div class="setting-text">DirectLink (Portal Cliente)</div>
+        <div class="setting-arrow"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg></div>
       </div>
     </div>
-    <div class="profile-name">AguaBol Admin</div>
-    <div class="profile-role">Propietario</div>
-    <span class="badge" style="background: #dcfce7; color: #16a34a; padding: 6px 12px; font-size: 12px;">Licencia Activa PRO</span>
-  </div>
-
-  <div class="section-title">Administración</div>
-  <div class="card settings-list">
-    <div class="setting-row" onclick="abrirModalPrecios()">
-      <div class="setting-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
-      <div class="setting-text">Gestión de Precios y Costos</div>
-      <div class="setting-arrow"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg></div>
-    </div>
-    <div class="setting-row" onclick="copiarDirectLink()">
-      <div class="setting-icon" style="background: #e0f2fe; color: #0284c7;">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
-      </div>
-      <div class="setting-text">DirectLink (Portal Cliente)</div>
-      <div class="setting-arrow"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg></div>
-    </div>
-  </div>
-
-  <div class="section-title">Sistema</div>
-  <div class="card settings-list">
-    <div class="setting-row" onclick="cargarDatosCompletos()">
-      <div class="setting-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21.5 12H16c-.7 2-2 3-4 3s-3.3-1-4-3H2.5"/><path d="M5.5 5.1L2 12v6c0 1.1.9 2 2 2h16a2 2 0 0 0 2-2v-6l-3.5-6.9A2 2 0 0 0 16.7 4H7.3a2 2 0 0 0-1.8 1.1z"/></svg></div>
-      <div class="setting-text">Forzar Sincronización</div>
-      <div class="setting-arrow"><span style="font-size: 12px; color: var(--text-secondary); margin-right: 8px;">Online</span></div>
-    </div>
-  </div>
-</div>
- 
-  
 
     <div class="section-title">Sistema</div>
     <div class="card settings-list">
@@ -509,7 +498,7 @@
     </div>
   </div>
 
-<div id="pantallaRutaOverlay">
+  <div id="pantallaRutaOverlay">
     <button onclick="cerrarRuta()" style="position: absolute; top: calc(env(safe-area-inset-top) + 20px); left: 20px; z-index: 99999; width: 44px; height: 44px; border-radius: 22px; background: white; border: none; box-shadow: 0 4px 12px rgba(0,0,0,0.15); display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text-primary);">
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="15 18 9 12 15 6"/></svg>
     </button>
@@ -581,14 +570,15 @@
       <span>Ajustes</span>
     </div>
   </div>
-    <script src="https://cdn.jsdelivr.net/npm/@capacitor/geolocation@6/dist/capacitor-geolocation.js"></script>
+
+  <script src="https://cdn.jsdelivr.net/npm/@capacitor/geolocation@6/dist/capacitor-geolocation.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@capacitor/local-notifications@6/dist/capacitor-local-notifications.js"></script>
-        <script>
+  
+  <script>
     // ========== 1. CONFIGURACIÓN DE SUPABASE ==========
     const SUPABASE_URL = 'https://aiipxfssbnpfpefbbnwm.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFpaXB4ZnNzYm5wZnBlZmJibndtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3MDM2MzIsImV4cCI6MjA5NDI3OTYzMn0.CS_e43iE4ClLgqQULrm4mNm3ji71WQZQcdBNfg6lTHg';
     const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-              // Variable para notificaciones locales (plugin ya cargado)
     const LocalNotifications = Capacitor.Plugins.LocalNotifications;
 
     // ========== 2. VARIABLES DE ESTADO ==========
@@ -606,7 +596,7 @@
     
     let editingClientId = null;
     let pedidoSeleccionadoId = null; 
-    let watchGpsId = null; // Para controlar el rastreo en vivo
+    let watchGpsId = null;
 
     let mapaRepartidor = null;
     let capaRuta = null;
@@ -618,31 +608,23 @@
       const container = document.getElementById('toast-container');
       const toast = document.createElement('div');
       toast.className = `toast ${type}`;
-      
       let iconSvg = '';
       if(type === 'success') iconSvg = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>`;
       else if (type === 'error') iconSvg = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>`;
       else iconSvg = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>`;
-      
       toast.innerHTML = `${iconSvg} <span>${escapeHtml(message)}</span>`;
       container.appendChild(toast);
       setTimeout(() => { toast.remove(); }, 3400);
     }
 
-    function escapeHtml(text) { 
-      return String(text).replace(/[&<>"]/g, m => ({'&':'&','<':'<','>':'>','"':'"'}[m])); 
-    }
-
-    function formatearBs(monto) { 
-      return 'Bs ' + monto.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ','); 
-    }
+    function escapeHtml(text) { return String(text).replace(/[&<>"]/g, m => ({'&':'&','<':'<','>':'>','"':'"'}[m])); }
+    function formatearBs(monto) { return 'Bs ' + monto.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
 
     function animarNumero(id, endValue, duration) {
       const obj = document.getElementById(id);
       const isNegative = endValue < 0;
       const absEnd = Math.abs(endValue);
       let startTimestamp = null;
-      
       const step = (timestamp) => {
         if (!startTimestamp) startTimestamp = timestamp;
         const progress = Math.min((timestamp - startTimestamp) / duration, 1);
@@ -650,7 +632,6 @@
         const currentVal = easeOut * absEnd;
         const displayVal = isNegative ? -currentVal : currentVal;
         obj.textContent = formatearBs(displayVal);
-        
         if (progress < 1) window.requestAnimationFrame(step);
         else obj.textContent = formatearBs(endValue);
       };
@@ -662,7 +643,6 @@
       document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
       document.getElementById('screen-' + screenId).classList.add('active');
       document.querySelectorAll('.tab-item').forEach(t => t.classList.toggle('active', t.dataset.screen === screenId));
-
       const fabBtn = document.getElementById('fab-clientes');
       if(screenId === 'operaciones' && document.getElementById('btn-seg-directorio').classList.contains('active')) {
         fabBtn.classList.add('active-fab');
@@ -670,7 +650,6 @@
       } else {
         fabBtn.classList.remove('active-fab');
       }
-
       if(screenId === 'inicio') cargarMovimiento();
       if(screenId === 'inventario') actualizarStockUI();
     }
@@ -678,10 +657,8 @@
     function switchSubTab(sub) {
       document.getElementById('btn-seg-pedidos').classList.toggle('active', sub === 'pedidos');
       document.getElementById('btn-seg-directorio').classList.toggle('active', sub === 'directorio');
-      
       document.getElementById('sub-pedidos').style.display = sub === 'pedidos' ? 'block' : 'none';
       document.getElementById('sub-directorio').style.display = sub === 'directorio' ? 'block' : 'none';
-      
       const fabBtn = document.getElementById('fab-clientes');
       if (sub === 'directorio') {
           fabBtn.classList.add('active-fab');
@@ -698,18 +675,13 @@
       overlay.addEventListener('click', function(e) { if (e.target === this) closeModal(this.id); });
     });
 
-    // ========== 5. SINCRONIZACIÓN DE DATOS (SUPABASE) ==========
+    // ========== 5. SINCRONIZACIÓN DE DATOS ==========
     async function cargarDatosCompletos() {
       showToast('Sincronizando datos...', 'info');
       try {
         const [
-          { data: confData },
-          { data: stockData },
-          { data: clientsData },
-          { data: gastosData },
-          { data: ventasData },
-          { data: pedidosData },
-          { data: choferesData }
+          { data: confData }, { data: stockData }, { data: clientsData }, { data: gastosData },
+          { data: ventasData }, { data: pedidosData }, { data: choferesData }
         ] = await Promise.all([
           db.from('configuracion').select('*').eq('id', 1).single(),
           db.from('stock').select('*').eq('id', 1).single(),
@@ -719,12 +691,9 @@
           db.from('pedidos').select('*, clientes(*)').in('estado', ['pendiente', 'en_camino']).order('created_at', { ascending: false }),
           db.from('choferes').select('*').eq('activo', true) 
         ]);
-
         if (confData) {
-          precioMineral = parseFloat(confData.precio_mineral);
-          precioSaborizada = parseFloat(confData.precio_saborizada);
-          costoProdMineral = parseFloat(confData.costo_mineral);
-          costoProdSaborizada = parseFloat(confData.costo_saborizada);
+          precioMineral = parseFloat(confData.precio_mineral); precioSaborizada = parseFloat(confData.precio_saborizada);
+          costoProdMineral = parseFloat(confData.costo_mineral); costoProdSaborizada = parseFloat(confData.costo_saborizada);
         }
         if (stockData) stock = { mineral: stockData.mineral, saborizada: stockData.saborizada, envasesVacios: stockData.envases_vacios };
         if (clientsData) clients = clientsData.map(c => ({ id: c.id, name: c.nombre, phone: c.telefono, address: c.direccion, frequency: c.frecuencia_dias ? c.frecuencia_dias.toString() : '' }));
@@ -732,20 +701,14 @@
         if (ventasData) ventas = ventasData.map(v => ({ id: v.id, fecha: v.fecha, clienteId: v.cliente_id, mineral: v.mineral, saborizada: v.saborizada, envasesDevueltos: v.envases_devueltos, total: parseFloat(v.total) }));
         if (pedidosData) pedidosActivos = pedidosData;
         if (choferesData) choferes = choferesData;
-
-        cargarMovimiento();
-        actualizarStockUI();
-        llenarSelectClientes();
-        renderClientList();
-        renderPedidos();
-        
+        cargarMovimiento(); actualizarStockUI(); llenarSelectClientes(); renderClientList(); renderPedidos();
       } catch (err) {
         console.error("Error al sincronizar:", err);
         showToast('Error al sincronizar', 'error');
       }
     }
 
-    // ========== 6. OPERACIONES: PEDIDOS EN VIVO (LOGÍSTICA) ==========
+    // ========== 6. OPERACIONES: PEDIDOS EN VIVO ==========
     function calcularLealtadCliente(clienteId) {
       const compras = ventas.filter(v => v.clienteId === clienteId);
       let total = 0; compras.forEach(c => { total += (c.mineral || 0) + (c.saborizada || 0); });
@@ -756,56 +719,37 @@
       const container = document.getElementById('lista-pedidos-container');
       const vacia = document.getElementById('lista-pedidos-vacia');
       const badge = document.getElementById('badge-pedidos');
-      
       container.innerHTML = '';
-      
       const pendientes = pedidosActivos.filter(p => p.estado === 'pendiente');
-      if (pendientes.length > 0) {
-        badge.style.display = 'inline-block';
-        badge.innerText = pendientes.length;
-      } else {
-        badge.style.display = 'none';
-      }
-
-      if (pedidosActivos.length === 0) { 
-          vacia.style.display = 'block'; 
-          return; 
-      }
+      if (pendientes.length > 0) { badge.style.display = 'inline-block'; badge.innerText = pendientes.length; }
+      else { badge.style.display = 'none'; }
+      if (pedidosActivos.length === 0) { vacia.style.display = 'block'; return; }
       vacia.style.display = 'none';
-
       pedidosActivos.forEach(p => {
         const cli = p.clientes || { nombre: 'Desconocido', direccion: 'Sin dirección' };
         const items = p.items;
         const hora = new Date(p.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-        
         let dirLimpia = cli.direccion || 'Sin dirección';
         let lat = null, lng = null;
         if(dirLimpia.includes('| GPS:')) { 
-            const pts = dirLimpia.split('| GPS:'); 
-            dirLimpia = pts[0].trim(); 
-            const crd = pts[1].split(','); 
+            const pts = dirLimpia.split('| GPS:'); dirLimpia = pts[0].trim(); const crd = pts[1].split(','); 
             lat = parseFloat(crd[0]); lng = parseFloat(crd[1]); 
         }
-
         let detalle = '';
         if(items.mineral > 0) detalle += `<span style="color:var(--tint);">${items.mineral} Mineral</span>`;
         if(items.saborizada > 0) detalle += `<span style="color:#b45309;">${items.saborizada} Saborizada</span>`;
-
         let botones = '';
         if(p.estado === 'pendiente') {
           botones = `
             <button class="btn-action btn-aceptar" onclick="abrirControlRuta('${p.id}', ${lat}, ${lng}, '${escapeHtml(cli.nombre)}', '${escapeHtml(dirLimpia)}')">📍 Iniciar (Yo)</button>
-            <button class="btn-action" style="background:#f1f5f9; color:var(--text-primary);" onclick="abrirModalChoferes('${p.id}')">👨‍✈️ Asignar Chofer</button>
-          `;
+            <button class="btn-action" style="background:#f1f5f9; color:var(--text-primary);" onclick="abrirModalChoferes('${p.id}')">👨‍✈️ Asignar Chofer</button>`;
         } else if (p.estado === 'en_camino') {
           const chofer = choferes.find(c => c.id === p.chofer_id);
           const txtChofer = chofer ? `Reparte: ${chofer.nombre}` : 'Reparto Propio';
           botones = `
             <div style="width:100%; text-align:center; font-size:13px; font-weight:700; color:var(--tint); margin-bottom:8px;">${txtChofer}</div>
-            <button class="btn-action btn-aceptar" style="background:var(--green); width:100%;" onclick="abrirControlRuta('${p.id}', ${lat}, ${lng}, '${escapeHtml(cli.nombre)}', '${escapeHtml(dirLimpia)}')">🎯 Controlar Entrega</button>
-          `;
+            <button class="btn-action btn-aceptar" style="background:var(--green); width:100%;" onclick="abrirControlRuta('${p.id}', ${lat}, ${lng}, '${escapeHtml(cli.nombre)}', '${escapeHtml(dirLimpia)}')">🎯 Controlar Entrega</button>`;
         }
-
         container.innerHTML += `
           <div class="pedido-card ${p.estado}">
             <div class="pedido-header">
@@ -818,17 +762,14 @@
             <div class="pedido-items">${detalle}</div>
             <div style="font-weight:800; text-align:right; margin-bottom:12px;">Total: Bs ${p.monto_total}</div>
             <div class="pedido-acciones">${botones}</div>
-          </div>
-        `;
+          </div>`;
       });
     }
 
-    // --- LÓGICA DE ASIGNACIÓN (NUEVA) ---
     function abrirModalChoferes(pedidoId) {
       pedidoSeleccionadoId = pedidoId;
       const container = document.getElementById('lista-choferes-container');
       container.innerHTML = '';
-      
       choferes.forEach(c => {
         container.innerHTML += `
           <div class="chofer-item" onclick="asignarChofer('${c.id}', '${escapeHtml(c.nombre)}', '${c.telefono}')">
@@ -842,44 +783,29 @@
     async function asignarChofer(choferId, choferNombre, choferTel) {
       closeModal('modalChoferesOverlay');
       const pedido = pedidosActivos.find(p => p.id === pedidoSeleccionadoId);
-      
       await db.from('pedidos').update({ estado: 'en_camino', chofer_id: choferId }).eq('id', pedidoSeleccionadoId);
       pedido.estado = 'en_camino'; pedido.chofer_id = choferId;
       renderPedidos();
-
-      // Generar el Magic Link apuntando a tu servidor público en Netlify
       const urlBase = "https://celadon-moonbeam-5c1af4.netlify.app";
       const linkMagico = `${urlBase}/chofer.html?id=${pedidoSeleccionadoId}`;
-
       const textoWa = `🚚 *Nuevo Pedido: ${pedido.clientes.nombre}*\nDetalle: ${pedido.items.mineral || 0} Min / ${pedido.items.saborizada || 0} Sab\nCobrar: Bs ${pedido.monto_total}\n\n👉 *ABRE ESTE ENLACE PARA ENTREGAR:*\n${linkMagico}`;
-      
       const linkWa = `https://wa.me/${choferTel.replace(/\D/g,'')}?text=${encodeURIComponent(textoWa)}`;
       window.open(linkWa, '_blank'); 
       showToast('Chofer asignado. Enlace enviado por WhatsApp.');
     }
 
-
-
-    // --- ACCIONES DE ENTREGA ---
     async function completarPedido(id) {
       const pedido = pedidosActivos.find(p => p.id === id);
-      
       await db.from('pedidos').update({ estado: 'entregado' }).eq('id', id);
       cerrarRuta();
-      
       if(pedido) {
-          const idVenta = crypto.randomUUID();
-          const fechaHoy = new Date().toISOString().split('T')[0];
-          const m = pedido.items.mineral || 0;
-          const s = pedido.items.saborizada || 0;
-          
+          const idVenta = crypto.randomUUID(); const fechaHoy = new Date().toISOString().split('T')[0];
+          const m = pedido.items.mineral || 0; const s = pedido.items.saborizada || 0;
           ventas.push({ id: idVenta, fecha: fechaHoy, clienteId: pedido.cliente_id, mineral: m, saborizada: s, envasesDevueltos: 0, total: pedido.monto_total });
           stock.mineral -= m; stock.saborizada -= s;
-          
           await db.from('stock').upsert({ id: 1, mineral: stock.mineral, saborizada: stock.saborizada, envases_vacios: stock.envasesVacios });
           await db.from('ventas').insert({ id: idVenta, fecha: fechaHoy, cliente_id: pedido.cliente_id, mineral: m, saborizada: s, envases_devueltos: 0, total: pedido.monto_total });
       }
-
       pedidosActivos = pedidosActivos.filter(p => p.id !== id);
       renderPedidos(); cargarMovimiento(); actualizarStockUI();
       showToast('Pedido Entregado con Éxito');
@@ -899,11 +825,9 @@
       const clientSales = ventas.filter(v => v.clienteId === clienteId).sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
       let totMin = 0, totSab = 0, totDev = 0;
       clientSales.forEach(v => { totMin += v.mineral; totSab += v.saborizada; totDev += (v.envasesDevueltos || 0); });
-      
       const deudaEnvases = (totMin + totSab) - totDev;
       const client = clients.find(c => c.id === clienteId);
       let pedidoPendiente = false;
-      
       if (clientSales.length > 0) {
         const diasDesdeUltima = Math.floor((new Date() - new Date(clientSales[0].fecha)) / (1000 * 60 * 60 * 24));
         if (client && client.frequency && !isNaN(parseInt(client.frequency))) {
@@ -924,48 +848,37 @@
       const search = document.getElementById('searchInput').value.toLowerCase().trim();
       const filtered = clients.filter(c => c.name.toLowerCase().includes(search) || (c.phone && c.phone.includes(search)));
       const container = document.getElementById('clientListContainer');
-      
       if (filtered.length === 0) {
         container.innerHTML = `<div style="padding:40px 20px; text-align:center; color:var(--text-secondary);">No se encontraron clientes.</div>`;
         return;
       }
-      
       let html = '';
       filtered.forEach(client => {
         const stats = getClientStats(client.id);
         const inicial = client.name.charAt(0).toUpperCase();
-        
         let direccionVisual = client.address || 'Sin dirección';
         let destLat = null, destLng = null;
-
         if (client.address) {
            if (client.address.includes('| GPS:')) {
-               const partes = client.address.split('| GPS:');
-               direccionVisual = partes[0].trim();
-               const coords = partes[1].trim().split(',');
-               if(coords.length === 2) { destLat = parseFloat(coords[0]); destLng = parseFloat(coords[1]); }
+               const partes = client.address.split('| GPS:'); direccionVisual = partes[0].trim();
+               const coords = partes[1].trim().split(','); if(coords.length === 2) { destLat = parseFloat(coords[0]); destLng = parseFloat(coords[1]); }
            } 
         }
-
         let btnMapaHtml = '';
         if (client.address) {
           if (destLat !== null && destLng !== null) {
             btnMapaHtml = `
               <div class="action-btn map" onclick="event.stopPropagation(); abrirControlRuta(null, ${destLat}, ${destLng}, '${escapeHtml(client.name)}', '${escapeHtml(direccionVisual)}')">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
-              </div>`;
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg></div>`;
           } else {
             const wazeBusqueda = `https://waze.com/ul?q=${encodeURIComponent(direccionVisual)}`;
             btnMapaHtml = `
               <div class="action-btn map" onclick="event.stopPropagation(); window.open('${wazeBusqueda}', '_blank')">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-              </div>`;
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div>`;
           }
         }
-
         const urlWa = `https://wa.me/${client.phone.replace(/[^0-9]/g, '')}?text=Hola%20${encodeURIComponent(client.name)},%20te%20escribimos%20de%20AguaBol.`;
         let badgeDeuda = stats.deudaEnvases > 0 ? `<span class="badge ${stats.deudaEnvases > 3 ? 'alert' : ''}">Debe ${stats.deudaEnvases}</span>` : '';
-
         html += `
           <div class="client-row" onclick="openEditModal('${client.id}')">
             <div class="client-header">
@@ -983,9 +896,7 @@
               </div>
             </div>
             <div class="client-actions-bar">
-               <div class="truncate" style="font-size:13px; color:var(--text-secondary); max-width:60%;">
-                 ${escapeHtml(direccionVisual)}
-               </div>
+               <div class="truncate" style="font-size:13px; color:var(--text-secondary); max-width:60%;">${escapeHtml(direccionVisual)}</div>
                <div class="action-icons">
                  ${btnMapaHtml}
                  <div class="action-btn whatsapp" onclick="event.stopPropagation(); window.open('${urlWa}', '_blank')" title="Contactar">
@@ -998,51 +909,38 @@
       container.innerHTML = html;
     }
 
-    // ========== 8. MÓDULO REPARTO (MAPA LEAFLET) ==========
+    // ========== 8. MÓDULO REPARTO (MAPA) ==========
     function abrirControlRuta(pedidoId, destLat, destLng, nombreCliente, direccionCliente) {
       const modal = document.getElementById('pantallaRutaOverlay');
       modal.style.display = 'flex'; setTimeout(() => modal.classList.add('active'), 10);
-      
       document.getElementById('ruta-cliente-nombre').textContent = nombreCliente;
       document.getElementById('ruta-cliente-dir').textContent = direccionCliente;
       document.getElementById('ruta-distancia').innerHTML = '<span class="spin">⏳</span>';
       document.getElementById('ruta-tiempo').innerHTML = '--';
-
       const btnViaje = document.getElementById('btn-iniciar-viaje');
-
       if(pedidoId) {
         const pedido = pedidosActivos.find(p => p.id === pedidoId);
-        
-        // Asignación de lealtad y chofer
         const puntos = calcularLealtadCliente(pedido.cliente_id);
         document.getElementById('ruta-lealtad-texto').textContent = `${puntos}/10 Compras`;
         const chofer = choferes.find(c => c.id === pedido.chofer_id);
         document.getElementById('ruta-chofer-asignado').textContent = chofer ? `Repartidor: ${chofer.nombre}` : 'Reparto Propio (Administrador)';
-        
-        // Acciones exclusivas del pedido
         document.getElementById('btn-cancelar-ruta').style.display = 'block';
         document.getElementById('btn-completar-ruta').style.display = 'block';
-        btnViaje.style.display = 'flex'; // Mostramos el botón de viaje
-        
+        btnViaje.style.display = 'flex';
         document.getElementById('btn-cancelar-ruta').onclick = () => cancelarPedido(pedidoId);
         document.getElementById('btn-completar-ruta').onclick = () => completarPedido(pedidoId);
-
-        // Si está pendiente y lo abriste tú, asume auto-reparto.
         if(pedido.estado === 'pendiente') {
           db.from('pedidos').update({ estado: 'en_camino', chofer_id: null }).eq('id', pedidoId).then(()=>{
              pedido.estado = 'en_camino'; renderPedidos();
           });
         }
       } else {
-        // Modo solo GPS (desde el directorio CRM, no hay pedido activo)
         document.getElementById('ruta-chofer-asignado').textContent = 'Visualización GPS Libre';
         document.getElementById('ruta-lealtad-texto').textContent = '-';
         document.getElementById('btn-cancelar-ruta').style.display = 'none';
         document.getElementById('btn-completar-ruta').style.display = 'none';
-        btnViaje.style.display = 'none'; // Ocultamos el botón si no hay pedido
+        btnViaje.style.display = 'none';
       }
-
-      // ---- PEGAR ESTO DENTRO DE abrirControlRuta ----
       let tlf = '';
       if (pedidoId) {
          const pedido = pedidosActivos.find(p => p.id === pedidoId);
@@ -1051,7 +949,6 @@
          const c = clients.find(c => c.name === nombreCliente);
          if (c) tlf = c.phone;
       }
-      
       const btnWa = document.getElementById('btn-contacto-ruta');
       if (tlf) {
          btnWa.style.display = 'flex';
@@ -1059,84 +956,49 @@
       } else {
          btnWa.style.display = 'none';
       }
-      // --------------------------------------------------
-
-      // --- INICIALIZAR EL MAPA VISUAL ---
       if (!mapaRepartidor) {
           mapaRepartidor = L.map('mapa-repartidor', { zoomControl: false }).setView([10.1620, -67.9996], 13);
           L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png').addTo(mapaRepartidor);
       }
-
-      // Dibujar la ubicación estática inicial rápido
       setTimeout(() => {
           mapaRepartidor.invalidateSize();
           if (navigator.geolocation && destLat) {
               navigator.geolocation.getCurrentPosition(async (pos) => {
                   const [oLat, oLng] = [pos.coords.latitude, pos.coords.longitude];
-
                   if(marcadorA) mapaRepartidor.removeLayer(marcadorA);
                   if(marcadorB) mapaRepartidor.removeLayer(marcadorB);
                   if(capaRuta) mapaRepartidor.removeLayer(capaRuta);
-
                   marcadorA = L.marker([oLat, oLng]).addTo(mapaRepartidor);
                   marcadorB = L.marker([destLat, destLng]).addTo(mapaRepartidor);
                   mapaRepartidor.fitBounds(L.latLngBounds([oLat, oLng], [destLat, destLng]), {padding: [50,50]});
-
                   try {
                       const res = await fetch(`https://router.project-osrm.org/route/v1/driving/${oLng},${oLat};${destLng},${destLat}?geometries=geojson`);
                       const data = await res.json();
-
                       if(data.routes && data.routes[0]) {
                           capaRuta = L.geoJSON(data.routes[0].geometry, { style: { color: '#0ea5e9', weight: 6, opacity: 0.8 } }).addTo(mapaRepartidor);
                           document.getElementById('ruta-distancia').textContent = `${(data.routes[0].distance / 1000).toFixed(1)} km`;
                           document.getElementById('ruta-tiempo').textContent = `${Math.round(data.routes[0].duration / 60)} min`;
-                      } else {
-                          document.getElementById('ruta-distancia').textContent = 'Error';
-                      }
+                      } else { document.getElementById('ruta-distancia').textContent = 'Error'; }
                   } catch(e) { document.getElementById('ruta-distancia').textContent = 'Error'; }
               }, (err) => {
-                  showToast('Activa el GPS', 'error');
-                  document.getElementById('ruta-distancia').textContent = 'Sin GPS';
+                  showToast('Activa el GPS', 'error'); document.getElementById('ruta-distancia').textContent = 'Sin GPS';
               }, { enableHighAccuracy: true });
-          } else {
-              showToast('GPS no disponible', 'error');
           }
-      }, 400); 
-
-      // --- LÓGICA DEL BOTÓN DE TRANSMISIÓN EN VIVO ---
+      }, 400);
       btnViaje.innerHTML = '📍 Iniciar Navegación (En App)';
       btnViaje.style.background = 'linear-gradient(135deg, #10b981, #059669)';
-
       btnViaje.onclick = () => {
         if (watchGpsId) {
-          // Detener
-          navigator.geolocation.clearWatch(watchGpsId);
-          watchGpsId = null;
-          btnViaje.innerHTML = '📍 Iniciar Navegación (En App)';
-          btnViaje.style.background = 'linear-gradient(135deg, #10b981, #059669)';
-          showToast('Navegación pausada');
-          return;
+          navigator.geolocation.clearWatch(watchGpsId); watchGpsId = null;
+          btnViaje.innerHTML = '📍 Iniciar Navegación (En App)'; btnViaje.style.background = 'linear-gradient(135deg, #10b981, #059669)';
+          showToast('Navegación pausada'); return;
         }
-
-        // Iniciar
-        btnViaje.innerHTML = '🛑 Detener Transmisión GPS';
-        btnViaje.style.background = 'var(--destructive)';
+        btnViaje.innerHTML = '🛑 Detener Transmisión GPS'; btnViaje.style.background = 'var(--destructive)';
         showToast('Iniciando ruta. El cliente te está viendo en vivo.', 'success');
-
         watchGpsId = navigator.geolocation.watchPosition(async (pos) => {
-          const latAct = pos.coords.latitude;
-          const lngAct = pos.coords.longitude;
-
-          // Mueve tu camión en tu pantalla
-          if(marcadorA) { marcadorA.setLatLng([latAct, lngAct]); } 
-          else { marcadorA = L.marker([latAct, lngAct]).addTo(mapaRepartidor); }
-
-          // Sube la coordenada a Supabase para que el cliente la vea
-          if (pedidoId) {
-             await db.from('pedidos').update({ ubicacion_chofer: `${latAct},${lngAct}` }).eq('id', pedidoId);
-          }
-
-          // Dibuja la línea azul recalculada
+          const latAct = pos.coords.latitude; const lngAct = pos.coords.longitude;
+          if(marcadorA) { marcadorA.setLatLng([latAct, lngAct]); } else { marcadorA = L.marker([latAct, lngAct]).addTo(mapaRepartidor); }
+          if (pedidoId) { await db.from('pedidos').update({ ubicacion_chofer: `${latAct},${lngAct}` }).eq('id', pedidoId); }
           try {
             const res = await fetch(`https://router.project-osrm.org/route/v1/driving/${lngAct},${latAct};${destLng},${destLat}?geometries=geojson`);
             const data = await res.json();
@@ -1151,15 +1013,9 @@
       };
     }
     function cerrarRuta() {
-      // APAGAR EL GPS AL CERRAR LA VENTANA
-      if (watchGpsId) {
-        navigator.geolocation.clearWatch(watchGpsId);
-        watchGpsId = null;
-      }
-      
+      if (watchGpsId) { navigator.geolocation.clearWatch(watchGpsId); watchGpsId = null; }
       const modal = document.getElementById('pantallaRutaOverlay');
-      modal.classList.remove('active');
-      setTimeout(() => modal.style.display = 'none', 300);
+      modal.classList.remove('active'); setTimeout(() => modal.style.display = 'none', 300);
     }
 
     // ========== 9. VENTAS MANUALES E INVENTARIO ==========
@@ -1168,7 +1024,6 @@
       select.innerHTML = '<option value="">Sin cliente</option>';
       clients.forEach(c => select.innerHTML += `<option value="${c.id}">${escapeHtml(c.name)}</option>`);
     }
-
     function mostrarDeudaEnvases() {
       const clienteId = document.getElementById('cliente-venta').value;
       const hint = document.getElementById('deuda-envases-hint');
@@ -1177,97 +1032,72 @@
         hint.style.display = 'block';
         hint.textContent = `Debe ${stats.deudaEnvases} envase(s).`;
         hint.style.color = stats.deudaEnvases > 2 ? 'var(--destructive)' : 'var(--text-secondary)';
-      } else {
-        hint.style.display = 'none';
-      }
+      } else { hint.style.display = 'none'; }
     }
-
     function calcularTotalVenta() {
       const min = parseInt(document.getElementById('cant-mineral').value) || 0;
       const sab = parseInt(document.getElementById('cant-saborizada').value) || 0;
       const total = min * precioMineral + sab * precioSaborizada;
       document.getElementById('total-venta').textContent = `Total: ${formatearBs(total)}`;
     }
-
     function cambiarCantidad(tipo, delta) {
       const input = document.getElementById('cant-' + tipo);
       input.value = Math.max(0, (parseInt(input.value) || 0) + delta);
       calcularTotalVenta();
     }
-
     async function registrarVentaManual() {
       const fecha = document.getElementById('fecha-venta').value;
       const clienteId = document.getElementById('cliente-venta').value;
       const cantMineral = parseInt(document.getElementById('cant-mineral').value) || 0;
       const cantSaborizada = parseInt(document.getElementById('cant-saborizada').value) || 0;
       const devueltos = parseInt(document.getElementById('cant-devueltos').value) || 0;
-
       if (!fecha) return showToast('Selecciona la fecha', 'error');
       if (cantMineral === 0 && cantSaborizada === 0) return showToast('Ingresa al menos un botellón', 'error');
       if (cantMineral > stock.mineral) return showToast('Stock insuficiente Mineral', 'error');
       if (cantSaborizada > stock.saborizada) return showToast('Stock insuficiente Saborizada', 'error');
-
       const idVenta = crypto.randomUUID();
       const total = cantMineral * precioMineral + cantSaborizada * precioSaborizada;
-
       stock.mineral -= cantMineral; stock.saborizada -= cantSaborizada; stock.envasesVacios = (stock.envasesVacios || 0) + devueltos;
       ventas.push({ id: idVenta, fecha, clienteId, mineral: cantMineral, saborizada: cantSaborizada, envasesDevueltos: devueltos, total });
-      
       actualizarStockUI();
       document.getElementById('cant-mineral').value = 0; document.getElementById('cant-saborizada').value = 0; document.getElementById('cant-devueltos').value = 0;
-      calcularTotalVenta(); mostrarDeudaEnvases(); 
-
+      calcularTotalVenta(); mostrarDeudaEnvases();
       const { error: errVenta } = await db.from('ventas').insert({ id: idVenta, fecha, cliente_id: clienteId || null, mineral: cantMineral, saborizada: cantSaborizada, envases_devueltos: devueltos, total });
       if (errVenta) return showToast('Error al registrar en nube', 'error');
       await db.from('stock').upsert({ id: 1, mineral: stock.mineral, saborizada: stock.saborizada, envases_vacios: stock.envasesVacios });
-      
-      showToast('Venta registrada con éxito', 'success');
-      cargarMovimiento();
-      if(clienteId) renderClientList();
+      showToast('Venta registrada con éxito', 'success'); cargarMovimiento(); if(clienteId) renderClientList();
     }
-
     async function cambiarStock(tipo, delta) {
       stock[tipo] = Math.max(0, stock[tipo] + delta);
       actualizarStockUI();
       await db.from('stock').upsert({ id: 1, mineral: stock.mineral, saborizada: stock.saborizada, envases_vacios: stock.envasesVacios || 0 });
     }
-
     function actualizarStockUI() {
       document.getElementById('stock-mineral').textContent = stock.mineral;
       document.getElementById('stock-saborizada').textContent = stock.saborizada;
       document.getElementById('total-envases-fisicos').textContent = stock.mineral + stock.saborizada + (stock.envasesVacios || 0);
     }
 
-    // ========== 10. CRUD CLIENTES (MODAL) ==========
+    // ========== 10. CRUD CLIENTES ==========
     function openClientModal() {
-      editingClientId = null;
-      document.getElementById('modalClientTitle').textContent = 'Nuevo cliente';
-      document.getElementById('clientName').value = '';
-      document.getElementById('clientPhone').value = '';
-      document.getElementById('clientAddress').value = '';
-      document.getElementById('clientFrequency').value = '';
+      editingClientId = null; document.getElementById('modalClientTitle').textContent = 'Nuevo cliente';
+      document.getElementById('clientName').value = ''; document.getElementById('clientPhone').value = '';
+      document.getElementById('clientAddress').value = ''; document.getElementById('clientFrequency').value = '';
       document.getElementById('deleteClientContainer').style.display = 'none';
       document.getElementById('clientSalesHistory').style.display = 'none';
       openModal('modalClientOverlay');
     }
-
     function openEditModal(id) {
-      const client = clients.find(c => c.id === id);
-      if (!client) return;
-      editingClientId = id;
+      const client = clients.find(c => c.id === id); if (!client) return; editingClientId = id;
       document.getElementById('modalClientTitle').textContent = 'Editar cliente';
-      document.getElementById('clientName').value = client.name;
-      document.getElementById('clientPhone').value = client.phone;
-      document.getElementById('clientAddress').value = client.address || '';
-      document.getElementById('clientFrequency').value = client.frequency || '';
+      document.getElementById('clientName').value = client.name; document.getElementById('clientPhone').value = client.phone;
+      document.getElementById('clientAddress').value = client.address || ''; document.getElementById('clientFrequency').value = client.frequency || '';
       document.getElementById('deleteClientContainer').style.display = 'block';
-      
       const container = document.getElementById('clientSalesHistory');
       const clientSales = ventas.filter(v => v.clienteId === id).sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
       if (clientSales.length === 0) { container.style.display = 'none'; }
       else {
-        container.style.display = 'block';
-        let html = '<h3 style="margin-bottom:12px; font-size:16px;">Últimas ventas</h3>';
+        container.style.display = 'block'; let html = '<h3 style="margin-bottom:12px; font-size:16px;">Últimas ventas</h3>';
         clientSales.slice(0, 10).forEach(v => {
           const fecha = new Date(v.fecha + 'T12:00:00').toLocaleDateString('es-ES', { day:'2-digit', month:'2-digit', year:'numeric' });
           let detalle = [];
@@ -1279,33 +1109,22 @@
       }
       openModal('modalClientOverlay');
     }
-
     async function saveClient() {
-      const name = document.getElementById('clientName').value.trim();
-      const phone = document.getElementById('clientPhone').value.trim();
-      const address = document.getElementById('clientAddress').value.trim();
-      const frequency = document.getElementById('clientFrequency').value.trim();
-      
+      const name = document.getElementById('clientName').value.trim(); const phone = document.getElementById('clientPhone').value.trim();
+      const address = document.getElementById('clientAddress').value.trim(); const frequency = document.getElementById('clientFrequency').value.trim();
       if (!name || !phone) return showToast('Nombre y teléfono son obligatorios', 'error');
-      
-      const isNew = !editingClientId;
-      const cId = isNew ? crypto.randomUUID() : editingClientId;
-      
+      const isNew = !editingClientId; const cId = isNew ? crypto.randomUUID() : editingClientId;
       if (isNew) { clients.push({ id: cId, name, phone, address, frequency: frequency || '' }); } 
       else { const client = clients.find(c => c.id === cId); if (client) Object.assign(client, { name, phone, address, frequency: frequency || '' }); }
-      
       llenarSelectClientes(); renderClientList(); closeModal('modalClientOverlay');
-      
       const { error } = await db.from('clientes').upsert({ id: cId, nombre: name, telefono: phone, direccion: address || null, frecuencia_dias: frequency ? parseInt(frequency) : null });
       if(!error) showToast(isNew ? 'Cliente guardado' : 'Cliente actualizado', 'success');
       else showToast('Error al guardar', 'error');
     }
-
     async function deleteClient() {
       if (!editingClientId) return;
       if (confirm('¿Eliminar este cliente de forma permanente?')) {
-        const cId = editingClientId;
-        clients = clients.filter(c => c.id !== cId);
+        const cId = editingClientId; clients = clients.filter(c => c.id !== cId);
         llenarSelectClientes(); renderClientList(); closeModal('modalClientOverlay');
         const { error } = await db.from('clientes').delete().eq('id', cId);
         if(!error) showToast('Cliente eliminado', 'info');
@@ -1315,189 +1134,119 @@
     // ========== 11. GASTOS ==========
     function abrirModalGasto() {
       document.getElementById('fecha-gasto').value = new Date().toISOString().split('T')[0];
-      document.getElementById('desc-gasto').value = '';
-      document.getElementById('monto-gasto').value = '';
-      renderGastosList();
-      openModal('modalGastoOverlay');
-    }
-
-    async function guardarGasto() {
-      const fecha = document.getElementById('fecha-gasto').value;
-      const desc = document.getElementById('desc-gasto').value.trim();
-      const monto = parseFloat(document.getElementById('monto-gasto').value);
-
-      if(!fecha || !desc || isNaN(monto) || monto <= 0) return showToast('Completa todos los campos', 'error');
-
-      const id = crypto.randomUUID();
-      gastos.push({ id, fecha, desc, monto });
-      cargarMovimiento(); renderGastosList(); 
       document.getElementById('desc-gasto').value = ''; document.getElementById('monto-gasto').value = '';
-
+      renderGastosList(); openModal('modalGastoOverlay');
+    }
+    async function guardarGasto() {
+      const fecha = document.getElementById('fecha-gasto').value; const desc = document.getElementById('desc-gasto').value.trim();
+      const monto = parseFloat(document.getElementById('monto-gasto').value);
+      if(!fecha || !desc || isNaN(monto) || monto <= 0) return showToast('Completa todos los campos', 'error');
+      const id = crypto.randomUUID(); gastos.push({ id, fecha, desc, monto });
+      cargarMovimiento(); renderGastosList(); document.getElementById('desc-gasto').value = ''; document.getElementById('monto-gasto').value = '';
       const { error } = await db.from('gastos').insert({ id, fecha, descripcion: desc, monto });
       if (!error) showToast('Gasto registrado', 'success');
     }
-
     async function eliminarGasto(gastoId) {
-      gastos = gastos.filter(g => g.id !== gastoId);
-      cargarMovimiento(); renderGastosList();
-      await db.from('gastos').delete().eq('id', gastoId);
-      showToast('Gasto eliminado', 'info');
+      gastos = gastos.filter(g => g.id !== gastoId); cargarMovimiento(); renderGastosList();
+      await db.from('gastos').delete().eq('id', gastoId); showToast('Gasto eliminado', 'info');
     }
-
     function renderGastosList() {
       const container = document.getElementById('gastosListContainer');
-      const mes = parseInt(document.getElementById('mes').value);
-      const anio = parseInt(document.getElementById('anio').value);
-      
-      const gastosMes = gastos.filter(g => {
-        const d = new Date(g.fecha + 'T12:00:00'); return d.getMonth() === mes && d.getFullYear() === anio;
-      }).sort((a,b) => new Date(b.fecha) - new Date(a.fecha));
-
-      if (gastosMes.length === 0) {
-        container.innerHTML = '<p style="text-align:center; color:var(--text-secondary); padding:20px;">No hay gastos este mes</p>';
-        return;
-      }
-
+      const mes = parseInt(document.getElementById('mes').value); const anio = parseInt(document.getElementById('anio').value);
+      const gastosMes = gastos.filter(g => { const d = new Date(g.fecha + 'T12:00:00'); return d.getMonth() === mes && d.getFullYear() === anio; }).sort((a,b) => new Date(b.fecha) - new Date(a.fecha));
+      if (gastosMes.length === 0) { container.innerHTML = '<p style="text-align:center; color:var(--text-secondary); padding:20px;">No hay gastos este mes</p>'; return; }
       let html = '<h3 style="margin-bottom:12px; font-size:16px;">Gastos del mes</h3>';
       gastosMes.forEach(g => {
         const fecha = new Date(g.fecha + 'T12:00:00').toLocaleDateString('es-ES', { day:'2-digit', month:'2-digit' });
-        html += `
-          <div class="gasto-item">
-            <span class="gasto-date">${fecha}</span>
-            <span class="gasto-desc">${escapeHtml(g.desc)}</span>
-            <span class="gasto-monto">-${formatearBs(g.monto)}</span>
-            <button class="gasto-delete-btn" onclick="eliminarGasto('${g.id}')">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-            </button>
-          </div>`;
+        html += `<div class="gasto-item"><span class="gasto-date">${fecha}</span><span class="gasto-desc">${escapeHtml(g.desc)}</span><span class="gasto-monto">-${formatearBs(g.monto)}</span><button class="gasto-delete-btn" onclick="eliminarGasto('${g.id}')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button></div>`;
       });
       container.innerHTML = html;
     }
 
     // ========== 12. PERFIL Y SETTINGS ==========
     function abrirModalPrecios() {
-      document.getElementById('precioMineralInput').value = precioMineral;
-      document.getElementById('precioSaborizadaInput').value = precioSaborizada;
-      document.getElementById('costoMineralInput').value = costoProdMineral;
-      document.getElementById('costoSaborizadaInput').value = costoProdSaborizada;
+      document.getElementById('precioMineralInput').value = precioMineral; document.getElementById('precioSaborizadaInput').value = precioSaborizada;
+      document.getElementById('costoMineralInput').value = costoProdMineral; document.getElementById('costoSaborizadaInput').value = costoProdSaborizada;
       openModal('modalPreciosOverlay');
     }
-
     async function guardarPrecios() {
-      const pm = parseFloat(document.getElementById('precioMineralInput').value);
-      const ps = parseFloat(document.getElementById('precioSaborizadaInput').value);
-      const cm = parseFloat(document.getElementById('costoMineralInput').value);
-      const cs = parseFloat(document.getElementById('costoSaborizadaInput').value);
-      
+      const pm = parseFloat(document.getElementById('precioMineralInput').value); const ps = parseFloat(document.getElementById('precioSaborizadaInput').value);
+      const cm = parseFloat(document.getElementById('costoMineralInput').value); const cs = parseFloat(document.getElementById('costoSaborizadaInput').value);
       if (isNaN(pm) || isNaN(ps) || isNaN(cm) || isNaN(cs) || pm < 0 || ps < 0 || cm < 0 || cs < 0) return showToast('Valores inválidos', 'error');
-
       precioMineral = pm; precioSaborizada = ps; costoProdMineral = cm; costoProdSaborizada = cs;
       closeModal('modalPreciosOverlay');
-
       const { error } = await db.from('configuracion').upsert({ id: 1, precio_mineral: pm, precio_saborizada: ps, costo_mineral: cm, costo_saborizada: cs });
       if (!error) { showToast('Precios actualizados', 'success'); cargarMovimiento(); calcularTotalVenta(); }
     }
 
-   async function subirLogoPerfil(event) {
-  const file = event.target.files[0];
-  if (!file) return;
+    // Subir imagen desde el perfil (botón en avatar)
+    async function subirLogoPerfil(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        document.getElementById('profile-img').src = e.target.result;
+        localStorage.setItem('agua_avatar', e.target.result);
+      };
+      reader.readAsDataURL(file);
+      const { error } = await db.storage
+        .from('assets')
+        .upload('repartidor-icon.png', file, { cacheControl: '3600', upsert: true });
+      if (error) showToast('Error al subir imagen: ' + error.message, 'error');
+      else showToast('Logo actualizado con éxito', 'success');
+    }
 
-  // Previsualizar en el perfil
-  const reader = new FileReader();
-  reader.onload = (e) => {
-    document.getElementById('profile-img').src = e.target.result;
-    localStorage.setItem('agua_avatar', e.target.result);
-  };
-  reader.readAsDataURL(file);
-
-  // Subir a Supabase Storage (el mismo bucket, misma ruta)
-  const { error } = await db.storage
-    .from('assets')
-    .upload('repartidor-icon.png', file, {
-      cacheControl: '3600',
-      upsert: true
-    });
-
-  if (error) {
-    showToast('Error al subir imagen: ' + error.message, 'error');
-  } else {
-    showToast('Logo actualizado con éxito', 'success');
-  }
-}
+    // Cargar imagen guardada al iniciar
+    function cargarLogoActual() {
+      const publicUrl = db.storage.from('assets').getPublicUrl('repartidor-icon.png').data.publicUrl;
+      const preview = document.getElementById('profile-img');
+      const img = new Image();
+      img.onload = () => {
+        preview.src = publicUrl;
+        localStorage.setItem('agua_avatar', publicUrl);
+      };
+      img.onerror = () => {
+        const saved = localStorage.getItem('agua_avatar');
+        if (saved) preview.src = saved;
+      };
+      img.src = publicUrl;
+    }
 
     function copiarDirectLink() {
       let storeCode = localStorage.getItem('aguabol_store_code');
-      if (!storeCode) {
-        storeCode = 'AGUA-' + Math.random().toString(36).substring(2, 6).toUpperCase();
-        localStorage.setItem('aguabol_store_code', storeCode);
-      }
-      
-      // Generar enlace público fijo para el portal del cliente en Netlify
+      if (!storeCode) { storeCode = 'AGUA-' + Math.random().toString(36).substring(2, 6).toUpperCase(); localStorage.setItem('aguabol_store_code', storeCode); }
       const urlBase = "https://celadon-moonbeam-5c1af4.netlify.app";
-      
-      // CORRECCIÓN: Se eliminó '/cliente.html' para que apunte directamente al dominio raíz
       const link = `${urlBase}?store=${storeCode}`;
-      
-      if (navigator.clipboard) { 
-        navigator.clipboard.writeText(link).then(() => showToast(`Link copiado`, 'success')); 
-      } else { 
-        const ti = document.createElement("input"); 
-        ti.value = link; 
-        document.body.appendChild(ti); 
-        ti.select(); 
-        document.execCommand("copy"); 
-        document.body.removeChild(ti); 
-        showToast(`Link copiado`, 'success'); 
-      }
+      if (navigator.clipboard) { navigator.clipboard.writeText(link).then(() => showToast(`Link copiado`, 'success')); } 
+      else { const ti = document.createElement("input"); ti.value = link; document.body.appendChild(ti); ti.select(); document.execCommand("copy"); document.body.removeChild(ti); showToast(`Link copiado`, 'success'); }
     }
-  
 
-
-    // ========== 13. FINANZAS (GRÁFICOS) ==========
+    // ========== 13. FINANZAS ==========
     function cargarMovimiento() {
-      const mes = parseInt(document.getElementById('mes').value);
-      const anio = parseInt(document.getElementById('anio').value);
-      
+      const mes = parseInt(document.getElementById('mes').value); const anio = parseInt(document.getElementById('anio').value);
       const ventasMes = ventas.filter(v => { const d = new Date(v.fecha + 'T12:00:00'); return d.getMonth() === mes && d.getFullYear() === anio; });
       const gastosMes = gastos.filter(g => { const d = new Date(g.fecha + 'T12:00:00'); return d.getMonth() === mes && d.getFullYear() === anio; });
-
       let totalIngresos = 0, costoProduccionTotal = 0, totalGastos = gastosMes.reduce((acc, g) => acc + g.monto, 0);
       let datosDiarios = {};
-
       ventasMes.forEach(v => {
         const dia = new Date(v.fecha + 'T12:00:00').getDate();
         if(!datosDiarios[dia]) datosDiarios[dia] = 0;
-        totalIngresos += v.total;
-        costoProduccionTotal += (v.mineral * costoProdMineral) + (v.saborizada * costoProdSaborizada);
+        totalIngresos += v.total; costoProduccionTotal += (v.mineral * costoProdMineral) + (v.saborizada * costoProdSaborizada);
         datosDiarios[dia] += v.total;
       });
-
       const utilidadNeta = totalIngresos - costoProduccionTotal - totalGastos;
       document.getElementById('utilidad-neta').style.color = utilidadNeta >= 0 ? 'var(--green)' : 'var(--destructive)';
-      animarNumero('total-mes', totalIngresos, 1200);
-      animarNumero('utilidad-neta', utilidadNeta, 1200);
-
-      let barrasHTML = '';
-      const maxDiario = Math.max(...Object.values(datosDiarios), 1);
-      const diasEnMes = new Date(anio, mes + 1, 0).getDate();
-      const hoy = new Date();
-      const esMesActual = (mes === hoy.getMonth() && anio === hoy.getFullYear());
-      const diaActual = hoy.getDate();
-
+      animarNumero('total-mes', totalIngresos, 1200); animarNumero('utilidad-neta', utilidadNeta, 1200);
+      let barrasHTML = ''; const maxDiario = Math.max(...Object.values(datosDiarios), 1);
+      const diasEnMes = new Date(anio, mes + 1, 0).getDate(); const hoy = new Date();
+      const esMesActual = (mes === hoy.getMonth() && anio === hoy.getFullYear()); const diaActual = hoy.getDate();
       for (let dia = 1; dia <= diasEnMes; dia++) {
-        const totalDia = datosDiarios[dia] || 0;
-        const altura = Math.min((totalDia / maxDiario) * 100, 100);
+        const totalDia = datosDiarios[dia] || 0; const altura = Math.min((totalDia / maxDiario) * 100, 100);
         const esHoy = esMesActual && dia === diaActual;
-        const idDia = esHoy ? 'bar-dia-actual' : '';
-        const claseLabel = esHoy ? 'bar-label hoy' : 'bar-label';
-        barrasHTML += `<div class="bar-item" id="${idDia}"><div class="bar" style="height:0px;" data-height="${altura}"></div><span class="${claseLabel}">${dia}</span></div>`;
+        barrasHTML += `<div class="bar-item" id="${esHoy ? 'bar-dia-actual' : ''}"><div class="bar" style="height:0px;" data-height="${altura}"></div><span class="${esHoy ? 'bar-label hoy' : 'bar-label'}">${dia}</span></div>`;
       }
-      
-      const grafico = document.getElementById('grafico');
-      grafico.innerHTML = barrasHTML;
-
+      const grafico = document.getElementById('grafico'); grafico.innerHTML = barrasHTML;
       setTimeout(() => { grafico.querySelectorAll('.bar').forEach(bar => bar.style.height = bar.getAttribute('data-height') + 'px'); }, 50);
-
       const container = document.getElementById('chart-container-scroll');
       if (esMesActual) setTimeout(() => { const barActual = document.getElementById('bar-dia-actual'); if (barActual) barActual.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' }); }, 300);
       else container.scrollLeft = 0;
@@ -1505,56 +1254,27 @@
 
     // ========== 14. INICIALIZACIÓN Y SUBSCRIPCIONES ==========
     async function escucharRealtime() {
-      // 1. Escuchar Pedidos (Para Notificaciones y En Vivo)
       db.channel('public:pedidos')
         .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'pedidos' }, async (payload) => {
-          // Cuando el cliente pide, buscamos sus datos y lo mostramos
           const { data: cliInfo } = await db.from('clientes').select('*').eq('id', payload.new.cliente_id).single();
-          payload.new.clientes = cliInfo;
-                    pedidosActivos.unshift(payload.new);
-          
-          // NUEVO: Notificación local nativa (suena incluso con la app en segundo plano)
+          payload.new.clientes = cliInfo; pedidosActivos.unshift(payload.new);
           try {
             await LocalNotifications.schedule({
-              notifications: [{
-                id: new Date().getTime(),
-                title: '¡Nuevo pedido!',
-                body: cliInfo ? `${cliInfo.nombre} ha solicitado un pedido` : 'Nuevo pedido entrante',
-                sound: 'default',
-                smallIcon: 'ic_launcher',
-                iconColor: '#0ea5e9'
-              }]
+              notifications: [{ id: new Date().getTime(), title: '¡Nuevo pedido!', body: cliInfo ? `${cliInfo.nombre} ha solicitado un pedido` : 'Nuevo pedido entrante', sound: 'default', smallIcon: 'ic_launcher', iconColor: '#0ea5e9' }]
             });
           } catch(e) {}
-          showToast('¡NUEVO PEDIDO RECIBIDO! 🔔');
-          renderPedidos();
+          showToast('¡NUEVO PEDIDO RECIBIDO! 🔔'); renderPedidos();
         })
         .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'pedidos' }, (payload) => {
-          // Cuando un pedido cambia de estado (o se le asigna chofer)
           const idx = pedidosActivos.findIndex(p => p.id === payload.new.id);
-          
           if (idx !== -1) {
-            const estadoAnterior = pedidosActivos[idx].estado;
-            pedidosActivos[idx].estado = payload.new.estado;
-            pedidosActivos[idx].chofer_id = payload.new.chofer_id; // Actualizar chofer si aplica
-            
-            // LA MAGIA: Si el CHOFER marcó entregado remotamente (Pasó de 'en_camino' a 'entregado')
-            if (payload.new.estado === 'entregado' && estadoAnterior !== 'entregado') {
-                showToast('Un chofer ha entregado un pedido ✅', 'success');
-                // Forzamos la lógica de cobro e inventario automática
-                completarPedido(payload.new.id);
-            } 
-            else if (payload.new.estado === 'cancelado') {
-                pedidosActivos.splice(idx, 1);
-                renderPedidos();
-            } else {
-                renderPedidos();
-            }
+            const estadoAnterior = pedidosActivos[idx].estado; pedidosActivos[idx].estado = payload.new.estado; pedidosActivos[idx].chofer_id = payload.new.chofer_id;
+            if (payload.new.estado === 'entregado' && estadoAnterior !== 'entregado') { showToast('Un chofer ha entregado un pedido ✅', 'success'); completarPedido(payload.new.id); } 
+            else if (payload.new.estado === 'cancelado') { pedidosActivos.splice(idx, 1); renderPedidos(); } 
+            else { renderPedidos(); }
           }
         })
         .subscribe();
-
-      // 2. Escuchar Clientes (Para el CRM)
       db.channel('public:clientes')
         .on('postgres_changes', { event: '*', schema: 'public', table: 'clientes' }, (payload) => {
             if (payload.eventType === 'INSERT') {
@@ -1563,159 +1283,44 @@
             } else if (payload.eventType === 'UPDATE') {
               const idx = clients.findIndex(c => c.id === payload.new.id);
               if (idx !== -1) clients[idx] = { id: payload.new.id, name: payload.new.nombre, phone: payload.new.telefono, address: payload.new.direccion, frequency: payload.new.frecuencia_dias ? payload.new.frecuencia_dias.toString() : '' };
-            } else if (payload.eventType === 'DELETE') {
-              clients = clients.filter(c => c.id !== payload.old.id);
-            }
+            } else if (payload.eventType === 'DELETE') { clients = clients.filter(c => c.id !== payload.old.id); }
             renderClientList(); llenarSelectClientes();
         }).subscribe();
     }
 
-          // ========== REGISTRO DE NOTIFICACIONES PUSH (FCM) ==========
-// ========== REGISTRO DE NOTIFICACIONES PUSH (FCM) ==========
-async function registrarPush() {
-  showToast('Iniciando registro push...', 'info');
-
-  const PushNotifications = Capacitor.Plugins.PushNotifications;
-  if (!PushNotifications) {
-    showToast('❌ Plugin PushNotifications no encontrado', 'error');
-    console.error('Plugin PushNotifications no disponible');
-    return;
-  }
-
-  // Solicitar permiso
-  let permiso = await PushNotifications.checkPermissions();
-  showToast(`Permiso actual: ${permiso.receive}`, 'info');
-
-  if (permiso.receive !== 'granted') {
-    permiso = await PushNotifications.requestPermissions();
-    showToast(`Permiso solicitado: ${permiso.receive}`, 'info');
-  }
-
-  if (permiso.receive !== 'granted') {
-    showToast('❌ Permiso denegado. Ve a Ajustes > Apps > AguaBol > Notificaciones y actívalas', 'error');
-    return;
-  }
-
-  // Registrar
-  try {
-    await PushNotifications.register();
-    showToast('✅ Registro push completado. Esperando token...', 'success');
-  } catch (e) {
-    showToast('❌ Error al registrar: ' + e.message, 'error');
-    return;
-  }
-
-  // Escuchar token
-  PushNotifications.addListener('registration', async (token) => {
-    showToast('📱 Token recibido', 'success');
-    const adminUserId = 'admin-unico';
-
-    const { error } = await db.from('dispositivos').upsert({
-      user_id: adminUserId,
-      fcm_token: token.value,
-      plataforma: 'android',
-      updated_at: new Date().toISOString()
-    }, { onConflict: 'user_id' });
-
-    if (error) {
-      showToast('❌ Error guardando token: ' + error.message, 'error');
-      console.error('Error:', error);
-    } else {
-      showToast('✅ Token guardado en Supabase', 'success');
+    // ========== REGISTRO DE NOTIFICACIONES PUSH ==========
+    async function registrarPush() {
+      showToast('Iniciando registro push...', 'info');
+      const PushNotifications = Capacitor.Plugins.PushNotifications;
+      if (!PushNotifications) { showToast('❌ Plugin Push no encontrado', 'error'); return; }
+      let permiso = await PushNotifications.checkPermissions();
+      showToast(`Permiso actual: ${permiso.receive}`, 'info');
+      if (permiso.receive !== 'granted') { permiso = await PushNotifications.requestPermissions(); showToast(`Permiso solicitado: ${permiso.receive}`, 'info'); }
+      if (permiso.receive !== 'granted') { showToast('❌ Permiso denegado.', 'error'); return; }
+      try { await PushNotifications.register(); showToast('✅ Registro completado', 'success'); } catch(e) { showToast('❌ Error al registrar: ' + e.message, 'error'); return; }
+      PushNotifications.addListener('registration', async (token) => {
+        showToast('📱 Token recibido', 'success');
+        const { error } = await db.from('dispositivos').upsert({ user_id: 'admin-unico', fcm_token: token.value, plataforma: 'android', updated_at: new Date().toISOString() }, { onConflict: 'user_id' });
+        if (error) showToast('❌ Error guardando token: ' + error.message, 'error');
+        else showToast('✅ Token guardado', 'success');
+      });
+      PushNotifications.addListener('pushNotificationReceived', (notif) => { showToast('🔔 Push recibida', 'info'); cargarDatosCompletos(); });
+      PushNotifications.addListener('pushNotificationActionPerformed', (notif) => { showToast('👆 App abierta desde notificación', 'info'); cargarDatosCompletos(); });
     }
-  });
 
-  PushNotifications.addListener('pushNotificationReceived', (notif) => {
-    showToast('🔔 Push recibida en primer plano', 'info');
-    cargarDatosCompletos();
-  });
-
-  PushNotifications.addListener('pushNotificationActionPerformed', (notif) => {
-    showToast('👆 App abierta desde notificación', 'info');
-    cargarDatosCompletos();
-  });
-      }
-async function previewAndUploadLogo(event) {
-  const file = event.target.files[0];
-  if (!file) return;
-
-  // Previsualizar en el tag <img>
-  const reader = new FileReader();
-  reader.onload = (e) => {
-    const preview = document.getElementById('preview-logo');
-    preview.src = e.target.result;
-    preview.style.display = 'block';
-  };
-  reader.readAsDataURL(file);
-
-  // Subir a Supabase Storage (reemplaza si ya existe)
-  const { error } = await db.storage
-    .from('assets')
-    .upload('repartidor-icon.png', file, {
-      cacheControl: '3600',
-      upsert: true
-    });
-
-  if (error) {
-    showToast('Error al subir imagen: ' + error.message, 'error');
-  } else {
-    showToast('Logo actualizado con éxito', 'success');
-    // Guardar la URL pública en localStorage (opcional)
-    const publicUrl = db.storage.from('assets').getPublicUrl('repartidor-icon.png').data.publicUrl;
-    localStorage.setItem('aguabol_logo_url', publicUrl);
-  }
-}
-
-          function cargarLogoActual() {
-  const publicUrl = db.storage.from('assets').getPublicUrl('repartidor-icon.png').data.publicUrl;
-  const preview = document.getElementById('profile-img');
-  // Verificar si la imagen existe en el storage
-  const img = new Image();
-  img.onload = () => {
-    preview.src = publicUrl;
-    localStorage.setItem('agua_avatar', publicUrl); // actualizar cache local
-  };
-  img.onerror = () => {
-    // Si no hay imagen, dejamos la que haya guardada en localStorage (o el ícono por defecto)
-    const saved = localStorage.getItem('agua_avatar');
-    if (saved) preview.src = saved;
-  };
-  img.src = publicUrl;
-}
-          
+    // ========== INICIAR APP ==========
     document.addEventListener('DOMContentLoaded', async () => {
       document.getElementById('fecha-venta').value = new Date().toISOString().split('T')[0];
-      const today = new Date();
-      document.getElementById('mes').value = today.getMonth();
-      document.getElementById('anio').value = today.getFullYear();
-      
-      // PEDIR PERMISO DE UBICACIÓN
-      try {
-        const geoPlugin = Capacitor.Plugins.Geolocation;
-        if (geoPlugin) {
-          const permResult = await geoPlugin.requestPermissions();
-          console.log('Permiso ubicación:', permResult.location);
-        }
-      } catch(e) { console.log('Error solicitando permiso de ubicación', e); }
-
-      // NUEVO: PEDIR PERMISO DE NOTIFICACIONES (Obligatorio en Android 13+)
-      try {
-        const notifPlugin = Capacitor.Plugins.LocalNotifications;
-        if (notifPlugin) {
-          const notifPerm = await notifPlugin.requestPermissions();
-          console.log('Permiso notificaciones:', notifPerm.display);
-        }
-      } catch(e) { console.log('Error solicitando permiso de notificaciones', e); }
-
+      const today = new Date(); document.getElementById('mes').value = today.getMonth(); document.getElementById('anio').value = today.getFullYear();
+      try { const geoPlugin = Capacitor.Plugins.Geolocation; if (geoPlugin) await geoPlugin.requestPermissions(); } catch(e) {}
+      try { const notifPlugin = Capacitor.Plugins.LocalNotifications; if (notifPlugin) await notifPlugin.requestPermissions(); } catch(e) {}
       const savedAvatar = localStorage.getItem('agua_avatar');
       if (savedAvatar) document.getElementById('profile-img').src = savedAvatar;
-
       await cargarDatosCompletos();
       escucharRealtime();
       registrarPush();
-       cargarLogoActual();
+      cargarLogoActual();
     });
-
   </script>
 </body>
 </html>
