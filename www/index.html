@@ -837,8 +837,8 @@
       pedido.estado = 'en_camino'; pedido.chofer_id = choferId;
       renderPedidos();
 
-      // Generar el Magic Link automático leyendo la URL donde estás alojado
-      const urlBase = window.location.href.substring(0, window.location.href.lastIndexOf('/'));
+      // Generar el Magic Link apuntando a tu servidor público en Netlify
+      const urlBase = "https://celadon-moonbeam-5c1af4.netlify.app";
       const linkMagico = `${urlBase}/chofer.html?id=${pedidoSeleccionadoId}`;
 
       const textoWa = `🚚 *Nuevo Pedido: ${pedido.clientes.nombre}*\nDetalle: ${pedido.items.mineral || 0} Min / ${pedido.items.saborizada || 0} Sab\nCobrar: Bs ${pedido.monto_total}\n\n👉 *ABRE ESTE ENLACE PARA ENTREGAR:*\n${linkMagico}`;
@@ -847,6 +847,7 @@
       window.open(linkWa, '_blank'); 
       showToast('Chofer asignado. Enlace enviado por WhatsApp.');
     }
+
 
 
     // --- ACCIONES DE ENTREGA ---
@@ -1406,14 +1407,24 @@
         storeCode = 'AGUA-' + Math.random().toString(36).substring(2, 6).toUpperCase();
         localStorage.setItem('aguabol_store_code', storeCode);
       }
-      const cur = window.location.href;
-      let fb = cur.substring(0, cur.lastIndexOf('/'));
-      if (!cur.includes('.html')) fb = cur.endsWith('/') ? cur.slice(0, -1) : cur;
       
-      const link = `${fb}/cliente.html?store=${storeCode}`;
-      if (navigator.clipboard) { navigator.clipboard.writeText(link).then(() => showToast(`Link copiado`, 'success')); } 
-      else { const ti = document.createElement("input"); ti.value = link; document.body.appendChild(ti); ti.select(); document.execCommand("copy"); document.body.removeChild(ti); showToast(`Link copiado`, 'success'); }
+      // Generar enlace público fijo para el portal del cliente en Netlify
+      const urlBase = "https://celadon-moonbeam-5c1af4.netlify.app";
+      const link = `${urlBase}/cliente.html?store=${storeCode}`;
+      
+      if (navigator.clipboard) { 
+        navigator.clipboard.writeText(link).then(() => showToast(`Link copiado`, 'success')); 
+      } else { 
+        const ti = document.createElement("input"); 
+        ti.value = link; 
+        document.body.appendChild(ti); 
+        ti.select(); 
+        document.execCommand("copy"); 
+        document.body.removeChild(ti); 
+        showToast(`Link copiado`, 'success'); 
+      }
     }
+
 
     // ========== 13. FINANZAS (GRÁFICOS) ==========
     function cargarMovimiento() {
