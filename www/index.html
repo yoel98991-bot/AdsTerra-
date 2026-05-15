@@ -421,6 +421,19 @@
         <div class="setting-arrow"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg></div>
       </div>
     </div>
+ <div class="section-title">Logotipo del Repartidor</div>
+  <div class="card settings-list">
+    <div class="setting-row" style="flex-direction: column; align-items: flex-start; gap: 12px;">
+      <span style="font-size: 14px; color: var(--text-secondary);">Esta imagen se mostrará en el mapa del cliente durante el seguimiento.</span>
+      <img id="preview-logo" src="" style="width: 80px; height: 80px; border-radius: 40px; object-fit: cover; background: #e2e8f0; border: 3px solid var(--tint); display: none;" />
+      <input type="file" id="upload-logo" accept="image/*" style="display: none;" onchange="previewAndUploadLogo(event)">
+      <button class="btn-primary btn-secondary" style="width: auto; padding: 12px 20px; margin: 0;" onclick="document.getElementById('upload-logo').click()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+        Subir / Actualizar Logo
+      </button>
+    </div>
+  </div>
+  
 
     <div class="section-title">Sistema</div>
     <div class="card settings-list">
@@ -1611,7 +1624,52 @@ async function registrarPush() {
     cargarDatosCompletos();
   });
       }
+async function previewAndUploadLogo(event) {
+  const file = event.target.files[0];
+  if (!file) return;
 
+  // Previsualizar en el tag <img>
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const preview = document.getElementById('preview-logo');
+    preview.src = e.target.result;
+    preview.style.display = 'block';
+  };
+  reader.readAsDataURL(file);
+
+  // Subir a Supabase Storage (reemplaza si ya existe)
+  const { error } = await db.storage
+    .from('assets')
+    .upload('repartidor-icon.png', file, {
+      cacheControl: '3600',
+      upsert: true
+    });
+
+  if (error) {
+    showToast('Error al subir imagen: ' + error.message, 'error');
+  } else {
+    showToast('Logo actualizado con éxito', 'success');
+    // Guardar la URL pública en localStorage (opcional)
+    const publicUrl = db.storage.from('assets').getPublicUrl('repartidor-icon.png').data.publicUrl;
+    localStorage.setItem('aguabol_logo_url', publicUrl);
+  }
+}
+
+          function cargarLogoActual() {
+  const publicUrl = db.storage.from('assets').getPublicUrl('repartidor-icon.png').data.publicUrl;
+  const preview = document.getElementById('preview-logo');
+  // Verificar si la imagen existe sin bloquear
+  const img = new Image();
+  img.onload = () => {
+    preview.src = publicUrl;
+    preview.style.display = 'block';
+  };
+  img.onerror = () => {
+    preview.style.display = 'none'; // no se ha subido ninguna aún
+  };
+  img.src = publicUrl;
+}
+          
     document.addEventListener('DOMContentLoaded', async () => {
       document.getElementById('fecha-venta').value = new Date().toISOString().split('T')[0];
       const today = new Date();
@@ -1642,6 +1700,7 @@ async function registrarPush() {
       await cargarDatosCompletos();
       escucharRealtime();
       registrarPush();
+       cargarLogoActual();
     });
 
   </script>
