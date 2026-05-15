@@ -388,51 +388,48 @@
        </div>
     </div>
   </div>
-
-  <div id="screen-perfil" class="screen">
-    <div class="nav-bar"><span class="nav-title">Mi Negocio</span></div>
-    
-    <div class="card profile-header">
-      <div class="avatar-wrapper">
-        <input type="file" id="upload-avatar" accept="image/*" style="display: none;" onchange="previewAvatar(event)">
-        <img id="profile-img" class="avatar-img" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2394a3b8'><path d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/></svg>">
-        <div class="avatar-edit-btn" onclick="document.getElementById('upload-avatar').click()">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
-        </div>
-      </div>
-      <div class="profile-name">AguaBol Admin</div>
-      <div class="profile-role">Propietario</div>
-      <span class="badge" style="background: #dcfce7; color: #16a34a; padding: 6px 12px; font-size: 12px;">Licencia Activa PRO</span>
-    </div>
-
-    <div class="section-title">Administración</div>
-    <div class="card settings-list">
-      <div class="setting-row" onclick="abrirModalPrecios()">
-        <div class="setting-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
-        <div class="setting-text">Gestión de Precios y Costos</div>
-        <div class="setting-arrow"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg></div>
-      </div>
-      
-      <div class="setting-row" onclick="copiarDirectLink()">
-        <div class="setting-icon" style="background: #e0f2fe; color: #0284c7;">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
-        </div>
-        <div class="setting-text">DirectLink (Portal Cliente)</div>
-        <div class="setting-arrow"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg></div>
-      </div>
-    </div>
- <div class="section-title">Logotipo del Repartidor</div>
-  <div class="card settings-list">
-    <div class="setting-row" style="flex-direction: column; align-items: flex-start; gap: 12px;">
-      <span style="font-size: 14px; color: var(--text-secondary);">Esta imagen se mostrará en el mapa del cliente durante el seguimiento.</span>
-      <img id="preview-logo" src="" style="width: 80px; height: 80px; border-radius: 40px; object-fit: cover; background: #e2e8f0; border: 3px solid var(--tint); display: none;" />
-      <input type="file" id="upload-logo" accept="image/*" style="display: none;" onchange="previewAndUploadLogo(event)">
-      <button class="btn-primary btn-secondary" style="width: auto; padding: 12px 20px; margin: 0;" onclick="document.getElementById('upload-logo').click()">
+<div id="screen-perfil" class="screen">
+  <div class="nav-bar"><span class="nav-title">Mi Negocio</span></div>
+  
+  <div class="card profile-header">
+    <div class="avatar-wrapper">
+      <input type="file" id="upload-avatar" accept="image/*" style="display: none;" onchange="subirLogoPerfil(event)">
+      <img id="profile-img" class="avatar-img" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2394a3b8'><path d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/></svg>">
+      <div class="avatar-edit-btn" onclick="document.getElementById('upload-avatar').click()">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
-        Subir / Actualizar Logo
-      </button>
+      </div>
+    </div>
+    <div class="profile-name">AguaBol Admin</div>
+    <div class="profile-role">Propietario</div>
+    <span class="badge" style="background: #dcfce7; color: #16a34a; padding: 6px 12px; font-size: 12px;">Licencia Activa PRO</span>
+  </div>
+
+  <div class="section-title">Administración</div>
+  <div class="card settings-list">
+    <div class="setting-row" onclick="abrirModalPrecios()">
+      <div class="setting-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
+      <div class="setting-text">Gestión de Precios y Costos</div>
+      <div class="setting-arrow"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg></div>
+    </div>
+    <div class="setting-row" onclick="copiarDirectLink()">
+      <div class="setting-icon" style="background: #e0f2fe; color: #0284c7;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+      </div>
+      <div class="setting-text">DirectLink (Portal Cliente)</div>
+      <div class="setting-arrow"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg></div>
     </div>
   </div>
+
+  <div class="section-title">Sistema</div>
+  <div class="card settings-list">
+    <div class="setting-row" onclick="cargarDatosCompletos()">
+      <div class="setting-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21.5 12H16c-.7 2-2 3-4 3s-3.3-1-4-3H2.5"/><path d="M5.5 5.1L2 12v6c0 1.1.9 2 2 2h16a2 2 0 0 0 2-2v-6l-3.5-6.9A2 2 0 0 0 16.7 4H7.3a2 2 0 0 0-1.8 1.1z"/></svg></div>
+      <div class="setting-text">Forzar Sincronización</div>
+      <div class="setting-arrow"><span style="font-size: 12px; color: var(--text-secondary); margin-right: 8px;">Online</span></div>
+    </div>
+  </div>
+</div>
+ 
   
 
     <div class="section-title">Sistema</div>
@@ -1401,18 +1398,32 @@
       if (!error) { showToast('Precios actualizados', 'success'); cargarMovimiento(); calcularTotalVenta(); }
     }
 
-    function previewAvatar(event) {
-      const file = event.target.files[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-          document.getElementById('profile-img').src = e.target.result;
-          localStorage.setItem('agua_avatar', e.target.result);
-          showToast('Foto actualizada', 'success');
-        }
-        reader.readAsDataURL(file);
-      }
-    }
+   async function subirLogoPerfil(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  // Previsualizar en el perfil
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    document.getElementById('profile-img').src = e.target.result;
+    localStorage.setItem('agua_avatar', e.target.result);
+  };
+  reader.readAsDataURL(file);
+
+  // Subir a Supabase Storage (el mismo bucket, misma ruta)
+  const { error } = await db.storage
+    .from('assets')
+    .upload('repartidor-icon.png', file, {
+      cacheControl: '3600',
+      upsert: true
+    });
+
+  if (error) {
+    showToast('Error al subir imagen: ' + error.message, 'error');
+  } else {
+    showToast('Logo actualizado con éxito', 'success');
+  }
+}
 
     function copiarDirectLink() {
       let storeCode = localStorage.getItem('aguabol_store_code');
@@ -1657,15 +1668,17 @@ async function previewAndUploadLogo(event) {
 
           function cargarLogoActual() {
   const publicUrl = db.storage.from('assets').getPublicUrl('repartidor-icon.png').data.publicUrl;
-  const preview = document.getElementById('preview-logo');
-  // Verificar si la imagen existe sin bloquear
+  const preview = document.getElementById('profile-img');
+  // Verificar si la imagen existe en el storage
   const img = new Image();
   img.onload = () => {
     preview.src = publicUrl;
-    preview.style.display = 'block';
+    localStorage.setItem('agua_avatar', publicUrl); // actualizar cache local
   };
   img.onerror = () => {
-    preview.style.display = 'none'; // no se ha subido ninguna aún
+    // Si no hay imagen, dejamos la que haya guardada en localStorage (o el ícono por defecto)
+    const saved = localStorage.getItem('agua_avatar');
+    if (saved) preview.src = saved;
   };
   img.src = publicUrl;
 }
