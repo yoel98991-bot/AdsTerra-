@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "426769029937",
+    "project_id": "aguabol-c1e6f",
+    "storage_bucket": "aguabol-c1e6f.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:426769029937:android:5cee3a7a021160f8baae10",
+        "android_client_info": {
+          "package_name": "com.aguabol.centro"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB40tIV6nEUi2aJ4bL9-7XOSbgREpZwCEc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
