@@ -1547,30 +1547,44 @@
     }
 
           // ========== REGISTRO DE NOTIFICACIONES PUSH (FCM) ==========
+// ========== REGISTRO DE NOTIFICACIONES PUSH (FCM) ==========
 async function registrarPush() {
+  showToast('Iniciando registro push...', 'info');
+
   const PushNotifications = Capacitor.Plugins.PushNotifications;
   if (!PushNotifications) {
-    console.warn('Plugin de notificaciones no disponible');
+    showToast('❌ Plugin PushNotifications no encontrado', 'error');
+    console.error('Plugin PushNotifications no disponible');
     return;
   }
 
-  // Solicitar permiso (Android 13+ requiere esto en tiempo de ejecución)
+  // Solicitar permiso
   let permiso = await PushNotifications.checkPermissions();
+  showToast(`Permiso actual: ${permiso.receive}`, 'info');
+
   if (permiso.receive !== 'granted') {
     permiso = await PushNotifications.requestPermissions();
+    showToast(`Permiso solicitado: ${permiso.receive}`, 'info');
   }
+
   if (permiso.receive !== 'granted') {
-    console.warn('Permiso de notificaciones denegado');
+    showToast('❌ Permiso denegado. Ve a Ajustes > Apps > AguaBol > Notificaciones y actívalas', 'error');
     return;
   }
 
-  // Registrar el dispositivo en Firebase
-  await PushNotifications.register();
+  // Registrar
+  try {
+    await PushNotifications.register();
+    showToast('✅ Registro push completado. Esperando token...', 'success');
+  } catch (e) {
+    showToast('❌ Error al registrar: ' + e.message, 'error');
+    return;
+  }
 
-  // Obtener el token FCM y guardarlo en Supabase
+  // Escuchar token
   PushNotifications.addListener('registration', async (token) => {
-    console.log('Token FCM recibido:', token.value);
-    const adminUserId = 'admin-unico'; // Identificador fijo para el administrador
+    showToast('📱 Token recibido', 'success');
+    const adminUserId = 'admin-unico';
 
     const { error } = await db.from('dispositivos').upsert({
       user_id: adminUserId,
@@ -1580,26 +1594,23 @@ async function registrarPush() {
     }, { onConflict: 'user_id' });
 
     if (error) {
-      console.error('Error guardando token FCM:', error);
+      showToast('❌ Error guardando token: ' + error.message, 'error');
+      console.error('Error:', error);
     } else {
-      console.log('Token FCM guardado en Supabase');
+      showToast('✅ Token guardado en Supabase', 'success');
     }
   });
 
-  // Escuchar notificaciones mientras la app está en primer plano
-  PushNotifications.addListener('pushNotificationReceived', (notificacion) => {
-    console.log('Notificación recibida en primer plano:', notificacion);
-    showToast('¡NUEVO PEDIDO RECIBIDO! 🔔');
-    cargarDatosCompletos(); // Refrescar toda la app
-  });
-
-  // Si el usuario tocó la notificación y abrió la app
-  PushNotifications.addListener('pushNotificationActionPerformed', (notificacion) => {
-    console.log('App abierta desde notificación:', notificacion);
+  PushNotifications.addListener('pushNotificationReceived', (notif) => {
+    showToast('🔔 Push recibida en primer plano', 'info');
     cargarDatosCompletos();
   });
-}
 
+  PushNotifications.addListener('pushNotificationActionPerformed', (notif) => {
+    showToast('👆 App abierta desde notificación', 'info');
+    cargarDatosCompletos();
+  });
+      }
 
     document.addEventListener('DOMContentLoaded', async () => {
       document.getElementById('fecha-venta').value = new Date().toISOString().split('T')[0];
