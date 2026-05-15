@@ -1,0 +1,6 @@
+{
+  "appId": "com.aguabol.centro",
+  "appName": "AguaBol Centro",
+  "webDir": ".",
+  "bundledWebRuntime": false
+}
