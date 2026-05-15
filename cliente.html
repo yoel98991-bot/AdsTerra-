@@ -81,13 +81,12 @@
     .live-dot { width: 10px; height: 10px; background: var(--green); border-radius: 50%; animation: pulseLive 1.5s infinite; }
     @keyframes pulseLive { 0% { box-shadow: 0 0 0 0 rgba(52, 199, 89, 0.6); } 70% { box-shadow: 0 0 0 8px rgba(52, 199, 89, 0); } 100% { box-shadow: 0 0 0 0 rgba(52, 199, 89, 0); } }
 
-    /* ========== NUEVA TARJETA LEALTAD (ANIMACIÓN EN CASCADA) ========== */
+    /* ========== TARJETA LEALTAD (ANIMACIÓN EN CASCADA) ========== */
     .wallet-card { 
       background: linear-gradient(135deg, #1C1C1E, #3A3A3C); 
       border-radius: 20px; padding: 24px; color: white; position: relative; overflow: hidden; 
       box-shadow: 0 15px 30px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.1); margin-top: 10px; 
     }
-    /* Brillo diagonal estilo tarjeta de crédito metálica */
     .wallet-card::before {
       content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
       background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.05) 50%, rgba(255,255,255,0) 100%);
@@ -102,7 +101,6 @@
       background: rgba(0,0,0,0.2);
     }
 
-    /* Estado inicial para los sellos que se van a animar (Empiezan apagados) */
     .stamp-spot.filled { 
       background: rgba(0,0,0,0.2); 
       border-color: rgba(255,255,255,0.15); 
@@ -115,7 +113,6 @@
     }
     .stamp-spot.free { border-color: var(--gold); }
 
-    /* Animación del fondo del sello (Pop Effect) */
     @keyframes fillStamp {
       0% { transform: scale(1); background: rgba(0,0,0,0.2); border-color: rgba(255,255,255,0.15); }
       50% { transform: scale(1.15); background: var(--tint); border-color: var(--tint); box-shadow: 0 0 15px rgba(14, 165, 233, 0.6); }
@@ -127,7 +124,6 @@
       100% { transform: scale(1); background: var(--gold); border-color: var(--gold); }
     }
 
-    /* Animación del icono de la gota adentro del sello */
     .stamp-spot svg { opacity: 0.2; transform: scale(0.8); }
     .stamp-spot.filled svg { animation: popIcon 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
     
@@ -229,7 +225,7 @@
         </div>
         <div class="stamps-grid" id="stamps-container"></div>
         
-        <div id="status-lealtad" style="margin-top: 24px; text-align: center; font-size: 15px; font-weight: 500; background: rgba(255,255,255,0.1); padding: 12px; border-radius: 12px; position: relative; z-index: 2;">Cargando...</div>
+        <div id="status-lealtad" style="margin-top: 24px; text-align: center; font-size: 15px; font-weight: 500; background: rgba(255,255,255,0.1); padding: 12px; border-radius: 12px; position: relative; z-index: 2; transition: all 0.3s ease;">Cargando...</div>
       </div>
       <p style="text-align: center; font-size: 13px; color: var(--text-muted); margin-top: 16px;">Acumula 10 compras y el próximo botellón corre por nuestra cuenta.</p>
     </div>
@@ -387,12 +383,27 @@
       if (!error) { showToast("¡Pedido confirmado!"); document.getElementById('qty-min').innerText="1"; document.getElementById('qty-sab').innerText="0"; calcularTotal(); chequearPedidoActivo(); }
     }
 
-    // --- NUEVA LÓGICA DE ANIMACIÓN EN CASCADA ---
     async function cargarLealtad() {
       const { data: v } = await db.from('ventas').select('mineral, saborizada').eq('cliente_id', usuarioActual.id);
       let tot = 0; v?.forEach(x => tot += (x.mineral+x.saborizada));
-      const pts = tot % 10, faltan = 10 - pts;
-      document.getElementById('status-lealtad').innerText = faltan === 0 ? "¡Tu próximo botellón es GRATIS! 🎉" : `Te faltan ${faltan} sellos para tu regalo`;
+      
+      let pts = tot % 10;
+      if (pts === 0 && tot > 0) {
+        pts = 10; 
+      }
+      
+      const faltan = 10 - pts;
+      const lblStatus = document.getElementById('status-lealtad');
+      
+      if (faltan === 0) {
+        lblStatus.innerHTML = "¡Felicidades! Tienes un botellón GRATIS 🎉";
+        lblStatus.style.background = "rgba(255, 149, 0, 0.2)";
+        lblStatus.style.color = "var(--gold)";
+      } else {
+        lblStatus.innerHTML = `Te faltan ${faltan} sellos para tu regalo`;
+        lblStatus.style.background = "rgba(255,255,255,0.1)";
+        lblStatus.style.color = "white";
+      }
       
       const cont = document.getElementById('stamps-container'); 
       cont.innerHTML = '';
@@ -400,9 +411,6 @@
       for (let i = 1; i <= 10; i++) {
         const isFilled = i <= pts;
         const isFree = i === 10;
-        
-        // Multiplicador de retraso: 0.12 segundos por cada punto. 
-        // Esto crea el efecto dominó/cascada
         const delay = isFilled ? (i * 0.12) : 0; 
         
         let clases = 'stamp-spot';
