@@ -1,5 +1,10 @@
 {
   "appId": "com.aguabol.centro",
   "appName": "AguaBol Centro",
-  "webDir": "www"
+  "webDir": "www",
+  "plugins": {
+    "PushNotifications": {
+      "presentationOptions": ["badge", "sound", "alert"]
+    }
+  }
 }
