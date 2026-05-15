@@ -571,16 +571,14 @@
       <span>Ajustes</span>
     </div>
   </div>
-
-    <script type="module">
-  // ===== IMPORTS PARA CAPACITOR (GPS y Notificaciones nativas) =====
-  import { Capacitor } from 'https://cdn.jsdelivr.net/npm/@capacitor/core@6/dist/esm/index.js';
-  import { Geolocation } from 'https://cdn.jsdelivr.net/npm/@capacitor/geolocation@6/dist/esm/index.js';
-  import { LocalNotifications } from 'https://cdn.jsdelivr.net/npm/@capacitor/local-notifications@6/dist/esm/index.js';
+  <script src="https://cdn.jsdelivr.net/npm/@capacitor/local-notifications@6/dist/capacitor-local-notifications.js"></script>
+        <script>
     // ========== 1. CONFIGURACIÓN DE SUPABASE ==========
     const SUPABASE_URL = 'https://aiipxfssbnpfpefbbnwm.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFpaXB4ZnNzYm5wZnBlZmJibndtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3MDM2MzIsImV4cCI6MjA5NDI3OTYzMn0.CS_e43iE4ClLgqQULrm4mNm3ji71WQZQcdBNfg6lTHg';
     const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+              // Variable para notificaciones locales (plugin ya cargado)
+    const LocalNotifications = Capacitor.Plugins.LocalNotifications;
 
     // ========== 2. VARIABLES DE ESTADO ==========
     let ventas = [];
@@ -1540,11 +1538,7 @@
       document.getElementById('mes').value = today.getMonth();
       document.getElementById('anio').value = today.getFullYear();
       
-            // NUEVO: Sustituir navigator.geolocation por el plugin nativo si estamos en Capacitor
-      if (Capacitor.isNativePlatform()) {
-        navigator.geolocation = Geolocation;
-      }
-
+ 
       // NUEVO: Pedir permiso para notificaciones locales
       try {
         await LocalNotifications.requestPermissions();
