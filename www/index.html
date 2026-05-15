@@ -1410,7 +1410,9 @@
       
       // Generar enlace público fijo para el portal del cliente en Netlify
       const urlBase = "https://celadon-moonbeam-5c1af4.netlify.app";
-      const link = `${urlBase}/cliente.html?store=${storeCode}`;
+      
+      // CORRECCIÓN: Se eliminó '/cliente.html' para que apunte directamente al dominio raíz
+      const link = `${urlBase}?store=${storeCode}`;
       
       if (navigator.clipboard) { 
         navigator.clipboard.writeText(link).then(() => showToast(`Link copiado`, 'success')); 
@@ -1424,6 +1426,7 @@
         showToast(`Link copiado`, 'success'); 
       }
     }
+  
 
 
     // ========== 13. FINANZAS (GRÁFICOS) ==========
