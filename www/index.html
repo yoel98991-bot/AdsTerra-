@@ -571,6 +571,7 @@
       <span>Ajustes</span>
     </div>
   </div>
+    <script src="https://cdn.jsdelivr.net/npm/@capacitor/geolocation@6/dist/capacitor-geolocation.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@capacitor/local-notifications@6/dist/capacitor-local-notifications.js"></script>
         <script>
     // ========== 1. CONFIGURACIÓN DE SUPABASE ==========
@@ -1539,10 +1540,15 @@
       document.getElementById('anio').value = today.getFullYear();
       
  
-      // NUEVO: Pedir permiso para notificaciones locales
+    
+         // NUEVO: Pedir permiso de ubicación usando Capacitor
       try {
-        await LocalNotifications.requestPermissions();
-      } catch(e) { console.log('Notificaciones no disponibles (navegador)'); }
+        const geoPlugin = Capacitor.Plugins.Geolocation;
+        if (geoPlugin) {
+          const permResult = await geoPlugin.requestPermissions();
+          console.log('Permiso ubicación:', permResult.location);
+        }
+      } catch(e) { console.log('Error solicitando permiso de ubicación', e); }
 
       const savedAvatar = localStorage.getItem('agua_avatar');
       if (savedAvatar) document.getElementById('profile-img').src = savedAvatar;
