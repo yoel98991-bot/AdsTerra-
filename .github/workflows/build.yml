@@ -14,17 +14,15 @@ jobs:
           node-version: 20
 
       - run: npm install
-
-      # 1. Crear el proyecto Android primero (genera android/app/)
       - run: npx cap add android
 
-      # 2. Ahora sí, restaurar google-services.json desde el secreto base64
-      - name: Restaurar google-services.json
-        run: echo "${{ secrets.GOOGLE_SERVICES_JSON_BASE64 }}" | base64 -d > android/app/google-services.json
+      # Copiar google-services.json (debe estar en la raíz del repo)
+      - name: Copiar google-services.json
+        run: cp google-services.json android/app/google-services.json
 
       - run: npx cap sync
 
-      # Añadir permisos de Android (ya incluye POST_NOTIFICATIONS)
+      # Añadir permisos de Android (ubicación, notificaciones, etc.)
       - name: Añadir Permisos de Android
         run: |
           MANIFEST="android/app/src/main/AndroidManifest.xml"
