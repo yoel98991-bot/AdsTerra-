@@ -1539,9 +1539,7 @@
       document.getElementById('mes').value = today.getMonth();
       document.getElementById('anio').value = today.getFullYear();
       
- 
-    
-         // NUEVO: Pedir permiso de ubicación usando Capacitor
+      // PEDIR PERMISO DE UBICACIÓN
       try {
         const geoPlugin = Capacitor.Plugins.Geolocation;
         if (geoPlugin) {
@@ -1550,12 +1548,22 @@
         }
       } catch(e) { console.log('Error solicitando permiso de ubicación', e); }
 
+      // NUEVO: PEDIR PERMISO DE NOTIFICACIONES (Obligatorio en Android 13+)
+      try {
+        const notifPlugin = Capacitor.Plugins.LocalNotifications;
+        if (notifPlugin) {
+          const notifPerm = await notifPlugin.requestPermissions();
+          console.log('Permiso notificaciones:', notifPerm.display);
+        }
+      } catch(e) { console.log('Error solicitando permiso de notificaciones', e); }
+
       const savedAvatar = localStorage.getItem('agua_avatar');
       if (savedAvatar) document.getElementById('profile-img').src = savedAvatar;
 
       await cargarDatosCompletos();
       escucharRealtime();
     });
+
   </script>
 </body>
 </html>
