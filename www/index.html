@@ -1546,6 +1546,60 @@
         }).subscribe();
     }
 
+          // ========== REGISTRO DE NOTIFICACIONES PUSH (FCM) ==========
+async function registrarPush() {
+  const PushNotifications = Capacitor.Plugins.PushNotifications;
+  if (!PushNotifications) {
+    console.warn('Plugin de notificaciones no disponible');
+    return;
+  }
+
+  // Solicitar permiso (Android 13+ requiere esto en tiempo de ejecución)
+  let permiso = await PushNotifications.checkPermissions();
+  if (permiso.receive !== 'granted') {
+    permiso = await PushNotifications.requestPermissions();
+  }
+  if (permiso.receive !== 'granted') {
+    console.warn('Permiso de notificaciones denegado');
+    return;
+  }
+
+  // Registrar el dispositivo en Firebase
+  await PushNotifications.register();
+
+  // Obtener el token FCM y guardarlo en Supabase
+  PushNotifications.addListener('registration', async (token) => {
+    console.log('Token FCM recibido:', token.value);
+    const adminUserId = 'admin-unico'; // Identificador fijo para el administrador
+
+    const { error } = await db.from('dispositivos').upsert({
+      user_id: adminUserId,
+      fcm_token: token.value,
+      plataforma: 'android',
+      updated_at: new Date().toISOString()
+    }, { onConflict: 'user_id' });
+
+    if (error) {
+      console.error('Error guardando token FCM:', error);
+    } else {
+      console.log('Token FCM guardado en Supabase');
+    }
+  });
+
+  // Escuchar notificaciones mientras la app está en primer plano
+  PushNotifications.addListener('pushNotificationReceived', (notificacion) => {
+    console.log('Notificación recibida en primer plano:', notificacion);
+    showToast('¡NUEVO PEDIDO RECIBIDO! 🔔');
+    cargarDatosCompletos(); // Refrescar toda la app
+  });
+
+  // Si el usuario tocó la notificación y abrió la app
+  PushNotifications.addListener('pushNotificationActionPerformed', (notificacion) => {
+    console.log('App abierta desde notificación:', notificacion);
+    cargarDatosCompletos();
+  });
+}
+
 
     document.addEventListener('DOMContentLoaded', async () => {
       document.getElementById('fecha-venta').value = new Date().toISOString().split('T')[0];
@@ -1576,6 +1630,7 @@
 
       await cargarDatosCompletos();
       escucharRealtime();
+      registrarPush();
     });
 
   </script>
