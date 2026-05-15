@@ -1,0 +1,39 @@
+name: Build Cliente APK
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build-cliente:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - run: npm install
+
+      # Sustituye index.html por cliente.html
+      - name: Usar cliente.html como punto de entrada
+        run: cp www/cliente.html www/index.html
+
+      # Sustituye capacitor.config.json por la configuración del cliente
+      - name: Usar capacitor.cliente.config.json
+        run: cp capacitor.cliente.config.json capacitor.config.json
+
+      - run: npx cap add android
+      - run: cp google-services.json android/app/google-services.json
+      - run: npx cap sync
+
+      - name: Añadir permisos de Android
+        run: |
+          MANIFEST="android/app/src/main/AndroidManifest.xml"
+          sed -i 's|</manifest>|    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />\n    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />\n    <uses-feature android:name="android.hardware.location.gps" />\n    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />\n</manifest>|g' $MANIFEST
+
+      - run: cd android && chmod +x gradlew && ./gradlew assembleDebug
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Aguabol-Cliente-APK
+          path: android/app/build/outputs/apk/debug/app-debug.apk
