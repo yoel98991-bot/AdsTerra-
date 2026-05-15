@@ -780,19 +780,61 @@
       openModal('modalChoferesOverlay');
     }
 
-    async function asignarChofer(choferId, choferNombre, choferTel) {
-      closeModal('modalChoferesOverlay');
-      const pedido = pedidosActivos.find(p => p.id === pedidoSeleccionadoId);
-      await db.from('pedidos').update({ estado: 'en_camino', chofer_id: choferId }).eq('id', pedidoSeleccionadoId);
-      pedido.estado = 'en_camino'; pedido.chofer_id = choferId;
-      renderPedidos();
-      const urlBase = "https://celadon-moonbeam-5c1af4.netlify.app";
-      const linkMagico = `${urlBase}/chofer.html?id=${pedidoSeleccionadoId}`;
-      const textoWa = `🚚 *Nuevo Pedido: ${pedido.clientes.nombre}*\nDetalle: ${pedido.items.mineral || 0} Min / ${pedido.items.saborizada || 0} Sab\nCobrar: Bs ${pedido.monto_total}\n\n👉 *ABRE ESTE ENLACE PARA ENTREGAR:*\n${linkMagico}`;
-      const linkWa = `https://wa.me/${choferTel.replace(/\D/g,'')}?text=${encodeURIComponent(textoWa)}`;
-      window.open(linkWa, '_blank'); 
-      showToast('Chofer asignado. Enlace enviado por WhatsApp.');
+async function asignarChofer(choferId, choferNombre, choferTel) {
+  closeModal('modalChoferesOverlay');
+  const pedido = pedidosActivos.find(p => p.id === pedidoSeleccionadoId);
+  if (!pedido) {
+    showToast('Pedido no encontrado', 'error');
+    return;
+  }
+
+  // Actualizar estado en Supabase y localmente
+  await db.from('pedidos').update({ estado: 'en_camino', chofer_id: choferId }).eq('id', pedidoSeleccionadoId);
+  pedido.estado = 'en_camino';
+  pedido.chofer_id = choferId;
+  renderPedidos();
+
+  // Construir el enlace mágico
+  const urlBase = "https://celadon-moonbeam-5c1af4.netlify.app";
+  const linkMagico = `${urlBase}/chofer.html?id=${pedidoSeleccionadoId}`;
+
+  // Asegurar que tengamos el nombre del cliente
+  const nombreCliente = pedido.clientes?.nombre || 'Cliente';
+
+  // Texto para WhatsApp
+  const textoWa = `🚚 *Nuevo Pedido: ${nombreCliente}*\n` +
+    `Detalle: ${pedido.items.mineral || 0} Min / ${pedido.items.saborizada || 0} Sab\n` +
+    `Cobrar: Bs ${pedido.monto_total}\n\n` +
+    `👉 *ABRE ESTE ENLACE PARA ENTREGAR:*\n${linkMagico}`;
+
+  // Intentar abrir WhatsApp
+  const linkWa = `https://wa.me/${choferTel.replace(/\D/g, '')}?text=${encodeURIComponent(textoWa)}`;
+  const ventana = window.open(linkWa, '_blank');
+
+  // Copiar el enlace al portapapeles como respaldo
+  try {
+    if (navigator.clipboard) {
+      await navigator.clipboard.writeText(linkMagico);
+      showToast('Enlace copiado al portapapeles 📋', 'success');
+    } else {
+      // Fallback para navegadores antiguos o sin permisos
+      const input = document.createElement('input');
+      input.value = linkMagico;
+      document.body.appendChild(input);
+      input.select();
+      document.execCommand('copy');
+      document.body.removeChild(input);
+      showToast('Enlace copiado 📋', 'success');
     }
+  } catch (e) {
+    showToast('No se pudo copiar el enlace, pero se abrió WhatsApp si es posible', 'info');
+  }
+
+  // Si no se pudo abrir WhatsApp, mostramos un toast con el enlace para copiarlo manualmente
+  if (!ventana || ventana.closed) {
+    showToast(`Enlace para chofer:\n${linkMagico}`, 'info');
+  }
+}
 
     async function completarPedido(id) {
       const pedido = pedidosActivos.find(p => p.id === id);
