@@ -231,7 +231,9 @@
     const db = window.supabase.createClient('https://aiipxfssbnpfpefbbnwm.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFpaXB4ZnNzYm5wZnBlZmJibndtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3MDM2MzIsImV4cCI6MjA5NDI3OTYzMn0.CS_e43iE4ClLgqQULrm4mNm3ji71WQZQcdBNfg6lTHg');
     
     let usuarioActual = null, coordsGPS = null, pMin = 8.5, pSab = 10, esRegistro = false;
-    let mapa = null, markRep = null, markCasa = null, rutaLayer = null;
+        let mapa = null, markRep = null, markCasa = null;
+    let rutaLayer = null, lineaGris = null, historialGPS = []; // Variables para el Efecto Uber
+, rutaLayer = null;
     let pedidoActivo = null;
 
     const dias = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
@@ -311,13 +313,15 @@
       L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png').addTo(mapa);
     }
 
-    async function actualizarRuta(ubicacionChofer) {
+        async function actualizarRuta(ubicacionChofer) {
       if (!usuarioActual?.direccion) return;
       const coordsCliente = usuarioActual.direccion.includes('| GPS:') ? usuarioActual.direccion.split('| GPS:')[1].split(',') : null;
       if (!coordsCliente) return;
       const latC = parseFloat(coordsCliente[0]), lngC = parseFloat(coordsCliente[1]);
       const [latR, lngR] = ubicacionChofer.split(',').map(Number);
+      
       if (!markCasa) markCasa = L.marker([latC, lngC]).addTo(mapa).bindPopup('Mi ubicación');
+      
       // Icono personalizado del repartidor (círculo azul con camión)
       const iconoRepartidor = L.divIcon({
         html: `<div style="width:44px;height:44px;background:var(--tint);border-radius:22px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(14,165,233,0.5);border:3px solid white;">
@@ -327,46 +331,127 @@
         iconSize: [44, 44],
         iconAnchor: [22, 22]
       });
-      if (!markRep) markRep = L.marker([latR, lngR], { icon: iconoRepartidor }).addTo(mapa).bindPopup('Repartidor');
-      else markRep.setLatLng([latR, lngR]);
+      
+      // Mover o crear el marcador del camión
+      if (!markRep) {
+          markRep = L.marker([latR, lngR], { icon: iconoRepartidor }).addTo(mapa).bindPopup('Repartidor');
+      } else {
+          markRep.setLatLng([latR, lngR]);
+      }
+      
+      // Centrar la cámara en el camión en cada movimiento
       mapa.panTo([latR, lngR]);
-      // Calcular ruta OSRM
-      try {
-        const res = await fetch(`https://router.project-osrm.org/route/v1/driving/${lngR},${latR};${lngC},${latC}?geometries=geojson`);
-        const data = await res.json();
-        if (data.routes?.[0]) {
-          if (rutaLayer) mapa.removeLayer(rutaLayer);
-          rutaLayer = L.geoJSON(data.routes[0].geometry, { style: { color: '#0ea5e9', weight: 5, opacity: 0.8 } }).addTo(mapa);
-          document.getElementById('tracking-distancia').innerText = `${(data.routes[0].distance / 1000).toFixed(1)} km`;
-          document.getElementById('tracking-tiempo').innerText = `${Math.round(data.routes[0].duration / 60)} min`;
+
+      // OPTIMIZACIÓN CRÍTICA: Solo pedir la ruta al servidor SI NO existe la línea azul
+      if (!rutaLayer) {
+        try {
+          const res = await fetch(`https://router.project-osrm.org/route/v1/driving/${lngR},${latR};${lngC},${latC}?geometries=geojson`);
+          const data = await res.json();
+          if (data.routes?.[0]) {
+            rutaLayer = L.geoJSON(data.routes[0].geometry, { style: { color: '#0ea5e9', weight: 5, opacity: 0.8 } }).addTo(mapa);
+            
+            // Mostrar distancia y tiempo inicial
+            document.getElementById('tracking-distancia').innerText = `${(data.routes[0].distance / 1000).toFixed(1)} km`;
+            document.getElementById('tracking-tiempo').innerText = `${Math.round(data.routes[0].duration / 60)} min`;
+            
+            // Ajustar el zoom mágicamente para que se vea el camión y la casa al mismo tiempo
+            mapa.fitBounds(rutaLayer.getBounds(), { padding: [40, 40] });
+          }
+        } catch(e) {
+            console.log("Error al trazar ruta: ", e);
         }
-      } catch(e) {}
+      }
     }
 
-    async function chequearPedidoActivo() {
+
+            async function chequearPedidoActivo() {
       if(!usuarioActual) return;
       const { data: p } = await db.from('pedidos').select('*').eq('cliente_id', usuarioActual.id).in('estado',['pendiente','en_camino']).order('created_at',{ascending:false}).limit(1).maybeSingle();
-      pedidoActivo = p;
-      const overlay = document.getElementById('tracking-overlay');
-      if (p && p.estado === 'en_camino') {
-        overlay.classList.add('active');
-        inicializarMapa();
-        setTimeout(() => mapa.invalidateSize(), 300);
-        document.getElementById('tracking-nombre-cliente').innerText = 'Tu pedido está en camino';
-        document.getElementById('tracking-direccion').innerText = usuarioActual.direccion?.split('|')[0] || '';
-        if (p.ubicacion_chofer) {
-          actualizarRuta(p.ubicacion_chofer);
-        }
-      } else {
-        overlay.classList.remove('active');
-        if (rutaLayer) { mapa?.removeLayer(rutaLayer); rutaLayer = null; }
-      }
-      // Mostrar/ocultar catálogo
-      const cat = document.getElementById('catalogo-container');
+      
+      const cat = document.getElementById('catalogo-container'); 
+      const trk = document.getElementById('tracking-card'); 
       const chk = document.getElementById('checkout-bar');
-      cat.style.display = (p && p.estado === 'en_camino') ? 'none' : 'block';
-      chk.style.display = (p && p.estado === 'en_camino') ? 'none' : 'flex';
+
+      if (p && p.estado === 'en_camino') {
+        cat.style.display = 'none'; chk.style.display = 'none'; trk.style.display = 'block';
+        
+        // 1. Iniciar mapa
+        if (!mapa) {
+          mapa = L.map('mapa-cliente', { zoomControl:false, dragging:false }).setView([10.162, -67.999], 14);
+          L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png').addTo(mapa);
+        }
+        setTimeout(() => mapa.invalidateSize(), 300);
+
+        // 2. Coordenadas de la casa
+        let latC = null, lngC = null;
+        if (usuarioActual.direccion && usuarioActual.direccion.includes('| GPS:')) {
+          const c = usuarioActual.direccion.split('| GPS:')[1].split(',');
+          latC = parseFloat(c[0]); lngC = parseFloat(c[1]);
+          if(!markCasa) markCasa = L.marker([latC, lngC]).addTo(mapa);
+        }
+
+        // 3. Coordenadas del Chofer y Efecto de Líneas
+        if (p.ubicacion_chofer) {
+          const c = p.ubicacion_chofer.split(',');
+          const latR = parseFloat(c[0]);
+          const lngR = parseFloat(c[1]);
+
+          // === OBTENER LA URL PÚBLICA DE LA FOTO DESDE TU BUCKET ===
+          // Cambia 'logo.png' por el nombre exacto con el que se guarda tu archivo en el Storage
+          const nombreArchivoLogo = 'logo.png'; 
+          const urlLogoPublico = `https://aiipxfssbnpfpefbbnwm.supabase.co/storage/v1/object/public/assets/${nombreArchivoLogo}`;
+
+          // Crear el diseño del marcador con tu logo dentro de un círculo iOS Premium
+          const iconoNegocio = L.divIcon({
+            html: `<div style="width:46px; height:46px; border-radius:50%; border:3px solid white; box-shadow:0 4px 12px rgba(0,0,0,0.3); overflow:hidden; background:white; display:flex; justify-content:center; align-items:center;">
+                     <img src="${urlLogoPublico}" style="width:100%; height:100%; object-fit:cover;" onerror="this.src='https://cdn-icons-png.flaticon.com/512/2769/2769339.png'">
+                   </div>`,
+            className: '',
+            iconSize: [46, 46],
+            iconAnchor: [23, 23]
+          });
+
+          // Mover o crear el marcador del repartidor con tu logo corporativo
+          if(!markRep) {
+            markRep = L.marker([latR, lngR], { icon: iconoNegocio }).addTo(mapa);
+          } else {
+            markRep.setLatLng([latR, lngR]);
+          }
+          mapa.panTo([latR, lngR]);
+
+          // OPTIMIZACIÓN: Trazar línea azul AL FUTURO (solo 1 vez)
+          if (!rutaLayer && latC && lngC) {
+            try {
+              const res = await fetch(`https://router.project-osrm.org/route/v1/driving/${lngR},${latR};${lngC},${latC}?geometries=geojson`);
+              const data = await res.json();
+              if (data.routes && data.routes[0]) {
+                rutaLayer = L.geoJSON(data.routes[0].geometry, { style: { color: '#0ea5e9', weight: 5, opacity: 0.8 } }).addTo(mapa);
+                mapa.fitBounds(rutaLayer.getBounds(), { padding: [40, 40] });
+              }
+            } catch(e) { console.log("Servidor de rutas ocupado"); }
+          }
+
+          // EFECTO PAC-MAN: Trazar línea gris AL PASADO
+          historialGPS.push([latR, lngR]);
+          if (!lineaGris) {
+            lineaGris = L.polyline(historialGPS, { color: '#9ca3af', weight: 6, opacity: 1 }).addTo(mapa);
+          } else {
+            lineaGris.setLatLngs(historialGPS);
+          }
+        }
+
+      } else {
+        // Limpieza al entregar o cancelar
+        cat.style.display = 'block'; chk.style.display = 'flex'; trk.style.display = 'none';
+        if (mapa) {
+           mapa.remove(); 
+           mapa = null; markRep = null; markCasa = null; 
+           rutaLayer = null; lineaGris = null; historialGPS = [];
+        }
+      }
     }
+
+
 
     function cerrarTracking() {
       document.getElementById('tracking-overlay').classList.remove('active');
