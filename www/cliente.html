@@ -6,7 +6,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="theme-color" content="#F2F2F7">
-  <title>AguaBol</title>
+  <title>AguaBol - Cliente</title>
   
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   
@@ -82,7 +82,7 @@
     .live-dot { width: 10px; height: 10px; background: var(--green); border-radius: 50%; animation: pulseLive 1.5s infinite; }
     @keyframes pulseLive { 0% { box-shadow: 0 0 0 0 rgba(52, 199, 89, 0.6); } 70% { box-shadow: 0 0 0 8px rgba(52, 199, 89, 0); } 100% { box-shadow: 0 0 0 0 rgba(52, 199, 89, 0); } }
 
-    /* ========== TARJETA LEALTAD (ANIMACIÓN EN CASCADA) ========== */
+    /* ========== TARJETA LEALTAD ========== */
     .wallet-card { 
       background: linear-gradient(135deg, #1C1C1E, #3A3A3C); 
       border-radius: 20px; padding: 24px; color: white; position: relative; overflow: hidden; 
@@ -281,20 +281,19 @@
 
   </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/@capacitor/push-notifications@6/dist/capacitor-push-notifications.js"></script>
+
   <script>
     // CREDENCIALES SUPABASE
     const db = window.supabase.createClient('https://aiipxfssbnpfpefbbnwm.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFpaXB4ZnNzYm5wZnBlZmJibndtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3MDM2MzIsImV4cCI6MjA5NDI3OTYzMn0.CS_e43iE4ClLgqQULrm4mNm3ji71WQZQcdBNfg6lTHg');
     
     let usuarioActual = null, coordsGPS = null, pMin = 8.5, pSab = 10, esRegistro = false;
-    
-    // Variables para el Efecto Uber
-    let mapa = null, markRep = null, markCasa = null;
-    let rutaLayer = null, lineaGris = null, historialGPS = []; 
+    let mapa = null, markRep = null, markCasa = null, rutaLayer = null, lineaGris = null, historialGPS = []; 
 
     const dias = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
     document.getElementById('header-fecha').innerText = dias[new Date().getDay()].toUpperCase();
 
-    // === SOLUCIÓN ANDROID: Generador de IDs universal ===
+    // === GENERADOR DE IDs ===
     function generarUUID() {
       if (typeof crypto !== 'undefined' && crypto.randomUUID) {
         return crypto.randomUUID();
@@ -313,9 +312,8 @@
       }
     }
 
-    // === LOGIN PROTEGIDO CON TRY-CATCH ===
+    // === LOGIN PROTEGIDO ===
     async function procesarAcceso() {
-      // Limpia el número quitando espacios generados por el teclado
       const tel = document.getElementById('auth-phone').value.replace(/\D/g, ''); 
       if (tel.length < 10) return showToast("Número inválido", true);
       
@@ -348,7 +346,7 @@
         }
       } catch (err) {
         console.error("Error en login: ", err);
-        showToast("Error de conexión. Revisa tu internet.");
+        showToast("Error de conexión. Revisa tu internet.", true);
         btn.innerText = esRegistro ? "Crear Cuenta" : "Continuar";
         btn.disabled = false;
       }
@@ -370,6 +368,9 @@
       
       cargarPrecios(); chequearPedidoActivo();
       db.channel('rastreo').on('postgres_changes', { event:'*', schema:'public', table:'pedidos', filter:`cliente_id=eq.${usuarioActual.id}` }, () => chequearPedidoActivo()).subscribe();
+      
+      // 👇 AQUÍ ACTIVAMOS LA ANTENA DE NOTIFICACIONES AL INICIAR SESIÓN 👇
+      registrarPushCliente();
     }
 
     async function cargarPrecios() {
@@ -392,14 +393,12 @@
       if (p && p.estado === 'en_camino') {
         cat.style.display = 'none'; chk.style.display = 'none'; trk.style.display = 'block';
         
-        // 1. Iniciar mapa
         if (!mapa) {
           mapa = L.map('mapa-cliente', { zoomControl:false, dragging:false }).setView([10.162, -67.999], 14);
           L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png').addTo(mapa);
         }
         setTimeout(() => mapa.invalidateSize(), 300);
 
-        // 2. Coordenadas de la casa y formateo elegante de la tarjeta
         let latC = null, lngC = null;
         let dirLimpia = "Dirección no especificada";
         let coordsCrudas = "";
@@ -410,14 +409,13 @@
             dirLimpia = partes[0].trim(); 
             const c = partes[1].split(',');
             latC = parseFloat(c[0]); lngC = parseFloat(c[1]);
-            coordsCrudas = `${latC.toFixed(4)}, ${lngC.toFixed(4)}`; // A 4 decimales
+            coordsCrudas = `${latC.toFixed(4)}, ${lngC.toFixed(4)}`;
             if(!markCasa) markCasa = L.marker([latC, lngC]).addTo(mapa);
           } else {
             dirLimpia = usuarioActual.direccion; 
           }
         }
 
-        // Inyectar en la tarjeta limpia
         document.getElementById('tracking-dir-escrita').innerText = dirLimpia;
         const pillCoords = document.getElementById('tracking-coords');
         if (coordsCrudas) {
@@ -427,14 +425,11 @@
           pillCoords.style.display = 'none';
         }
 
-        // 3. Efecto Uber y Logo del Negocio
         if (p.ubicacion_chofer) {
           const c = p.ubicacion_chofer.split(',');
           const latR = parseFloat(c[0]);
           const lngR = parseFloat(c[1]);
 
-          // === TU LOGO AQUÍ ===
-          // Asegúrate de que tu imagen se llama logo.png en tu Storage de Supabase
           const nombreArchivoLogo = 'logo.png'; 
           const urlLogoPublico = `https://aiipxfssbnpfpefbbnwm.supabase.co/storage/v1/object/public/assets/${nombreArchivoLogo}`;
 
@@ -454,7 +449,6 @@
           }
           mapa.panTo([latR, lngR]);
 
-          // OPTIMIZACIÓN: Trazar línea azul AL FUTURO (solo 1 vez)
           if (!rutaLayer && latC && lngC) {
             try {
               const res = await fetch(`https://router.project-osrm.org/route/v1/driving/${lngR},${latR};${lngC},${latC}?geometries=geojson`);
@@ -466,7 +460,6 @@
             } catch(e) { console.log("Servidor de rutas ocupado"); }
           }
 
-          // EFECTO PAC-MAN: Trazar línea gris AL PASADO
           historialGPS.push([latR, lngR]);
           if (!lineaGris) {
             lineaGris = L.polyline(historialGPS, { color: '#9ca3af', weight: 6, opacity: 1 }).addTo(mapa);
@@ -476,7 +469,6 @@
         }
 
       } else {
-        // Limpieza al entregar
         cat.style.display = 'block'; chk.style.display = 'flex'; trk.style.display = 'none';
         if (mapa) {
            mapa.remove(); 
@@ -581,6 +573,51 @@
 
     function cerrarSesion() { localStorage.clear(); window.location.reload(); }
     function showToast(m, err=false) { const t = document.getElementById('toast'); document.getElementById('toast-msg').innerText = m; t.style.display='flex'; setTimeout(()=>t.style.display='none', 3000); }
+
+    // ========== REGISTRO DE NOTIFICACIONES PARA EL CLIENTE ==========
+    async function registrarPushCliente() {
+      // 1. Verificamos que Capacitor esté inyectado en la app
+      if (typeof Capacitor === 'undefined' || !Capacitor.Plugins.PushNotifications) {
+        console.log("PushNotifications no está disponible en este entorno");
+        return; 
+      }
+      
+      const PushNotifications = Capacitor.Plugins.PushNotifications;
+
+      // 2. Pedimos permiso al cliente
+      let permStatus = await PushNotifications.checkPermissions();
+      if (permStatus.receive === 'prompt') {
+        permStatus = await PushNotifications.requestPermissions();
+      }
+      
+      if (permStatus.receive !== 'granted') {
+        console.log("El usuario denegó los permisos de notificaciones.");
+        return; 
+      }
+
+      // 3. Registramos en Google Firebase
+      await PushNotifications.register();
+
+      // 4. Guardamos el Token atado al ID del usuario
+      PushNotifications.addListener('registration', async (token) => {
+        if (usuarioActual && usuarioActual.id) {
+          const { error } = await db.from('dispositivos').upsert({ 
+            user_id: usuarioActual.id, 
+            fcm_token: token.value, 
+            plataforma: 'android', 
+            updated_at: new Date().toISOString() 
+          }, { onConflict: 'user_id' });
+          
+          if(!error) console.log("Token de cliente guardado exitosamente");
+        }
+      });
+
+      // 5. Mostrar una alerta en pantalla si la notificación llega mientras tiene la app abierta
+      PushNotifications.addListener('pushNotificationReceived', (notif) => { 
+        showToast(notif.title || 'Nueva notificación'); 
+        chequearPedidoActivo(); 
+      });
+    }
 
     document.addEventListener('DOMContentLoaded', checkAuth);
   </script>
