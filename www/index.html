@@ -715,56 +715,117 @@
       return total % 10;
     }
 
-    function renderPedidos() {
+        function renderPedidos() {
       const container = document.getElementById('lista-pedidos-container');
       const vacia = document.getElementById('lista-pedidos-vacia');
       const badge = document.getElementById('badge-pedidos');
       container.innerHTML = '';
-      const pendientes = pedidosActivos.filter(p => p.estado === 'pendiente');
-      if (pendientes.length > 0) { badge.style.display = 'inline-block'; badge.innerText = pendientes.length; }
-      else { badge.style.display = 'none'; }
-      if (pedidosActivos.length === 0) { vacia.style.display = 'block'; return; }
-      vacia.style.display = 'none';
-      pedidosActivos.forEach(p => {
-        const cli = p.clientes || { nombre: 'Desconocido', direccion: 'Sin dirección' };
-        const items = p.items;
-        const hora = new Date(p.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-        let dirLimpia = cli.direccion || 'Sin dirección';
-        let lat = null, lng = null;
-        if(dirLimpia.includes('| GPS:')) { 
-            const pts = dirLimpia.split('| GPS:'); dirLimpia = pts[0].trim(); const crd = pts[1].split(','); 
-            lat = parseFloat(crd[0]); lng = parseFloat(crd[1]); 
+      
+      const pendientes = pedidosActivos.filter(p => p.estado === 'pendiente' || p.estado === 'en_camino');
+      
+      if (badge) {
+        badge.innerText = pendientes.length;
+        badge.style.display = pendientes.length > 0 ? 'flex' : 'none';
+      }
+
+      if (pendientes.length === 0) {
+        if(vacia) vacia.style.display = 'block';
+        return;
+      }
+      if(vacia) vacia.style.display = 'none';
+
+      pendientes.forEach(p => {
+        const cliente = p.clientes || {};
+        const items = p.items || {};
+        const hora = new Date(p.created_at).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+        
+        let detalleItems = [];
+        if (items.mineral > 0) detalleItems.push(`${items.mineral} Min`);
+        if (items.saborizada > 0) detalleItems.push(`${items.saborizada} Sab`);
+        
+        // === MAGIA: LIMPIEZA DE LA DIRECCIÓN Y GPS ===
+        let dirLimpia = "Dirección no especificada";
+        let coordTexto = "";
+        
+        if (cliente.direccion) {
+          // Detectamos si la dirección tiene el famoso enlace largo o el texto de GPS
+          if (cliente.direccion.includes('| GPS:')) {
+             const partes = cliente.direccion.split('| GPS:');
+             dirLimpia = partes[0].trim(); // Extraemos solo el texto legible
+             const coords = partes[1].split(',');
+             const lat = parseFloat(coords[0]).toFixed(4);
+             const lng = parseFloat(coords[1]).toFixed(4);
+             coordTexto = `${lat}, ${lng}`; // Acortamos a 4 decimales
+          } else {
+             dirLimpia = cliente.direccion;
+          }
         }
-        let detalle = '';
-        if(items.mineral > 0) detalle += `<span style="color:var(--tint);">${items.mineral} Mineral</span>`;
-        if(items.saborizada > 0) detalle += `<span style="color:#b45309;">${items.saborizada} Saborizada</span>`;
-        let botones = '';
-        if(p.estado === 'pendiente') {
-          botones = `
-            <button class="btn-action btn-aceptar" onclick="abrirControlRuta('${p.id}', ${lat}, ${lng}, '${escapeHtml(cli.nombre)}', '${escapeHtml(dirLimpia)}')">📍 Iniciar (Yo)</button>
-            <button class="btn-action" style="background:#f1f5f9; color:var(--text-primary);" onclick="abrirModalChoferes('${p.id}')">👨‍✈️ Asignar Chofer</button>`;
-        } else if (p.estado === 'en_camino') {
-          const chofer = choferes.find(c => c.id === p.chofer_id);
-          const txtChofer = chofer ? `Reparte: ${chofer.nombre}` : 'Reparto Propio';
-          botones = `
-            <div style="width:100%; text-align:center; font-size:13px; font-weight:700; color:var(--tint); margin-bottom:8px;">${txtChofer}</div>
-            <button class="btn-action btn-aceptar" style="background:var(--green); width:100%;" onclick="abrirControlRuta('${p.id}', ${lat}, ${lng}, '${escapeHtml(cli.nombre)}', '${escapeHtml(dirLimpia)}')">🎯 Controlar Entrega</button>`;
-        }
-        container.innerHTML += `
+        
+        // === DISEÑO DE LA TARJETA DE DESTINO ANIDADA ===
+        let htmlDireccion = `
+          <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px; margin-bottom: 16px; display: flex; gap: 12px; align-items: flex-start;">
+            <div style="background: white; width: 32px; height: 32px; border-radius: 8px; display: flex; justify-content: center; align-items: center; box-shadow: 0 2px 8px rgba(0,0,0,0.06); flex-shrink: 0;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--tint)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                <circle cx="12" cy="10" r="3"></circle>
+              </svg>
+            </div>
+            <div style="flex: 1;">
+              <div style="font-size: 10px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 2px;">Destino</div>
+              <div style="font-size: 14px; font-weight: 600; color: var(--text-primary); line-height: 1.3; margin-bottom: ${coordTexto ? '6px' : '0'}; word-break: break-word;">
+                ${dirLimpia}
+              </div>
+              ${coordTexto ? `
+              <div style="display: inline-flex; align-items: center; gap: 4px; background: #e2e8f0; color: #475569; font-size: 11px; font-weight: 700; padding: 4px 8px; border-radius: 6px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="2"/></svg>
+                ${coordTexto}
+              </div>` : ''}
+            </div>
+          </div>
+        `;
+
+        // === ETIQUETAS DE ESTADO ===
+        const estadoBadge = p.estado === 'pendiente' 
+          ? `<span style="background: #fef3c7; color: #d97706; padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 800; letter-spacing: 0.5px;">PENDIENTE</span>`
+          : `<span style="background: #e0f2fe; color: #0284c7; padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 800; letter-spacing: 0.5px;">EN RUTA</span>`;
+
+        // === ENSAMBLAJE FINAL DE LA TARJETA ===
+        let cardHtml = `
           <div class="pedido-card ${p.estado}">
             <div class="pedido-header">
               <div>
-                <div class="pedido-nombre">${escapeHtml(cli.nombre)}</div>
-                <div style="font-size:13px; color:var(--text-secondary); margin-top:2px;" class="truncate">${escapeHtml(dirLimpia)}</div>
+                <div class="pedido-nombre">${cliente.nombre || 'Nuevo Cliente'}</div>
+                <div class="pedido-hora">⏱ ${hora} • Cobrar: <strong>Bs ${p.monto_total}</strong></div>
               </div>
-              <div class="pedido-hora">${hora}</div>
+              ${estadoBadge}
             </div>
-            <div class="pedido-items">${detalle}</div>
-            <div style="font-weight:800; text-align:right; margin-bottom:12px;">Total: Bs ${p.monto_total}</div>
-            <div class="pedido-acciones">${botones}</div>
-          </div>`;
+            
+            <div class="pedido-items">
+              📦 ${detalleItems.join(' + ')}
+            </div>
+            
+            ${htmlDireccion}
+            
+            <div class="pedido-acciones">
+        `;
+
+        // Botones según el estado
+        if (p.estado === 'pendiente') {
+          cardHtml += `
+            <button class="btn-action btn-aceptar" onclick="abrirModalChoferes('${p.id}')">👨‍✈️ Asignar Chofer</button>
+            <button class="btn-action btn-rechazar" onclick="completarPedido('${p.id}', 'cancelado')" title="Cancelar Pedido">❌</button>
+          `;
+        } else {
+          cardHtml += `
+            <button class="btn-action btn-aceptar" style="background: var(--green);" onclick="completarPedido('${p.id}')">✅ Marcar Entregado</button>
+          `;
+        }
+
+        cardHtml += `</div></div>`;
+        container.innerHTML += cardHtml;
       });
     }
+
 
     function abrirModalChoferes(pedidoId) {
       pedidoSeleccionadoId = pedidoId;
