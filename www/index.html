@@ -1331,24 +1331,59 @@ async function asignarChofer(choferId, choferNombre, choferTel) {
     }
 
     // ========== REGISTRO DE NOTIFICACIONES PUSH ==========
-    async function registrarPush() {
-      showToast('Iniciando registro push...', 'info');
+        async function registrarPush() {
       const PushNotifications = Capacitor.Plugins.PushNotifications;
-      if (!PushNotifications) { showToast('❌ Plugin Push no encontrado', 'error'); return; }
-      let permiso = await PushNotifications.checkPermissions();
-      showToast(`Permiso actual: ${permiso.receive}`, 'info');
-      if (permiso.receive !== 'granted') { permiso = await PushNotifications.requestPermissions(); showToast(`Permiso solicitado: ${permiso.receive}`, 'info'); }
-      if (permiso.receive !== 'granted') { showToast('❌ Permiso denegado.', 'error'); return; }
-      try { await PushNotifications.register(); showToast('✅ Registro completado', 'success'); } catch(e) { showToast('❌ Error al registrar: ' + e.message, 'error'); return; }
+      if (!PushNotifications) return;
+
+      // === LA MAGIA PARA ANDROID: CREAR EL CANAL URGENTE ===
+      try {
+        await PushNotifications.createChannel({
+          id: 'pedidos_urgentes',
+          name: 'Pedidos Urgentes',
+          description: 'Notificaciones de alta prioridad para nuevos pedidos',
+          importance: 5, // IMPORTANCIA MÁXIMA: Suena, vibra y muestra pop-up flotante
+          visibility: 1, // Visible incluso con la pantalla bloqueada
+          vibration: true,
+          sound: 'default'
+        });
+      } catch (e) {
+        console.log('Error creando canal de notificaciones (es normal si estás en la web)', e);
+      }
+
+      // === SOLICITAR PERMISO AL USUARIO ===
+      let permStatus = await PushNotifications.checkPermissions();
+      if (permStatus.receive === 'prompt') {
+        permStatus = await PushNotifications.requestPermissions();
+      }
+      if (permStatus.receive !== 'granted') return;
+
+      // === REGISTRAR EL DISPOSITIVO EN FIREBASE ===
+      await PushNotifications.register();
+
+      // === GUARDAR EL TOKEN EN SUPABASE ===
       PushNotifications.addListener('registration', async (token) => {
-        showToast('📱 Token recibido', 'success');
-        const { error } = await db.from('dispositivos').upsert({ user_id: 'admin-unico', fcm_token: token.value, plataforma: 'android', updated_at: new Date().toISOString() }, { onConflict: 'user_id' });
+        const { error } = await db.from('dispositivos').upsert({ 
+          user_id: 'admin-unico', 
+          fcm_token: token.value, 
+          plataforma: 'android', 
+          updated_at: new Date().toISOString() 
+        }, { onConflict: 'user_id' });
+        
         if (error) showToast('❌ Error guardando token: ' + error.message, 'error');
-        else showToast('✅ Token guardado', 'success');
+        else showToast('✅ Token de notificaciones guardado', 'success');
       });
-      PushNotifications.addListener('pushNotificationReceived', (notif) => { showToast('🔔 Push recibida', 'info'); cargarDatosCompletos(); });
-      PushNotifications.addListener('pushNotificationActionPerformed', (notif) => { showToast('👆 App abierta desde notificación', 'info'); cargarDatosCompletos(); });
+
+      // === ACCIONES AL RECIBIR NOTIFICACIÓN ===
+      PushNotifications.addListener('pushNotificationReceived', (notif) => { 
+        showToast('🔔 ¡Nuevo pedido recibido!', 'info'); 
+        cargarDatosCompletos(); // Actualiza la lista sin que tengas que refrescar
+      });
+      
+      PushNotifications.addListener('pushNotificationActionPerformed', (notif) => { 
+        cargarDatosCompletos(); 
+      });
     }
+
 
     // ========== INICIAR APP ==========
     document.addEventListener('DOMContentLoaded', async () => {
