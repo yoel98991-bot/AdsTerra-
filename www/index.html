@@ -431,6 +431,38 @@
     </div>
   </div>
 
+  <div id="screen-marketing" class="screen">
+    <div class="nav-bar"><span class="nav-title">Marketing</span></div>
+    
+    <div class="card">
+      <div class="section-title" style="margin-bottom:16px;">
+         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+         Nueva Campaña Masiva
+      </div>
+      
+      <div class="input-group" style="width: 100%;">
+        <label>Título de la Notificación 🔥</label>
+        <input type="text" id="marketing-titulo" placeholder="Ej: ¡Promo de Fin de Semana! 🚀">
+      </div>
+      
+      <div class="input-group" style="width: 100%;">
+        <label>Mensaje de la Oferta</label>
+        <textarea id="marketing-mensaje" rows="3" style="width: 100%; appearance: none; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: var(--radius-sm); padding: 12px 14px; font-size: 16px; font-family: inherit; color: var(--text-primary); font-weight: 600; outline: none; resize: none; margin-bottom: 16px;" placeholder="Ej: Compra 2 botellones hoy y el tercero a mitad de precio. Toca para pedir."></textarea>
+      </div>
+
+      <button id="btn-enviar-marketing" class="btn-primary" onclick="dispararCampañaMasiva()">
+        📢 Enviar a Todos los Clientes
+      </button>
+    </div>
+
+    <div class="section-title" style="margin-top: 10px;">Historial de Envíos</div>
+    <div class="card" style="padding: 0; overflow: hidden;">
+      <div id="historial-marketing-tabla">
+         <div style="padding: 20px; text-align: center; color: var(--text-secondary); font-size: 14px;">No has enviado ninguna campaña todavía.</div>
+      </div>
+    </div>
+  </div>
+
   <button class="fab" id="fab-clientes" onclick="openClientModal()">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
   </button>
@@ -569,6 +601,11 @@
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
       <span>Ajustes</span>
     </div>
+
+    <div class="tab-item" data-screen="marketing" onclick="switchTab('marketing')">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path><path d="M7 15v4a2 2 0 0 0 2 2h2"></path></svg>
+      <span>Marketing</span>
+    </div>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@capacitor/geolocation@6/dist/capacitor-geolocation.js"></script>
@@ -639,7 +676,7 @@
     }
 
     // ========== 4. NAVEGACIÓN Y TABS ==========
-    function switchTab(screenId) {
+   function switchTab(screenId) {
       document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
       document.getElementById('screen-' + screenId).classList.add('active');
       document.querySelectorAll('.tab-item').forEach(t => t.classList.toggle('active', t.dataset.screen === screenId));
@@ -652,6 +689,7 @@
       }
       if(screenId === 'inicio') cargarMovimiento();
       if(screenId === 'inventario') actualizarStockUI();
+      if(screenId === 'marketing') cargarHistorialMarketing(); // Carga las campañas
     }
 
     function switchSubTab(sub) {
@@ -1445,6 +1483,68 @@ async function asignarChofer(choferId, choferNombre, choferTel) {
       });
     }
 
+
+    // ========== MÓDULO DE MARKETING ==========
+    async function cargarHistorialMarketing() {
+      const { data: campanas, error } = await db
+        .from('campanas_marketing')
+        .select('*')
+        .order('fecha_envio', { ascending: false });
+
+      const contenedor = document.getElementById('historial-marketing-tabla');
+      if (error || !campanas || campanas.length === 0) {
+        contenedor.innerHTML = `<div style="padding: 20px; text-align: center; color: var(--text-secondary); font-size: 14px;">No hay campañas registradas.</div>`;
+        return;
+      }
+
+      contenedor.innerHTML = campanas.map(c => {
+        const fecha = new Date(c.fecha_envio).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+        return `
+          <div style="padding: 16px; border-bottom: 1px solid var(--separator); display: flex; flex-direction: column; gap: 6px;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+              <strong style="font-size: 15px;">${escapeHtml(c.titulo)}</strong>
+              <span style="background: #dcfce7; color: #16a34a; padding: 4px 8px; border-radius: 6px; font-weight: 700; font-size: 11px; white-space: nowrap;">📱 ${c.alcance} enviados</span>
+            </div>
+            <div style="font-size: 13px; color: var(--text-secondary);">${escapeHtml(c.mensaje)}</div>
+            <div style="font-size: 11px; color: #94a3b8; font-weight: 600; margin-top: 4px;">Enviado: ${fecha}</div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    async function dispararCampañaMasiva() {
+      const titulo = document.getElementById('marketing-titulo').value.trim();
+      const mensaje = document.getElementById('marketing-mensaje').value.trim();
+      
+      if (!titulo || !mensaje) {
+        return showToast("Falta el título o el mensaje", "error");
+      }
+
+      const btn = document.getElementById('btn-enviar-marketing');
+      btn.disabled = true;
+      const textoOriginal = btn.innerHTML;
+      btn.innerHTML = `<span class="spin">⏳</span> Enviando a todos...`;
+
+      try {
+        const { data, error } = await db.functions.invoke('enviar-masivo', {
+          body: { titulo: titulo, mensaje: mensaje }
+        });
+
+        if (error) throw error;
+
+        showToast("¡Notificaciones enviadas con éxito!", "success");
+        document.getElementById('marketing-titulo').value = '';
+        document.getElementById('marketing-mensaje').value = '';
+        cargarHistorialMarketing();
+
+      } catch (err) {
+        console.error("Error lanzando campaña:", err);
+        showToast("Error al conectar con el servidor", "error");
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = textoOriginal;
+      }
+    }
 
     // ========== INICIAR APP ==========
     document.addEventListener('DOMContentLoaded', async () => {
