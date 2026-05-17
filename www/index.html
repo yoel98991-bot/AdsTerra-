@@ -991,8 +991,13 @@
       await Promise.all([
         db.from('stock').upsert({ id: 1, mineral: stock.mineral, saborizada: stock.saborizada, envases_vacios: stock.envasesVacios }),
         db.from('ventas').insert({
-          id: idVenta, fecha: fechaHoy, cliente_id: pedido.cliente_id,
-          mineral: m, saborizada: s, envases_devueltos: 0, total: pedido.monto_total
+          id: idVenta,
+          pedido_id: id, // ✅ Añadido
+          fecha: fechaHoy,
+          cliente_id: pedido.cliente_id,
+          mineral: m, saborizada: s,
+          envases_devueltos: 0,
+          total: pedido.monto_total
         })
       ]);
 
@@ -1585,7 +1590,15 @@
                 stock.mineral -= m;
                 stock.saborizada -= s;
                 await Promise.all([
-                  db.from('ventas').insert({ id: idVenta, fecha: fechaHoy, cliente_id: pedido.cliente_id, mineral: m, saborizada: s, envases_devueltos: 0, total: pedido.monto_total }),
+                  db.from('ventas').insert({
+                    id: idVenta,
+                    pedido_id: payload.new.id, // ✅ Añadido
+                    fecha: fechaHoy,
+                    cliente_id: pedido.cliente_id,
+                    mineral: m, saborizada: s,
+                    envases_devueltos: 0,
+                    total: pedido.monto_total
+                  }),
                   db.from('stock').upsert({ id: 1, mineral: stock.mineral, saborizada: stock.saborizada, envases_vacios: stock.envasesVacios })
                 ]);
                 cargarMovimiento();
