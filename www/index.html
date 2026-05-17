@@ -1401,48 +1401,53 @@ async function asignarChofer(choferId, choferNombre, choferTel) {
     }
 
 
-    // ========== 14. INICIALIZACIÓN Y SUBSCRIPCIONES (ACTUALIZADO) ==========
+    // ========== 14. INICIALIZACIÓN Y SUBSCRIPCIONES (ACTUALIZADO DEFINITIVO) ==========
     async function escucharRealtime() {
       // 1. Escuchar la tabla de Pedidos
       db.channel('public:pedidos')
         .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'pedidos' }, async (payload) => {
           const { data: cliInfo } = await db.from('clientes').select('*').eq('id', payload.new.cliente_id).single();
-          payload.new.clientes = cliInfo; pedidosActivos.unshift(payload.new);
+          payload.new.clientes = cliInfo; 
+          pedidosActivos.unshift(payload.new);
           try {
             await LocalNotifications.schedule({
               notifications: [{ id: new Date().getTime(), title: '¡Nuevo pedido!', body: cliInfo ? `${cliInfo.nombre} ha solicitado un pedido` : 'Nuevo pedido entrante', sound: 'default', smallIcon: 'ic_launcher', iconColor: '#0ea5e9' }]
             });
           } catch(e) {}
-          showToast('¡NUEVO PEDIDO RECIBIDO! 🔔'); renderPedidos();
+          showToast('¡NUEVO PEDIDO RECIBIDO! 🔔'); 
+          renderPedidos();
         })
         .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'pedidos' }, (payload) => {
           
-          // === SOLUCIÓN: Si está cancelado, lo borramos de inmediato con filtro estricto ===
-          if (payload.new.estado === 'cancelado') {
-            pedidosActivos = pedidosActivos.filter(p => String(p.id).trim() !== String(payload.new.id).trim());
-            renderPedidos();
-            showToast('Un pedido ha sido cancelado ❌', 'info');
-            return; // Detenemos la ejecución aquí para que no intente hacer nada más
-          }
-
-          // === Para cualquier otro estado (en camino, entregado) ===
+          // 1. Buscamos en qué posición exacta de la memoria está esta tarjeta
           const idx = pedidosActivos.findIndex(p => String(p.id).trim() === String(payload.new.id).trim());
           
           if (idx !== -1) {
-            const estadoAnterior = pedidosActivos[idx].estado; 
-            pedidosActivos[idx].estado = payload.new.estado; 
-            pedidosActivos[idx].chofer_id = payload.new.chofer_id;
-            pedidosActivos[idx].ubicacion_chofer = payload.new.ubicacion_chofer;
-
-            if (payload.new.estado === 'entregado' && estadoAnterior !== 'entregado') { 
-              showToast('Un chofer ha entregado un pedido ✅', 'success'); 
-              completarPedido(payload.new.id); 
+            
+            // === SI FUE CANCELADO ===
+            if (payload.new.estado === 'cancelado') {
+              // Arrancamos la tarjeta directamente de la memoria de forma segura
+              pedidosActivos.splice(idx, 1);
+              renderPedidos();
+              showToast('Un pedido ha sido cancelado ❌', 'info');
             } 
-            else { 
-              renderPedidos(); 
+            // === SI CAMBIÓ A EN CAMINO, ENTREGADO, ETC ===
+            else {
+              const estadoAnterior = pedidosActivos[idx].estado; 
+              pedidosActivos[idx].estado = payload.new.estado; 
+              pedidosActivos[idx].chofer_id = payload.new.chofer_id;
+              pedidosActivos[idx].ubicacion_chofer = payload.new.ubicacion_chofer;
+
+              if (payload.new.estado === 'entregado' && estadoAnterior !== 'entregado') { 
+                showToast('Un chofer ha entregado un pedido ✅', 'success'); 
+                completarPedido(payload.new.id); 
+              } else { 
+                renderPedidos(); 
+              }
             }
+
           } else {
-            // Respaldo de seguridad por si el panel se desincroniza
+            // Plan de respaldo por si la tarjeta no estaba en memoria
             if (payload.new.estado === 'pendiente' || payload.new.estado === 'en_camino') {
               cargarDatosCompletos();
             }
@@ -1459,10 +1464,14 @@ async function asignarChofer(choferId, choferNombre, choferTel) {
             } else if (payload.eventType === 'UPDATE') {
               const idx = clients.findIndex(c => c.id === payload.new.id);
               if (idx !== -1) clients[idx] = { id: payload.new.id, name: payload.new.nombre, phone: payload.new.telefono, address: payload.new.direccion, frequency: payload.new.frecuencia_dias ? payload.new.frecuencia_dias.toString() : '' };
-            } else if (payload.eventType === 'DELETE') { clients = clients.filter(c => c.id !== payload.old.id); }
-            renderClientList(); llenarSelectClientes();
+            } else if (payload.eventType === 'DELETE') { 
+              clients = clients.filter(c => c.id !== payload.old.id); 
+            }
+            renderClientList(); 
+            llenarSelectClientes();
         }).subscribe();
     }
+
 
 
     // ========== REGISTRO DE NOTIFICACIONES PUSH ==========
