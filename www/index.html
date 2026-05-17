@@ -277,6 +277,10 @@
     </div>
 
     <div id="sub-pedidos">
+      <button class="btn-primary" style="margin-bottom: 16px; background: linear-gradient(135deg, #10b981, #059669); box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);" onclick="abrirMapaGlobal()">
+        🗺️ Ver Mapa General de Reparto (Multi-paradas)
+      </button>
+
       <div id="lista-pedidos-vacia" style="text-align: center; padding: 40px 20px; color: var(--text-secondary);">
         <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="margin-bottom:16px; opacity:0.5;"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
         <p>No hay pedidos pendientes.</p>
@@ -580,6 +584,22 @@
     </div>
   </div>
 
+  <div id="pantallaMapaGlobalOverlay" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: var(--system-bg); z-index: 9999; display: none; flex-direction: column; opacity: 0; transition: opacity 0.3s ease;">
+    <button onclick="cerrarMapaGlobal()" style="position: absolute; top: calc(env(safe-area-inset-top) + 20px); left: 20px; z-index: 99999; width: 44px; height: 44px; border-radius: 22px; background: white; border: none; box-shadow: 0 4px 12px rgba(0,0,0,0.15); display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text-primary);">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+
+    <div id="mapa-global-reparto" style="flex: 1; width: 100%; z-index: 1;"></div>
+    
+    <div style="position: absolute; bottom: calc(env(safe-area-inset-bottom) + 20px); left: 20px; right: 20px; background: white; z-index: 10; border-radius: 20px; padding: 16px 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); display: flex; justify-content: space-between; align-items: center;">
+      <div>
+        <h3 style="margin: 0; font-size: 18px; font-weight: 800; letter-spacing: -0.5px;">Ruta de Entrega</h3>
+        <p style="color: var(--text-secondary); font-size: 13px; margin-top: 2px;" id="lbl-total-paradas">0 paradas pendientes</p>
+      </div>
+      <span style="background: rgba(14, 165, 233, 0.1); color: var(--tint); padding: 6px 12px; border-radius: 100px; font-size: 13px; font-weight: 800;" id="badge-total-botellones">0 Botellones</span>
+    </div>
+  </div>
+
   <div class="tab-bar">
     <div class="tab-item active" data-screen="inicio" onclick="switchTab('inicio')">
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
@@ -601,12 +621,15 @@
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
       <span>Ajustes</span>
     </div>
-
     <div class="tab-item" data-screen="marketing" onclick="switchTab('marketing')">
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path><path d="M7 15v4a2 2 0 0 0 2 2h2"></path></svg>
       <span>Marketing</span>
     </div>
   </div>
+
+  <button class="fab" id="fab-clientes" onclick="openClientModal()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+  </button>
 
   <script src="https://cdn.jsdelivr.net/npm/@capacitor/geolocation@6/dist/capacitor-geolocation.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@capacitor/local-notifications@6/dist/capacitor-local-notifications.js"></script>
@@ -640,6 +663,9 @@
     let marcadorA = null;
     let marcadorB = null;
 
+    let mapaGlobal = null;
+    let listaMarcadoresGlobales = [];
+
     // ========== 3. FUNCIONES DE UTILIDAD ==========
     function showToast(message, type = 'success') {
       const container = document.getElementById('toast-container');
@@ -654,7 +680,7 @@
       setTimeout(() => { toast.remove(); }, 3400);
     }
 
-    function escapeHtml(text) { return String(text).replace(/[&<>"]/g, m => ({'&':'&','<':'<','>':'>','"':'"'}[m])); }
+    function escapeHtml(text) { return String(text).replace(/[&<>"]/g, m => ({'&':'&','<':'<','>':'>','"':'位'}[m])); }
     function formatearBs(monto) { return 'Bs ' + monto.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
 
     function animarNumero(id, endValue, duration) {
@@ -676,7 +702,7 @@
     }
 
     // ========== 4. NAVEGACIÓN Y TABS ==========
-   function switchTab(screenId) {
+    function switchTab(screenId) {
       document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
       document.getElementById('screen-' + screenId).classList.add('active');
       document.querySelectorAll('.tab-item').forEach(t => t.classList.toggle('active', t.dataset.screen === screenId));
@@ -689,7 +715,7 @@
       }
       if(screenId === 'inicio') cargarMovimiento();
       if(screenId === 'inventario') actualizarStockUI();
-      if(screenId === 'marketing') cargarHistorialMarketing(); // Carga las campañas
+      if(screenId === 'marketing') cargarHistorialMarketing();
     }
 
     function switchSubTab(sub) {
@@ -753,7 +779,7 @@
       return total % 10;
     }
 
-        function renderPedidos() {
+    function renderPedidos() {
       const container = document.getElementById('lista-pedidos-container');
       const vacia = document.getElementById('lista-pedidos-vacia');
       const badge = document.getElementById('badge-pedidos');
@@ -781,7 +807,6 @@
         if (items.mineral > 0) detalleItems.push(`${items.mineral} Min`);
         if (items.saborizada > 0) detalleItems.push(`${items.saborizada} Sab`);
         
-        // === MAGIA: LIMPIEZA DE LA DIRECCIÓN Y GPS ===
         let dirLimpia = "Dirección no especificada";
         let coordTexto = "";
         let destLat = null;
@@ -800,7 +825,6 @@
           }
         }
         
-        // === DISEÑO DE LA TARJETA DE DESTINO ANIDADA ===
         let htmlDireccion = `
           <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px; margin-bottom: 16px; display: flex; gap: 12px; align-items: flex-start;">
             <div style="background: white; width: 32px; height: 32px; border-radius: 8px; display: flex; justify-content: center; align-items: center; box-shadow: 0 2px 8px rgba(0,0,0,0.06); flex-shrink: 0;">
@@ -823,12 +847,10 @@
           </div>
         `;
 
-        // === ETIQUETAS DE ESTADO ===
         const estadoBadge = p.estado === 'pendiente' 
           ? `<span style="background: #fef3c7; color: #d97706; padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 800; letter-spacing: 0.5px;">PENDIENTE</span>`
           : `<span style="background: #e0f2fe; color: #0284c7; padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 800; letter-spacing: 0.5px;">EN RUTA</span>`;
 
-        // === ENSAMBLAJE FINAL DE LA TARJETA ===
         let cardHtml = `
           <div class="pedido-card ${p.estado}">
             <div class="pedido-header">
@@ -848,14 +870,13 @@
             <div class="pedido-acciones">
         `;
 
-     // Botones según el estado
         if (p.estado === 'pendiente') {
           cardHtml += `
             <div style="display:flex; gap:10px; width:100%; margin-bottom:10px;">
               <button class="btn-action btn-aceptar" style="flex:1;" onclick="abrirModalChoferes('${p.id}')">👨‍✈️ Asignar Chofer</button>
               <button class="btn-action btn-aceptar" style="background: #10b981; flex:1;" onclick="abrirControlRuta('${p.id}', ${destLat}, ${destLng}, '${escapeHtml(cliente.nombre || 'Cliente')}', '${escapeHtml(dirLimpia)}')">🛵 Atender Yo</button>
             </div>
-            <button class="btn-action btn-rechazar" style="width:100%;" onclick="completarPedido('${p.id}', 'cancelado')" title="Cancelar Pedido">❌ Cancelar Pedido</button>
+            <button class="btn-action btn-rechazar" style="width:100%;" onclick="cancelarPedido('${p.id}')" title="Cancelar Pedido">❌ Cancelar Pedido</button>
           `;
         } else {
           cardHtml += `
@@ -871,7 +892,6 @@
       });
     }
 
-
     function abrirModalChoferes(pedidoId) {
       pedidoSeleccionadoId = pedidoId;
       const container = document.getElementById('lista-choferes-container');
@@ -886,61 +906,49 @@
       openModal('modalChoferesOverlay');
     }
 
-async function asignarChofer(choferId, choferNombre, choferTel) {
-  closeModal('modalChoferesOverlay');
-  const pedido = pedidosActivos.find(p => p.id === pedidoSeleccionadoId);
-  if (!pedido) {
-    showToast('Pedido no encontrado', 'error');
-    return;
-  }
+    async function asignarChofer(choferId, choferNombre, choferTel) {
+      closeModal('modalChoferesOverlay');
+      const pedido = pedidosActivos.find(p => p.id === pedidoSeleccionadoId);
+      if (!pedido) {
+        showToast('Pedido no encontrado', 'error');
+        return;
+      }
 
-  // Actualizar estado en Supabase y localmente
-  await db.from('pedidos').update({ estado: 'en_camino', chofer_id: choferId }).eq('id', pedidoSeleccionadoId);
-  pedido.estado = 'en_camino';
-  pedido.chofer_id = choferId;
-  renderPedidos();
+      await db.from('pedidos').update({ estado: 'en_camino', chofer_id: choferId }).eq('id', pedidoSeleccionadoId);
+      pedido.estado = 'en_camino';
+      pedido.chofer_id = choferId;
+      renderPedidos();
 
-  // Construir el enlace mágico
-  const urlBase = "https://celadon-moonbeam-5c1af4.netlify.app";
-  const linkMagico = `${urlBase}/chofer.html?id=${pedidoSeleccionadoId}`;
+      const urlBase = "https://celadon-moonbeam-5c1af4.netlify.app";
+      const linkMagico = `${urlBase}/chofer.html?id=${pedidoSeleccionadoId}`;
+      const nombreCliente = pedido.clientes?.nombre || 'Cliente';
 
-  // Asegurar que tengamos el nombre del cliente
-  const nombreCliente = pedido.clientes?.nombre || 'Cliente';
+      const textoWa = `🚚 *Nuevo Pedido: ${nombreCliente}*\n` +
+        `Detalle: ${pedido.items.mineral || 0} Min / ${pedido.items.saborizada || 0} Sab\n` +
+        `Cobrar: Bs ${pedido.monto_total}\n\n` +
+        `👉 *ABRE ESTE ENLACE PARA ENTREGAR:*\n${linkMagico}`;
 
-  // Texto para WhatsApp
-  const textoWa = `🚚 *Nuevo Pedido: ${nombreCliente}*\n` +
-    `Detalle: ${pedido.items.mineral || 0} Min / ${pedido.items.saborizada || 0} Sab\n` +
-    `Cobrar: Bs ${pedido.monto_total}\n\n` +
-    `👉 *ABRE ESTE ENLACE PARA ENTREGAR:*\n${linkMagico}`;
+      const linkWa = `https://wa.me/${choferTel.replace(/\D/g, '')}?text=${encodeURIComponent(textoWa)}`;
+      const ventana = window.open(linkWa, '_blank');
 
-  // Intentar abrir WhatsApp
-  const linkWa = `https://wa.me/${choferTel.replace(/\D/g, '')}?text=${encodeURIComponent(textoWa)}`;
-  const ventana = window.open(linkWa, '_blank');
+      try {
+        if (navigator.clipboard) {
+          await navigator.clipboard.writeText(linkMagico);
+          showToast('Enlace copiado al portapapeles 📋', 'success');
+        } else {
+          const input = document.createElement('input');
+          input.value = linkMagico; document.body.appendChild(input);
+          input.select(); document.execCommand('copy'); document.body.removeChild(input);
+          showToast('Enlace copiado 📋', 'success');
+        }
+      } catch (e) {
+        showToast('Enlace generado para el chofer', 'info');
+      }
 
-  // Copiar el enlace al portapapeles como respaldo
-  try {
-    if (navigator.clipboard) {
-      await navigator.clipboard.writeText(linkMagico);
-      showToast('Enlace copiado al portapapeles 📋', 'success');
-    } else {
-      // Fallback para navegadores antiguos o sin permisos
-      const input = document.createElement('input');
-      input.value = linkMagico;
-      document.body.appendChild(input);
-      input.select();
-      document.execCommand('copy');
-      document.body.removeChild(input);
-      showToast('Enlace copiado 📋', 'success');
+      if (!ventana || ventana.closed) {
+        showToast(`Enlace para chofer:\n${linkMagico}`, 'info');
+      }
     }
-  } catch (e) {
-    showToast('No se pudo copiar el enlace, pero se abrió WhatsApp si es posible', 'info');
-  }
-
-  // Si no se pudo abrir WhatsApp, mostramos un toast con el enlace para copiarlo manualmente
-  if (!ventana || ventana.closed) {
-    showToast(`Enlace para chofer:\n${linkMagico}`, 'info');
-  }
-}
 
     async function completarPedido(id) {
       const pedido = pedidosActivos.find(p => p.id === id);
@@ -965,6 +973,7 @@ async function asignarChofer(choferId, choferNombre, choferTel) {
         cerrarRuta();
         pedidosActivos = pedidosActivos.filter(p => p.id !== id);
         renderPedidos();
+        showToast('Pedido cancelado correctamente ❌', 'info');
       }
     }
 
@@ -1057,7 +1066,7 @@ async function asignarChofer(choferId, choferNombre, choferTel) {
       container.innerHTML = html;
     }
 
-    // ========== 8. MÓDULO REPARTO (MAPA) ==========
+    // ========== 8. MÓDULO REPARTO (MAPA INDIVIDUAL) ==========
     function abrirControlRuta(pedidoId, destLat, destLng, nombreCliente, direccionCliente) {
       const modal = document.getElementById('pantallaRutaOverlay');
       modal.style.display = 'flex'; setTimeout(() => modal.classList.add('active'), 10);
@@ -1160,13 +1169,93 @@ async function asignarChofer(choferId, choferNombre, choferTel) {
         }, (err) => console.log('Buscando señal GPS...'), { enableHighAccuracy: true });
       };
     }
+    
     function cerrarRuta() {
       if (watchGpsId) { navigator.geolocation.clearWatch(watchGpsId); watchGpsId = null; }
       const modal = document.getElementById('pantallaRutaOverlay');
       modal.classList.remove('active'); setTimeout(() => modal.style.display = 'none', 300);
     }
 
-    // ========== 9. VENTAS MANUALES E INVENTARIO ==========
+    // ========== 9. MÓDULO RUTA GLOBAL MULTI-PARADAS (NUEVO) ==========
+    function abrirMapaGlobal() {
+      const modal = document.getElementById('pantallaMapaGlobalOverlay');
+      modal.style.display = 'flex';
+      setTimeout(() => modal.classList.add('active'), 10);
+      
+      const pendientes = pedidosActivos.filter(p => p.estado === 'pendiente' || p.estado === 'en_camino');
+      document.getElementById('lbl-total-paradas').innerText = `${pendientes.length} paradas pendientes en total`;
+      
+      let totalBotellones = 0;
+
+      if (!mapaGlobal) {
+        mapaGlobal = L.map('mapa-global-reparto', { zoomControl: false }).setView([10.1620, -67.9996], 13);
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png').addTo(mapaGlobal);
+      }
+
+      listaMarcadoresGlobales.forEach(m => mapaGlobal.removeLayer(m));
+      listaMarcadoresGlobales = [];
+
+      let puntosLatLng = [];
+
+      pendientes.forEach((pedido, index) => {
+        const cliente = pedido.clientes || {};
+        const items = pedido.items || {};
+        totalBotellones += (items.mineral || 0) + (items.saborizada || 0);
+
+        if (cliente.direccion && cliente.direccion.includes('| GPS:')) {
+          const coords = cliente.direccion.split('| GPS:')[1].trim().split(',');
+          const lat = parseFloat(coords[0]);
+          const lng = parseFloat(coords[1]);
+          
+          if (!isNaN(lat) && !isNaN(lng)) {
+            puntosLatLng.push([lat, lng]);
+            const colorBurbuja = pedido.estado === 'en_camino' ? '#0ea5e9' : '#f59e0b';
+            
+            const pinNumerado = L.divIcon({
+              html: `<div style="width:32px; height:32px; border-radius:50%; background:${colorBurbuja}; color:white; border:2px solid white; box-shadow:0 4px 10px rgba(0,0,0,0.3); display:flex; justify-content:center; align-items:center; font-weight:800; font-size:13px;">
+                       ${index + 1}
+                     </div>`,
+              className: '',
+              iconSize: [32, 32],
+              iconAnchor: [16, 16]
+            });
+
+            let desglose = [];
+            if (items.mineral > 0) desglose.push(`${items.mineral} Mineral`);
+            if (items.saborizada > 0) desglose.push(`${items.saborizada} Saborizada`);
+
+            const marcador = L.marker([lat, lng], { icon: pinNumerado })
+              .addTo(mapaGlobal)
+              .bindPopup(`
+                <div style="font-family:inherit; padding:2px;">
+                  <strong style="font-size:14px; display:block; margin-bottom:4px;">${index + 1}. ${cliente.nombre}</strong>
+                  <span style="font-size:12px; color:var(--text-secondary); display:block; margin-bottom:4px;">📦 Lote: ${desglose.join(' + ')}</span>
+                  <span style="font-size:12px; font-weight:700; color:var(--green);">Monto: Bs ${pedido.monto_total}</span>
+                </div>
+              `);
+            
+            listaMarcadoresGlobales.push(marcador);
+          }
+        }
+      });
+
+      document.getElementById('badge-total-botellones').innerText = `${totalBotellones} Cargas`;
+
+      if (puntosLatLng.length > 0) {
+        const encuadre = L.latLngBounds(puntosLatLng);
+        mapaGlobal.fitBounds(encuadre, { padding: [80, 80] });
+      }
+      
+      setTimeout(() => mapaGlobal.invalidateSize(), 350);
+    }
+
+    function cerrarMapaGlobal() {
+      const modal = document.getElementById('pantallaMapaGlobalOverlay');
+      modal.classList.remove('active');
+      setTimeout(() => modal.style.display = 'none', 300);
+    }
+
+    // ========== 10. VENTAS MANUALES E INVENTARIO ==========
     function llenarSelectClientes() {
       const select = document.getElementById('cliente-venta');
       select.innerHTML = '<option value="">Sin cliente</option>';
@@ -1206,7 +1295,6 @@ async function asignarChofer(choferId, choferNombre, choferTel) {
       const idVenta = crypto.randomUUID();
       const total = cantMineral * precioMineral + cantSaborizada * precioSaborizada;
       stock.mineral -= cantMineral; stock.saborizada -= cantSaborizada; stock.envasesVacios = (stock.envasesVacios || 0) + devueltos;
-      ventas.push({ id: idVenta, fecha, clienteId, mineral: cantMineral, saborizada: cantSaborizada, envasesDevueltos: devueltos, total });
       actualizarStockUI();
       document.getElementById('cant-mineral').value = 0; document.getElementById('cant-saborizada').value = 0; document.getElementById('cant-devueltos').value = 0;
       calcularTotalVenta(); mostrarDeudaEnvases();
@@ -1226,7 +1314,7 @@ async function asignarChofer(choferId, choferNombre, choferTel) {
       document.getElementById('total-envases-fisicos').textContent = stock.mineral + stock.saborizada + (stock.envasesVacios || 0);
     }
 
-    // ========== 10. CRUD CLIENTES ==========
+    // ========== 11. CRUD CLIENTES ==========
     function openClientModal() {
       editingClientId = null; document.getElementById('modalClientTitle').textContent = 'Nuevo cliente';
       document.getElementById('clientName').value = ''; document.getElementById('clientPhone').value = '';
@@ -1279,7 +1367,7 @@ async function asignarChofer(choferId, choferNombre, choferTel) {
       }
     }
 
-    // ========== 11. GASTOS ==========
+    // ========== 12. GASTOS ==========
     function abrirModalGasto() {
       document.getElementById('fecha-gasto').value = new Date().toISOString().split('T')[0];
       document.getElementById('desc-gasto').value = ''; document.getElementById('monto-gasto').value = '';
@@ -1311,7 +1399,7 @@ async function asignarChofer(choferId, choferNombre, choferTel) {
       container.innerHTML = html;
     }
 
-    // ========== 12. PERFIL Y SETTINGS ==========
+    // ========== 13. PERFIL Y SETTINGS ==========
     function abrirModalPrecios() {
       document.getElementById('precioMineralInput').value = precioMineral; document.getElementById('precioSaborizadaInput').value = precioSaborizada;
       document.getElementById('costoMineralInput').value = costoProdMineral; document.getElementById('costoSaborizadaInput').value = costoProdSaborizada;
@@ -1327,7 +1415,6 @@ async function asignarChofer(choferId, choferNombre, choferTel) {
       if (!error) { showToast('Precios actualizados', 'success'); cargarMovimiento(); calcularTotalVenta(); }
     }
 
-    // Subir imagen desde el perfil (botón en avatar)
     async function subirLogoPerfil(event) {
       const file = event.target.files[0];
       if (!file) return;
@@ -1344,7 +1431,6 @@ async function asignarChofer(choferId, choferNombre, choferTel) {
       else showToast('Logo actualizado con éxito', 'success');
     }
 
-    // Cargar imagen guardada al iniciar
     function cargarLogoActual() {
       const publicUrl = db.storage.from('assets').getPublicUrl('repartidor-icon.png').data.publicUrl;
       const preview = document.getElementById('profile-img');
@@ -1369,7 +1455,7 @@ async function asignarChofer(choferId, choferNombre, choferTel) {
       else { const ti = document.createElement("input"); ti.value = link; document.body.appendChild(ti); ti.select(); document.execCommand("copy"); document.body.removeChild(ti); showToast(`Link copiado`, 'success'); }
     }
 
-    // ========== 13. FINANZAS ==========
+    // ========== 14. FINANZAS ==========
     function cargarMovimiento() {
       const mes = parseInt(document.getElementById('mes').value); const anio = parseInt(document.getElementById('anio').value);
       const ventasMes = ventas.filter(v => { const d = new Date(v.fecha + 'T12:00:00'); return d.getMonth() === mes && d.getFullYear() === anio; });
@@ -1395,40 +1481,45 @@ async function asignarChofer(choferId, choferNombre, choferTel) {
       }
       const grafico = document.getElementById('grafico'); grafico.innerHTML = barrasHTML;
       setTimeout(() => { grafico.querySelectorAll('.bar').forEach(bar => bar.style.height = bar.getAttribute('data-height') + 'px'); }, 50);
-      const container = document.getElementById('chart-container-scroll');
       if (esMesActual) setTimeout(() => { const barActual = document.getElementById('bar-dia-actual'); if (barActual) barActual.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' }); }, 300);
-      else container.scrollLeft = 0;
+      else document.getElementById('chart-container-scroll').scrollLeft = 0;
     }
 
-    
-    // ========== 14. INICIALIZACIÓN Y SUBSCRIPCIONES (CON BROADCAST DIRECTO) ==========
+    // ========== 15. SUBSCRIPCIONES REALTIME Y TRANSMISIÓN DIRECTA ==========
     async function escucharRealtime() {
-      // 1. Escuchar la tabla de Pedidos (Para cuando la base de datos responda)
+      // 1. Escuchar la tabla de Pedidos (Para Inserciones generales)
       db.channel('public:pedidos')
         .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'pedidos' }, async (payload) => {
           const { data: cliInfo } = await db.from('clientes').select('*').eq('id', payload.new.cliente_id).single();
-          payload.new.clientes = cliInfo; 
-          pedidosActivos.unshift(payload.new);
+          payload.new.clientes = cliInfo; pedidosActivos.unshift(payload.new);
           try {
             await LocalNotifications.schedule({
               notifications: [{ id: new Date().getTime(), title: '¡Nuevo pedido!', body: cliInfo ? `${cliInfo.nombre} ha solicitado un pedido` : 'Nuevo pedido entrante', sound: 'default', smallIcon: 'ic_launcher', iconColor: '#0ea5e9' }]
             });
           } catch(e) {}
-          showToast('¡NUEVO PEDIDO RECIBIDO! 🔔'); 
-          renderPedidos();
+          showToast('¡NUEVO PEDIDO RECIBIDO! 🔔'); renderPedidos();
         })
-        .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'pedidos' }, async (payload) => {
-          const nuevoEstado = payload.new.estado;
-          if (nuevoEstado === 'cancelado' || nuevoEstado === 'entregado') {
-            await cargarDatosCompletos();
-            return; 
+        .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'pedidos' }, (payload) => {
+          // Solución Filtro de Respaldo por Base de Datos
+          if (payload.new.estado === 'cancelado') {
+            pedidosActivos = pedidosActivos.filter(p => String(p.id).trim() !== String(payload.new.id).trim());
+            renderPedidos();
+            return;
           }
-          const indexGps = pedidosActivos.findIndex(p => String(p.id).trim() === String(payload.new.id).trim());
-          if (indexGps !== -1) {
-            pedidosActivos[indexGps].estado = nuevoEstado; 
-            pedidosActivos[indexGps].chofer_id = payload.new.chofer_id;
-            pedidosActivos[indexGps].ubicacion_chofer = payload.new.ubicacion_chofer;
-            renderPedidos(); 
+
+          const idx = pedidosActivos.findIndex(p => String(p.id).trim() === String(payload.new.id).trim());
+          if (idx !== -1) {
+            const estadoAnterior = pedidosActivos[idx].estado; 
+            pedidosActivos[idx].estado = payload.new.estado; 
+            pedidosActivos[idx].chofer_id = payload.new.chofer_id;
+            pedidosActivos[idx].ubicacion_chofer = payload.new.ubicacion_chofer;
+
+            if (payload.new.estado === 'entregado' && estadoAnterior !== 'entregado') { 
+              showToast('Un chofer ha entregado un pedido ✅', 'success'); 
+              completarPedido(payload.new.id); 
+            } else { 
+              renderPedidos(); 
+            }
           }
         })
         .subscribe();
@@ -1442,62 +1533,56 @@ async function asignarChofer(choferId, choferNombre, choferTel) {
             } else if (payload.eventType === 'UPDATE') {
               const idx = clients.findIndex(c => c.id === payload.new.id);
               if (idx !== -1) clients[idx] = { id: payload.new.id, name: payload.new.nombre, phone: payload.new.telefono, address: payload.new.direccion, frequency: payload.new.frecuencia_dias ? payload.new.frecuencia_dias.toString() : '' };
-            } else if (payload.eventType === 'DELETE') { 
-              clients = clients.filter(c => c.id !== payload.old.id); 
-            }
-            renderClientList(); 
-            llenarSelectClientes();
+            } else if (payload.eventType === 'DELETE') { clients = clients.filter(c => c.id !== payload.old.id); }
+            renderClientList(); llenarSelectClientes();
         }).subscribe();
 
-      // 🔥 3. CANAL DE RESPALDO INMEDIATO (Bypassea cualquier error de Supabase Realtime)
+      // 🔥 3. CANAL DE BROADCAST DE EMERGENCIA (Pulveriza el lag y elimina las tarjetas fantasmas al instante) 🔥
       db.channel('operaciones_central')
-        .on('broadcast', { event: 'accion_chofer' }, async (payload) => {
-          console.log("Mensaje de emergencia recibido desde el chofer:", payload);
-          if (payload.estado === 'cancelado') showToast('Un pedido ha sido cancelado ❌', 'info');
-          if (payload.estado === 'entregado') showToast('Un chofer ha entregado un pedido ✅', 'success');
+        .on('broadcast', { event: 'accion_chofer' }, (event) => {
+          const datosChofer = event.payload; 
+          console.log("Señal instantánea del chofer capturada:", datosChofer);
           
-          // Forzar la recarga limpia de inmediato
-          await cargarDatosCompletos();
+          if (datosChofer.estado === 'cancelado') showToast('Un pedido ha sido cancelado ❌', 'info');
+          if (datosChofer.estado === 'entregado') showToast('Un chofer ha entregado un pedido ✅', 'success');
+          
+          // Borrar la tarjeta local de la pantalla en 0.01 segundos
+          const idx = pedidosActivos.findIndex(p => String(p.id).trim() === String(datosChofer.id).trim());
+          if (idx > -1) {
+             pedidosActivos.splice(idx, 1);
+             renderPedidos();
+          }
         })
         .subscribe();
     }
 
-
-
-
-
-
     // ========== REGISTRO DE NOTIFICACIONES PUSH ==========
-        async function registrarPush() {
+    async function registrarPush() {
       const PushNotifications = Capacitor.Plugins.PushNotifications;
       if (!PushNotifications) return;
 
-      // === LA MAGIA PARA ANDROID: CREAR EL CANAL URGENTE ===
       try {
         await PushNotifications.createChannel({
           id: 'pedidos_urgentes',
           name: 'Pedidos Urgentes',
           description: 'Notificaciones de alta prioridad para nuevos pedidos',
-          importance: 5, // IMPORTANCIA MÁXIMA: Suena, vibra y muestra pop-up flotante
-          visibility: 1, // Visible incluso con la pantalla bloqueada
+          importance: 5, 
+          visibility: 1, 
           vibration: true,
           sound: 'default'
         });
-      } catch (e) {
-        console.log('Error creando canal de notificaciones (es normal si estás en la web)', e);
-      }
+      } catch (e) { console.log('Canal push no inicializado en entorno web.', e); }
 
-      // === SOLICITAR PERMISO AL USUARIO ===
       let permStatus = await PushNotifications.checkPermissions();
       if (permStatus.receive === 'prompt') {
         permStatus = await PushNotifications.requestPermissions();
       }
       if (permStatus.receive !== 'granted') return;
 
-      // === REGISTRAR EL DISPOSITIVO EN FIREBASE ===
       await PushNotifications.register();
 
-      // === GUARDAR EL TOKEN EN SUPABASE ===
+      PushNotifications.register();
+
       PushNotifications.addListener('registration', async (token) => {
         const { error } = await db.from('dispositivos').upsert({ 
           user_id: 'admin-unico', 
@@ -1506,21 +1591,18 @@ async function asignarChofer(choferId, choferNombre, choferTel) {
           updated_at: new Date().toISOString() 
         }, { onConflict: 'user_id' });
         
-        if (error) showToast('❌ Error guardando token: ' + error.message, 'error');
-        else showToast('✅ Token de notificaciones guardado', 'success');
+        if (error) console.error('Error inyectando token push de administrador:', error.message);
       });
 
-      // === ACCIONES AL RECIBIR NOTIFICACIÓN ===
       PushNotifications.addListener('pushNotificationReceived', (notif) => { 
-        showToast('🔔 ¡Nuevo pedido recibido!', 'info'); 
-        cargarDatosCompletos(); // Actualiza la lista sin que tengas que refrescar
+        showToast('🔔 ¡Notificación entrante!', 'info'); 
+        cargarDatosCompletos(); 
       });
       
       PushNotifications.addListener('pushNotificationActionPerformed', (notif) => { 
         cargarDatosCompletos(); 
       });
     }
-
 
     // ========== MÓDULO DE MARKETING ==========
     async function cargarHistorialMarketing() {
