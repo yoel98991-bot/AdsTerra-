@@ -201,10 +201,6 @@
     .lealtad-badge { background: #fef3c7; color: #d97706; padding: 6px 12px; border-radius: 100px; font-size: 12px; font-weight: 800; display: flex; align-items: center; gap: 4px; }
     .panel-acciones { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 16px; margin-bottom: 16px;}
 
-    /* ========== MAPA GLOBAL MULTI-PARADAS ========== */
-    #pantallaMapaGlobalOverlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: var(--system-bg); z-index: 99999; display: none; flex-direction: column; opacity: 0; transition: opacity 0.3s ease; }
-    #pantallaMapaGlobalOverlay.active { opacity: 1; }
-    
     /* ========== BARRA DE PESTAÑAS ========== */
     .tab-bar { position: fixed; bottom: 0; left: 0; right: 0; background: var(--tab-bg); backdrop-filter: blur(20px); border-top: 1px solid rgba(0,0,0,0.05); display: flex; justify-content: space-around; align-items: center; height: calc(env(safe-area-inset-bottom) + 70px); padding-bottom: env(safe-area-inset-bottom); z-index: 150; }
     .tab-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #94a3b8; font-size: 11px; font-weight: 700; gap: 6px; padding: 10px 0; cursor: pointer; transition: color 0.2s;}
@@ -282,7 +278,7 @@
 
     <div id="sub-pedidos">
       <button class="btn-primary" style="margin-bottom: 16px; background: linear-gradient(135deg, #10b981, #059669); box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);" onclick="abrirMapaGlobal()">
-        🗺️ Ver Mapa General de Reparto
+        🗺️ Ver Mapa General de Reparto (Multi-paradas)
       </button>
 
       <div id="lista-pedidos-vacia" style="text-align: center; padding: 40px 20px; color: var(--text-secondary);">
@@ -471,7 +467,6 @@
     </div>
   </div>
 
-  <!-- Solo un botón flotante, eliminada la duplicidad -->
   <button class="fab" id="fab-clientes" onclick="openClientModal()">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
   </button>
@@ -589,11 +584,12 @@
     </div>
   </div>
 
-  <div id="pantallaMapaGlobalOverlay">
+    <div id="pantallaMapaGlobalOverlay" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: var(--system-bg); z-index: 99999; display: none; flex-direction: column; opacity: 0; transition: opacity 0.3s ease;">
+    
     <button onclick="cerrarMapaGlobal()" style="position: absolute; top: 30px; left: 20px; z-index: 999999; width: 48px; height: 48px; border-radius: 24px; background: white; border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.2); display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text-primary);">
       <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="15 18 9 12 15 6"/></svg>
     </button>
-    
+
     <div id="mapa-global-reparto" style="flex: 1; width: 100%; z-index: 1;"></div>
     
     <div style="position: absolute; bottom: 30px; left: 20px; right: 20px; background: white; z-index: 100000; border-radius: 20px; padding: 16px 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); display: flex; justify-content: space-between; align-items: center;">
@@ -604,6 +600,7 @@
       <span style="background: rgba(14, 165, 233, 0.1); color: var(--tint); padding: 6px 12px; border-radius: 100px; font-size: 13px; font-weight: 800;" id="badge-total-botellones">0 Cargas</span>
     </div>
   </div>
+
 
   <div class="tab-bar">
     <div class="tab-item active" data-screen="inicio" onclick="switchTab('inicio')">
@@ -631,6 +628,10 @@
       <span>Marketing</span>
     </div>
   </div>
+
+  <button class="fab" id="fab-clientes" onclick="openClientModal()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+  </button>
 
   <script src="https://cdn.jsdelivr.net/npm/@capacitor/geolocation@6/dist/capacitor-geolocation.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@capacitor/local-notifications@6/dist/capacitor-local-notifications.js"></script>
@@ -667,9 +668,6 @@
     let mapaGlobal = null;
     let listaMarcadoresGlobales = [];
 
-    // 🔒 Bandera para evitar reentrada en completarPedido
-    let procesandoPedido = null;
-
     // ========== 3. FUNCIONES DE UTILIDAD ==========
     function showToast(message, type = 'success') {
       const container = document.getElementById('toast-container');
@@ -684,7 +682,7 @@
       setTimeout(() => { toast.remove(); }, 3400);
     }
 
-    function escapeHtml(text) { return String(text).replace(/[&<>"]/g, m => ({'&':'&','<':'<','>':'>','"':'&quot;'}[m])); }
+    function escapeHtml(text) { return String(text).replace(/[&<>"]/g, m => ({'&':'&','<':'<','>':'>','"':'位'}[m])); }
     function formatearBs(monto) { return 'Bs ' + monto.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
 
     function animarNumero(id, endValue, duration) {
@@ -743,11 +741,8 @@
       overlay.addEventListener('click', function(e) { if (e.target === this) closeModal(this.id); });
     });
 
-    // ========== 5. SINCRONIZACIÓN DE DATOS (protegida contra reentrada) ==========
-    let cargandoDatos = false;
+    // ========== 5. SINCRONIZACIÓN DE DATOS ==========
     async function cargarDatosCompletos() {
-      if (cargandoDatos) return;
-      cargandoDatos = true;
       showToast('Sincronizando datos...', 'info');
       try {
         const [
@@ -776,8 +771,6 @@
       } catch (err) {
         console.error("Error al sincronizar:", err);
         showToast('Error al sincronizar', 'error');
-      } finally {
-        cargandoDatos = false;
       }
     }
 
@@ -959,48 +952,21 @@
       }
     }
 
-    // ========== CORRECCIÓN: completarPedido protegido contra reentrada ==========
     async function completarPedido(id) {
-      if (procesandoPedido === id) return;
-      procesandoPedido = id;
-
       const pedido = pedidosActivos.find(p => p.id === id);
-      if (!pedido) {
-        procesandoPedido = null;
-        return;
-      }
-
-      // Eliminamos inmediatamente del array local para evitar que el evento Realtime lo vuelva a procesar
-      pedidosActivos = pedidosActivos.filter(p => p.id !== id);
-      renderPedidos();
-
       await db.from('pedidos').update({ estado: 'entregado' }).eq('id', id);
       cerrarRuta();
-
-      const idVenta = crypto.randomUUID();
-      const fechaHoy = new Date().toISOString().split('T')[0];
-      const m = pedido.items?.mineral || 0;
-      const s = pedido.items?.saborizada || 0;
-
-      ventas.push({
-        id: idVenta, fecha: fechaHoy, clienteId: pedido.cliente_id,
-        mineral: m, saborizada: s, envasesDevueltos: 0, total: pedido.monto_total
-      });
-      stock.mineral -= m;
-      stock.saborizada -= s;
-
-      await Promise.all([
-        db.from('stock').upsert({ id: 1, mineral: stock.mineral, saborizada: stock.saborizada, envases_vacios: stock.envasesVacios }),
-        db.from('ventas').insert({
-          id: idVenta, fecha: fechaHoy, cliente_id: pedido.cliente_id,
-          mineral: m, saborizada: s, envases_devueltos: 0, total: pedido.monto_total
-        })
-      ]);
-
-      cargarMovimiento();
-      actualizarStockUI();
+      if(pedido) {
+          const idVenta = crypto.randomUUID(); const fechaHoy = new Date().toISOString().split('T')[0];
+          const m = pedido.items.mineral || 0; const s = pedido.items.saborizada || 0;
+          ventas.push({ id: idVenta, fecha: fechaHoy, clienteId: pedido.cliente_id, mineral: m, saborizada: s, envasesDevueltos: 0, total: pedido.monto_total });
+          stock.mineral -= m; stock.saborizada -= s;
+          await db.from('stock').upsert({ id: 1, mineral: stock.mineral, saborizada: stock.saborizada, envases_vacios: stock.envasesVacios });
+          await db.from('ventas').insert({ id: idVenta, fecha: fechaHoy, cliente_id: pedido.cliente_id, mineral: m, saborizada: s, envases_devueltos: 0, total: pedido.monto_total });
+      }
+      pedidosActivos = pedidosActivos.filter(p => p.id !== id);
+      renderPedidos(); cargarMovimiento(); actualizarStockUI();
       showToast('Pedido Entregado con Éxito');
-      procesandoPedido = null;
     }
 
     async function cancelarPedido(id) {
@@ -1212,34 +1178,34 @@
       modal.classList.remove('active'); setTimeout(() => modal.style.display = 'none', 300);
     }
 
-    // ========== 9. MÓDULO RUTA GLOBAL MULTI-PARADAS ==========
+    // ========== 9. MÓDULO RUTA GLOBAL MULTI-PARADAS (CORREGIDO) ==========
+    let mapaGlobal = null;
+    let listaMarcadoresGlobales = [];
+
     window.abrirMapaGlobal = function() {
       try {
         const modal = document.getElementById('pantallaMapaGlobalOverlay');
-        if (!modal) { alert("Error: Panel de mapa no encontrado"); return; }
-        
         modal.style.display = 'flex';
+        
+        // 🔥 EL FIX MÁGICO: Forzamos que deje de ser invisible
         setTimeout(() => {
           modal.classList.add('active');
-          modal.style.opacity = '1';
+          modal.style.opacity = '1'; 
         }, 10);
         
         const pendientes = pedidosActivos.filter(p => p.estado === 'pendiente' || p.estado === 'en_camino');
-        const lbl = document.getElementById('lbl-total-paradas');
-        if (lbl) lbl.innerText = `${pendientes.length} paradas pendientes`;
+        document.getElementById('lbl-total-paradas').innerText = `${pendientes.length} paradas pendientes`;
         
         let totalBotellones = 0;
 
+        // Crear mapa solo si no existe
         if (!mapaGlobal) {
           mapaGlobal = L.map('mapa-global-reparto', { zoomControl: false }).setView([10.1620, -67.9996], 13);
           L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png').addTo(mapaGlobal);
         }
 
-        if (listaMarcadoresGlobales && listaMarcadoresGlobales.length > 0) {
-            listaMarcadoresGlobales.forEach(m => {
-                if(mapaGlobal.hasLayer(m)) mapaGlobal.removeLayer(m);
-            });
-        }
+        // Limpiar pines antiguos
+        listaMarcadoresGlobales.forEach(m => mapaGlobal.removeLayer(m));
         listaMarcadoresGlobales = [];
 
         let puntosLatLng = [];
@@ -1253,65 +1219,77 @@
           totalBotellones += (min + sab);
 
           if (cliente.direccion && cliente.direccion.includes('| GPS:')) {
-            const partes = cliente.direccion.split('| GPS:');
-            if(partes.length > 1) {
-                const coords = partes[1].trim().split(',');
-                if (coords.length >= 2) {
-                    const lat = parseFloat(coords[0]);
-                    const lng = parseFloat(coords[1]);
-                    
-                    if (!isNaN(lat) && !isNaN(lng)) {
-                      puntosLatLng.push([lat, lng]);
-                      const colorBurbuja = pedido.estado === 'en_camino' ? '#0ea5e9' : '#f59e0b';
-                      
-                      const pinNumerado = L.divIcon({
-                        html: `<div style="width:34px; height:34px; border-radius:50%; background:${colorBurbuja}; color:white; border:2.5px solid white; box-shadow:0 4px 10px rgba(0,0,0,0.3); display:flex; justify-content:center; align-items:center; font-weight:800; font-size:14px;">${index + 1}</div>`,
-                        className: '',
-                        iconSize: [34, 34],
-                        iconAnchor: [17, 17]
-                      });
+            const coords = cliente.direccion.split('| GPS:')[1].trim().split(',');
+            const lat = parseFloat(coords[0]);
+            const lng = parseFloat(coords[1]);
+            
+            if (!isNaN(lat) && !isNaN(lng)) {
+              puntosLatLng.push([lat, lng]);
+              
+              const colorBurbuja = pedido.estado === 'en_camino' ? '#0ea5e9' : '#f59e0b';
+              
+              const pinNumerado = L.divIcon({
+                html: `<div style="width:34px; height:34px; border-radius:50%; background:${colorBurbuja}; color:white; border:2.5px solid white; box-shadow:0 4px 10px rgba(0,0,0,0.3); display:flex; justify-content:center; align-items:center; font-weight:800; font-size:14px;">
+                         ${index + 1}
+                       </div>`,
+                className: '',
+                iconSize: [34, 34],
+                iconAnchor: [17, 17]
+              });
 
-                      let desglose = [];
-                      if (min > 0) desglose.push(`${min} Min`);
-                      if (sab > 0) desglose.push(`${sab} Sab`);
+              let desglose = [];
+              if (min > 0) desglose.push(`${min} Mineral`);
+              if (sab > 0) desglose.push(`${sab} Saborizada`);
 
-                      const marcador = L.marker([lat, lng], { icon: pinNumerado })
-                        .addTo(mapaGlobal)
-                        .bindPopup(`<div style="font-family:inherit; padding:2px;"><strong style="font-size:14px; display:block; margin-bottom:4px;">${index + 1}. ${cliente.nombre || 'Cliente'}</strong><span style="font-size:12px; color:var(--text-secondary); display:block; margin-bottom:4px;">📦 Lote: ${desglose.join(' + ') || 'Vacío'}</span><span style="font-size:12px; font-weight:700; color:var(--green);">Monto: Bs ${pedido.monto_total || 0}</span></div>`);
-                      
-                      listaMarcadoresGlobales.push(marcador);
-                    }
-                }
+              const marcador = L.marker([lat, lng], { icon: pinNumerado })
+                .addTo(mapaGlobal)
+                .bindPopup(`
+                  <div style="font-family:inherit; padding:2px;">
+                    <strong style="font-size:14px; display:block; margin-bottom:4px;">${index + 1}. ${cliente.nombre || 'Cliente'}</strong>
+                    <span style="font-size:12px; color:var(--text-secondary); display:block; margin-bottom:4px;">📦 Lote: ${desglose.join(' + ') || 'Vacío'}</span>
+                    <span style="font-size:12px; font-weight:700; color:var(--green);">Monto: Bs ${pedido.monto_total || 0}</span>
+                  </div>
+                `);
+              
+              listaMarcadoresGlobales.push(marcador);
             }
           }
         });
 
-        const badge = document.getElementById('badge-total-botellones');
-        if(badge) badge.innerText = `${totalBotellones} Cargas`;
+        document.getElementById('badge-total-botellones').innerText = `${totalBotellones} Cargas`;
 
-        setTimeout(() => {
-            if (mapaGlobal) {
-                mapaGlobal.invalidateSize();
-                if (puntosLatLng.length > 0) {
-                  mapaGlobal.fitBounds(L.latLngBounds(puntosLatLng), { padding: [80, 80] });
-                }
-            }
-        }, 350);
-
+        if (puntosLatLng.length > 0) {
+          const encuadre = L.latLngBounds(puntosLatLng);
+          mapaGlobal.fitBounds(encuadre, { padding: [80, 80] });
+        }
+        
+        setTimeout(() => mapaGlobal.invalidateSize(), 350);
       } catch (error) {
         console.error("Error al abrir mapa global:", error);
-        alert("Hubo un error al abrir el mapa: " + error.message);
+        showToast("Error al cargar la ruta. Cierra e intenta de nuevo.", "error");
       }
     };
 
     window.cerrarMapaGlobal = function() {
       const modal = document.getElementById('pantallaMapaGlobalOverlay');
-      if(modal) {
-          modal.classList.remove('active');
-          modal.style.opacity = '0';
-          setTimeout(() => modal.style.display = 'none', 300);
-      }
+      modal.classList.remove('active');
+      modal.style.opacity = '0'; // 🔥 FIX: Lo volvemos invisible al cerrar
+      setTimeout(() => modal.style.display = 'none', 300);
     };
+
+    window.cerrarMapaGlobal = function() {
+      const modal = document.getElementById('pantallaMapaGlobalOverlay');
+      modal.classList.remove('active');
+      setTimeout(() => modal.style.display = 'none', 300);
+    };
+
+
+
+    function cerrarMapaGlobal() {
+      const modal = document.getElementById('pantallaMapaGlobalOverlay');
+      modal.classList.remove('active');
+      setTimeout(() => modal.style.display = 'none', 300);
+    }
 
     // ========== 10. VENTAS MANUALES E INVENTARIO ==========
     function llenarSelectClientes() {
@@ -1542,102 +1520,98 @@
       if (esMesActual) setTimeout(() => { const barActual = document.getElementById('bar-dia-actual'); if (barActual) barActual.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' }); }, 300);
       else document.getElementById('chart-container-scroll').scrollLeft = 0;
     }
+    
+    // ========== NUEVA FUNCIÓN PARA RECARGAR PEDIDOS ACTIVOS DESDE BD ==========
+async function recargarPedidosActivos() {
+  const { data, error } = await db.from('pedidos')
+    .select('*, clientes(*)')
+    .in('estado', ['pendiente', 'en_camino'])
+    .order('created_at', { ascending: false });
+  
+  if (!error && data) {
+    pedidosActivos = data;
+    renderPedidos();
+  }
+}
 
-    // ========== 15. SUBSCRIPCIONES REALTIME Y TRANSMISIÓN DIRECTA ==========
-    async function escucharRealtime() {
-      // 1. Escuchar la tabla de Pedidos (Para Inserciones generales)
-      db.channel('public:pedidos')
-        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'pedidos' }, async (payload) => {
-          const { data: cliInfo } = await db.from('clientes').select('*').eq('id', payload.new.cliente_id).single();
-          payload.new.clientes = cliInfo; pedidosActivos.unshift(payload.new);
-          try {
-            await LocalNotifications.schedule({
-              notifications: [{ id: new Date().getTime(), title: '¡Nuevo pedido!', body: cliInfo ? `${cliInfo.nombre} ha solicitado un pedido` : 'Nuevo pedido entrante', sound: 'default', smallIcon: 'ic_launcher', iconColor: '#0ea5e9' }]
-            });
-          } catch(e) {}
-          showToast('¡NUEVO PEDIDO RECIBIDO! 🔔'); renderPedidos();
-        })
-        .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'pedidos' }, async (payload) => {
-          if (payload.new.estado === 'cancelado') {
-            pedidosActivos = pedidosActivos.filter(p => String(p.id).trim() !== String(payload.new.id).trim());
-            renderPedidos();
-            return;
-          }
-
-          const idx = pedidosActivos.findIndex(p => String(p.id).trim() === String(payload.new.id).trim());
-          if (idx === -1) return;
-
-          const estadoAnterior = pedidosActivos[idx].estado;
-
-          // 🔥 CORRECCIÓN: Si alguien más completó el pedido, sincronizamos localmente sin re-disparar
-          if (payload.new.estado === 'entregado' && estadoAnterior !== 'entregado') {
-            showToast('Un chofer ha entregado un pedido ✅', 'success');
-
-            const pedido = pedidosActivos[idx];
+// ========== 15. SUBSCRIPCIONES REALTIME Y TRANSMISIÓN DIRECTA ==========
+async function escucharRealtime() {
+  // 1. Escuchar la tabla de Pedidos (Para Inserciones generales)
+  db.channel('public:pedidos')
+    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'pedidos' }, async (payload) => {
+      const { data: cliInfo } = await db.from('clientes').select('*').eq('id', payload.new.cliente_id).single();
+      payload.new.clientes = cliInfo; pedidosActivos.unshift(payload.new);
+      try {
+        await LocalNotifications.schedule({
+          notifications: [{ id: new Date().getTime(), title: '¡Nuevo pedido!', body: cliInfo ? `${cliInfo.nombre} ha solicitado un pedido` : 'Nuevo pedido entrante', sound: 'default', smallIcon: 'ic_launcher', iconColor: '#0ea5e9' }]
+        });
+      } catch(e) {}
+      showToast('¡NUEVO PEDIDO RECIBIDO! 🔔'); renderPedidos();
+    })
+    .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'pedidos' }, async (payload) => {
+      // Si el pedido se cancela o se entrega (por otro dispositivo), recargamos la lista completa
+      if (payload.new.estado === 'cancelado' || payload.new.estado === 'entregado') {
+        if (payload.new.estado === 'entregado') {
+          showToast('Un chofer ha entregado un pedido ✅', 'success');
+          const pedido = pedidosActivos.find(p => p.id === payload.new.id);
+          if (pedido) {
             const idVenta = crypto.randomUUID();
             const fechaHoy = new Date().toISOString().split('T')[0];
             const m = pedido.items?.mineral || 0;
             const s = pedido.items?.saborizada || 0;
-
-            ventas.push({
-              id: idVenta, fecha: fechaHoy, clienteId: pedido.cliente_id,
-              mineral: m, saborizada: s, envasesDevueltos: 0, total: pedido.monto_total
-            });
+            ventas.push({ id: idVenta, fecha: fechaHoy, clienteId: pedido.cliente_id, mineral: m, saborizada: s, envasesDevueltos: 0, total: pedido.monto_total });
             stock.mineral -= m;
             stock.saborizada -= s;
-
-            await db.from('ventas').insert({
-              id: idVenta, fecha: fechaHoy, cliente_id: pedido.cliente_id,
-              mineral: m, saborizada: s, envases_devueltos: 0, total: pedido.monto_total
-            });
-            await db.from('stock').upsert({ id: 1, mineral: stock.mineral, saborizada: stock.saborizada, envases_vacios: stock.envasesVacios });
-
-            pedidosActivos.splice(idx, 1);
-            renderPedidos();
+            await Promise.all([
+              db.from('ventas').insert({ id: idVenta, fecha: fechaHoy, cliente_id: pedido.cliente_id, mineral: m, saborizada: s, envases_devueltos: 0, total: pedido.monto_total }),
+              db.from('stock').upsert({ id: 1, mineral: stock.mineral, saborizada: stock.saborizada, envases_vacios: stock.envasesVacios })
+            ]);
             cargarMovimiento();
             actualizarStockUI();
-            cerrarRuta();
-            return;
           }
+        }
+        await recargarPedidosActivos();  // Recarga garantizada desde BD
+        return;
+      }
 
-          // Otros cambios (asignación de chofer, cambio a "en_camino")
-          pedidosActivos[idx].estado = payload.new.estado;
-          pedidosActivos[idx].chofer_id = payload.new.chofer_id;
-          pedidosActivos[idx].ubicacion_chofer = payload.new.ubicacion_chofer;
-          renderPedidos();
-        })
-        .subscribe();
+      // Para otros cambios (ej: asignación de chofer, cambio a "en_camino")
+      const idx = pedidosActivos.findIndex(p => p.id === payload.new.id);
+      if (idx !== -1) {
+        pedidosActivos[idx].estado = payload.new.estado;
+        pedidosActivos[idx].chofer_id = payload.new.chofer_id;
+        pedidosActivos[idx].ubicacion_chofer = payload.new.ubicacion_chofer;
+        renderPedidos();
+      }
+    })
+    .subscribe();
 
-      // 2. Escuchar la tabla de Clientes
-      db.channel('public:clientes')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'clientes' }, (payload) => {
-            if (payload.eventType === 'INSERT') {
-              const nCli = { id: payload.new.id, name: payload.new.nombre, phone: payload.new.telefono, address: payload.new.direccion, frequency: payload.new.frecuencia_dias ? payload.new.frecuencia_dias.toString() : '' };
-              if(!clients.some(c => c.id === nCli.id)) clients.push(nCli);
-            } else if (payload.eventType === 'UPDATE') {
-              const idx = clients.findIndex(c => c.id === payload.new.id);
-              if (idx !== -1) clients[idx] = { id: payload.new.id, name: payload.new.nombre, phone: payload.new.telefono, address: payload.new.direccion, frequency: payload.new.frecuencia_dias ? payload.new.frecuencia_dias.toString() : '' };
-            } else if (payload.eventType === 'DELETE') { clients = clients.filter(c => c.id !== payload.old.id); }
-            renderClientList(); llenarSelectClientes();
-        }).subscribe();
+  // 2. Escuchar la tabla de Clientes
+  db.channel('public:clientes')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'clientes' }, (payload) => {
+        if (payload.eventType === 'INSERT') {
+          const nCli = { id: payload.new.id, name: payload.new.nombre, phone: payload.new.telefono, address: payload.new.direccion, frequency: payload.new.frecuencia_dias ? payload.new.frecuencia_dias.toString() : '' };
+          if(!clients.some(c => c.id === nCli.id)) clients.push(nCli);
+        } else if (payload.eventType === 'UPDATE') {
+          const idx = clients.findIndex(c => c.id === payload.new.id);
+          if (idx !== -1) clients[idx] = { id: payload.new.id, name: payload.new.nombre, phone: payload.new.telefono, address: payload.new.direccion, frequency: payload.new.frecuencia_dias ? payload.new.frecuencia_dias.toString() : '' };
+        } else if (payload.eventType === 'DELETE') { clients = clients.filter(c => c.id !== payload.old.id); }
+        renderClientList(); llenarSelectClientes();
+    }).subscribe();
 
-      // 🔥 3. CANAL DE BROADCAST DE EMERGENCIA
-      db.channel('operaciones_central')
-        .on('broadcast', { event: 'accion_chofer' }, (event) => {
-          const datosChofer = event.payload; 
-          console.log("Señal instantánea del chofer capturada:", datosChofer);
-          
-          if (datosChofer.estado === 'cancelado') showToast('Un pedido ha sido cancelado ❌', 'info');
-          if (datosChofer.estado === 'entregado') showToast('Un chofer ha entregado un pedido ✅', 'success');
-          
-          const idx = pedidosActivos.findIndex(p => String(p.id).trim() === String(datosChofer.id).trim());
-          if (idx > -1) {
-             pedidosActivos.splice(idx, 1);
-             renderPedidos();
-          }
-        })
-        .subscribe();
-    }
+  // 3. CANAL DE BROADCAST DE EMERGENCIA
+  db.channel('operaciones_central')
+    .on('broadcast', { event: 'accion_chofer' }, (event) => {
+      const datosChofer = event.payload; 
+      console.log("Señal instantánea del chofer capturada:", datosChofer);
+      
+      if (datosChofer.estado === 'cancelado') showToast('Un pedido ha sido cancelado ❌', 'info');
+      if (datosChofer.estado === 'entregado') showToast('Un chofer ha entregado un pedido ✅', 'success');
+      
+      // Recargamos desde BD para reflejar el cambio sin depender del array local
+      recargarPedidosActivos();
+    })
+    .subscribe();
+}
 
     // ========== REGISTRO DE NOTIFICACIONES PUSH ==========
     async function registrarPush() {
@@ -1663,6 +1637,8 @@
       if (permStatus.receive !== 'granted') return;
 
       await PushNotifications.register();
+
+      PushNotifications.register();
 
       PushNotifications.addListener('registration', async (token) => {
         const { error } = await db.from('dispositivos').upsert({ 
@@ -1756,7 +1732,7 @@
       const savedAvatar = localStorage.getItem('agua_avatar');
       if (savedAvatar) document.getElementById('profile-img').src = savedAvatar;
       await cargarDatosCompletos();
-      escucharRealtime(); // Se llama una sola vez
+      escucharRealtime();
       registrarPush();
       cargarLogoActual();
     });
