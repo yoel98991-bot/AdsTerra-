@@ -584,7 +584,7 @@
     </div>
   </div>
 
-    <div id="pantallaMapaGlobalOverlay" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: var(--system-bg); z-index: 99999; display: none; flex-direction: column; opacity: 0; transition: opacity 0.3s ease;">
+  <div id="pantallaMapaGlobalOverlay" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: var(--system-bg); z-index: 99999; display: none; flex-direction: column; opacity: 0; transition: opacity 0.3s ease;">
     
     <button onclick="cerrarMapaGlobal()" style="position: absolute; top: 30px; left: 20px; z-index: 999999; width: 48px; height: 48px; border-radius: 24px; background: white; border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.2); display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text-primary);">
       <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="15 18 9 12 15 6"/></svg>
@@ -600,7 +600,6 @@
       <span style="background: rgba(14, 165, 233, 0.1); color: var(--tint); padding: 6px 12px; border-radius: 100px; font-size: 13px; font-weight: 800;" id="badge-total-botellones">0 Cargas</span>
     </div>
   </div>
-
 
   <div class="tab-bar">
     <div class="tab-item active" data-screen="inicio" onclick="switchTab('inicio')">
@@ -1182,7 +1181,7 @@
     let mapaGlobal = null;
     let listaMarcadoresGlobales = [];
 
-    window.abrirMapaGlobal = function() {
+    function abrirMapaGlobal() {
       try {
         const modal = document.getElementById('pantallaMapaGlobalOverlay');
         modal.style.display = 'flex';
@@ -1260,15 +1259,7 @@
         console.error("Error al abrir mapa global:", error);
         showToast("Error al cargar la ruta. Cierra e intenta de nuevo.", "error");
       }
-    };
-
-    window.cerrarMapaGlobal = function() {
-      const modal = document.getElementById('pantallaMapaGlobalOverlay');
-      modal.classList.remove('active');
-      setTimeout(() => modal.style.display = 'none', 300);
-    };
-
-
+    }
 
     function cerrarMapaGlobal() {
       const modal = document.getElementById('pantallaMapaGlobalOverlay');
@@ -1602,8 +1593,6 @@
 
       await PushNotifications.register();
 
-      PushNotifications.register();
-
       PushNotifications.addListener('registration', async (token) => {
         const { error } = await db.from('dispositivos').upsert({ 
           user_id: 'admin-unico', 
@@ -1687,8 +1676,7 @@
       }
     }
 
-    // ========== INICIAR APP ==========
-    document.addEventListener('DOMContentLoaded', async () => {
+    // ========== INICIAR APP ==========\n    document.addEventListener('DOMContentLoaded', async () => {
       document.getElementById('fecha-venta').value = new Date().toISOString().split('T')[0];
       const today = new Date(); document.getElementById('mes').value = today.getMonth(); document.getElementById('anio').value = today.getFullYear();
       try { const geoPlugin = Capacitor.Plugins.Geolocation; if (geoPlugin) await geoPlugin.requestPermissions(); } catch(e) {}
