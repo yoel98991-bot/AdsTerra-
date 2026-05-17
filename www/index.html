@@ -1401,9 +1401,9 @@ async function asignarChofer(choferId, choferNombre, choferTel) {
     }
 
     
-        // ========== 14. INICIALIZACIÓN Y SUBSCRIPCIONES (CON CHIVATO DE DIAGNÓSTICO) ==========
+    // ========== 14. INICIALIZACIÓN Y SUBSCRIPCIONES (CON BROADCAST DIRECTO) ==========
     async function escucharRealtime() {
-      // 1. Escuchar la tabla de Pedidos
+      // 1. Escuchar la tabla de Pedidos (Para cuando la base de datos responda)
       db.channel('public:pedidos')
         .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'pedidos' }, async (payload) => {
           const { data: cliInfo } = await db.from('clientes').select('*').eq('id', payload.new.cliente_id).single();
@@ -1418,34 +1418,11 @@ async function asignarChofer(choferId, choferNombre, choferTel) {
           renderPedidos();
         })
         .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'pedidos' }, async (payload) => {
-          
           const nuevoEstado = payload.new.estado;
-
-          // === CHIVATO VISUAL: Esto nos confirmará si Supabase está enviando la señal ===
-          if (nuevoEstado === 'cancelado') {
-             showToast('🚨 Señal de cancelación recibida desde la nube', 'error');
-          }
-
-          // === TRITURADORA DIRECTA ===
           if (nuevoEstado === 'cancelado' || nuevoEstado === 'entregado') {
-            
-            if (nuevoEstado === 'entregado') showToast('Un chofer ha entregado un pedido ✅', 'success');
-
-            // 1. Buscamos y destruimos la tarjeta de la memoria local a la fuerza
-            const idx = pedidosActivos.findIndex(p => String(p.id).trim() === String(payload.new.id).trim());
-            if (idx > -1) {
-               pedidosActivos.splice(idx, 1);
-            }
-            
-            // 2. Borramos todo el HTML y lo volvemos a pintar sin la tarjeta
-            renderPedidos(); 
-            
-            // 3. Volvemos a sincronizar con la base de datos por seguridad
             await cargarDatosCompletos();
             return; 
           }
-
-          // === SI SOLO SE ESTÁ MOVIENDO EL GPS O ASIGNANDO CHOFER ===
           const indexGps = pedidosActivos.findIndex(p => String(p.id).trim() === String(payload.new.id).trim());
           if (indexGps !== -1) {
             pedidosActivos[indexGps].estado = nuevoEstado; 
@@ -1471,7 +1448,20 @@ async function asignarChofer(choferId, choferNombre, choferTel) {
             renderClientList(); 
             llenarSelectClientes();
         }).subscribe();
+
+      // 🔥 3. CANAL DE RESPALDO INMEDIATO (Bypassea cualquier error de Supabase Realtime)
+      db.channel('operaciones_central')
+        .on('broadcast', { event: 'accion_chofer' }, async (payload) => {
+          console.log("Mensaje de emergencia recibido desde el chofer:", payload);
+          if (payload.estado === 'cancelado') showToast('Un pedido ha sido cancelado ❌', 'info');
+          if (payload.estado === 'entregado') showToast('Un chofer ha entregado un pedido ✅', 'success');
+          
+          // Forzar la recarga limpia de inmediato
+          await cargarDatosCompletos();
+        })
+        .subscribe();
     }
+
 
 
 
