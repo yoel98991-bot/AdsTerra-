@@ -584,21 +584,23 @@
     </div>
   </div>
 
-  <div id="pantallaMapaGlobalOverlay" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: var(--system-bg); z-index: 9999; display: none; flex-direction: column; opacity: 0; transition: opacity 0.3s ease;">
-    <button onclick="cerrarMapaGlobal()" style="position: absolute; top: calc(env(safe-area-inset-top) + 20px); left: 20px; z-index: 99999; width: 44px; height: 44px; border-radius: 22px; background: white; border: none; box-shadow: 0 4px 12px rgba(0,0,0,0.15); display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text-primary);">
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="15 18 9 12 15 6"/></svg>
+    <div id="pantallaMapaGlobalOverlay" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: var(--system-bg); z-index: 99999; display: none; flex-direction: column; opacity: 0; transition: opacity 0.3s ease;">
+    
+    <button onclick="cerrarMapaGlobal()" style="position: absolute; top: 30px; left: 20px; z-index: 999999; width: 48px; height: 48px; border-radius: 24px; background: white; border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.2); display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text-primary);">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="15 18 9 12 15 6"/></svg>
     </button>
 
     <div id="mapa-global-reparto" style="flex: 1; width: 100%; z-index: 1;"></div>
     
-    <div style="position: absolute; bottom: calc(env(safe-area-inset-bottom) + 20px); left: 20px; right: 20px; background: white; z-index: 10; border-radius: 20px; padding: 16px 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); display: flex; justify-content: space-between; align-items: center;">
+    <div style="position: absolute; bottom: 30px; left: 20px; right: 20px; background: white; z-index: 100000; border-radius: 20px; padding: 16px 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); display: flex; justify-content: space-between; align-items: center;">
       <div>
         <h3 style="margin: 0; font-size: 18px; font-weight: 800; letter-spacing: -0.5px;">Ruta de Entrega</h3>
-        <p style="color: var(--text-secondary); font-size: 13px; margin-top: 2px;" id="lbl-total-paradas">0 paradas pendientes</p>
+        <p style="color: var(--text-secondary); font-size: 13px; margin-top: 2px;" id="lbl-total-paradas">0 paradas</p>
       </div>
-      <span style="background: rgba(14, 165, 233, 0.1); color: var(--tint); padding: 6px 12px; border-radius: 100px; font-size: 13px; font-weight: 800;" id="badge-total-botellones">0 Botellones</span>
+      <span style="background: rgba(14, 165, 233, 0.1); color: var(--tint); padding: 6px 12px; border-radius: 100px; font-size: 13px; font-weight: 800;" id="badge-total-botellones">0 Cargas</span>
     </div>
   </div>
+
 
   <div class="tab-bar">
     <div class="tab-item active" data-screen="inicio" onclick="switchTab('inicio')">
@@ -1176,78 +1178,97 @@
       modal.classList.remove('active'); setTimeout(() => modal.style.display = 'none', 300);
     }
 
-    // ========== 9. MÓDULO RUTA GLOBAL MULTI-PARADAS (NUEVO) ==========
-    function abrirMapaGlobal() {
-      const modal = document.getElementById('pantallaMapaGlobalOverlay');
-      modal.style.display = 'flex';
-      setTimeout(() => modal.classList.add('active'), 10);
-      
-      const pendientes = pedidosActivos.filter(p => p.estado === 'pendiente' || p.estado === 'en_camino');
-      document.getElementById('lbl-total-paradas').innerText = `${pendientes.length} paradas pendientes en total`;
-      
-      let totalBotellones = 0;
+    // ========== 9. MÓDULO RUTA GLOBAL MULTI-PARADAS (BLINDADO) ==========
+    let mapaGlobal = null;
+    let listaMarcadoresGlobales = [];
 
-      if (!mapaGlobal) {
-        mapaGlobal = L.map('mapa-global-reparto', { zoomControl: false }).setView([10.1620, -67.9996], 13);
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png').addTo(mapaGlobal);
-      }
+    window.abrirMapaGlobal = function() {
+      try {
+        const modal = document.getElementById('pantallaMapaGlobalOverlay');
+        modal.style.display = 'flex';
+        setTimeout(() => modal.classList.add('active'), 10);
+        
+        const pendientes = pedidosActivos.filter(p => p.estado === 'pendiente' || p.estado === 'en_camino');
+        document.getElementById('lbl-total-paradas').innerText = `${pendientes.length} paradas pendientes`;
+        
+        let totalBotellones = 0;
 
-      listaMarcadoresGlobales.forEach(m => mapaGlobal.removeLayer(m));
-      listaMarcadoresGlobales = [];
-
-      let puntosLatLng = [];
-
-      pendientes.forEach((pedido, index) => {
-        const cliente = pedido.clientes || {};
-        const items = pedido.items || {};
-        totalBotellones += (items.mineral || 0) + (items.saborizada || 0);
-
-        if (cliente.direccion && cliente.direccion.includes('| GPS:')) {
-          const coords = cliente.direccion.split('| GPS:')[1].trim().split(',');
-          const lat = parseFloat(coords[0]);
-          const lng = parseFloat(coords[1]);
-          
-          if (!isNaN(lat) && !isNaN(lng)) {
-            puntosLatLng.push([lat, lng]);
-            const colorBurbuja = pedido.estado === 'en_camino' ? '#0ea5e9' : '#f59e0b';
-            
-            const pinNumerado = L.divIcon({
-              html: `<div style="width:32px; height:32px; border-radius:50%; background:${colorBurbuja}; color:white; border:2px solid white; box-shadow:0 4px 10px rgba(0,0,0,0.3); display:flex; justify-content:center; align-items:center; font-weight:800; font-size:13px;">
-                       ${index + 1}
-                     </div>`,
-              className: '',
-              iconSize: [32, 32],
-              iconAnchor: [16, 16]
-            });
-
-            let desglose = [];
-            if (items.mineral > 0) desglose.push(`${items.mineral} Mineral`);
-            if (items.saborizada > 0) desglose.push(`${items.saborizada} Saborizada`);
-
-            const marcador = L.marker([lat, lng], { icon: pinNumerado })
-              .addTo(mapaGlobal)
-              .bindPopup(`
-                <div style="font-family:inherit; padding:2px;">
-                  <strong style="font-size:14px; display:block; margin-bottom:4px;">${index + 1}. ${cliente.nombre}</strong>
-                  <span style="font-size:12px; color:var(--text-secondary); display:block; margin-bottom:4px;">📦 Lote: ${desglose.join(' + ')}</span>
-                  <span style="font-size:12px; font-weight:700; color:var(--green);">Monto: Bs ${pedido.monto_total}</span>
-                </div>
-              `);
-            
-            listaMarcadoresGlobales.push(marcador);
-          }
+        if (!mapaGlobal) {
+          mapaGlobal = L.map('mapa-global-reparto', { zoomControl: false }).setView([10.1620, -67.9996], 13);
+          L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png').addTo(mapaGlobal);
         }
-      });
 
-      document.getElementById('badge-total-botellones').innerText = `${totalBotellones} Cargas`;
+        listaMarcadoresGlobales.forEach(m => mapaGlobal.removeLayer(m));
+        listaMarcadoresGlobales = [];
 
-      if (puntosLatLng.length > 0) {
-        const encuadre = L.latLngBounds(puntosLatLng);
-        mapaGlobal.fitBounds(encuadre, { padding: [80, 80] });
+        let puntosLatLng = [];
+
+        pendientes.forEach((pedido, index) => {
+          const cliente = pedido.clientes || {};
+          const items = pedido.items || {};
+          
+          const min = parseInt(items.mineral) || 0;
+          const sab = parseInt(items.saborizada) || 0;
+          totalBotellones += (min + sab);
+
+          if (cliente.direccion && cliente.direccion.includes('| GPS:')) {
+            const coords = cliente.direccion.split('| GPS:')[1].trim().split(',');
+            const lat = parseFloat(coords[0]);
+            const lng = parseFloat(coords[1]);
+            
+            if (!isNaN(lat) && !isNaN(lng)) {
+              puntosLatLng.push([lat, lng]);
+              const colorBurbuja = pedido.estado === 'en_camino' ? '#0ea5e9' : '#f59e0b';
+              
+              const pinNumerado = L.divIcon({
+                html: `<div style="width:34px; height:34px; border-radius:50%; background:${colorBurbuja}; color:white; border:2.5px solid white; box-shadow:0 4px 10px rgba(0,0,0,0.3); display:flex; justify-content:center; align-items:center; font-weight:800; font-size:14px;">
+                         ${index + 1}
+                       </div>`,
+                className: '',
+                iconSize: [34, 34],
+                iconAnchor: [17, 17]
+              });
+
+              let desglose = [];
+              if (min > 0) desglose.push(`${min} Mineral`);
+              if (sab > 0) desglose.push(`${sab} Saborizada`);
+
+              const marcador = L.marker([lat, lng], { icon: pinNumerado })
+                .addTo(mapaGlobal)
+                .bindPopup(`
+                  <div style="font-family:inherit; padding:2px;">
+                    <strong style="font-size:14px; display:block; margin-bottom:4px;">${index + 1}. ${cliente.nombre || 'Cliente'}</strong>
+                    <span style="font-size:12px; color:var(--text-secondary); display:block; margin-bottom:4px;">📦 Lote: ${desglose.join(' + ') || 'Vacío'}</span>
+                    <span style="font-size:12px; font-weight:700; color:var(--green);">Monto: Bs ${pedido.monto_total || 0}</span>
+                  </div>
+                `);
+              
+              listaMarcadoresGlobales.push(marcador);
+            }
+          }
+        });
+
+        document.getElementById('badge-total-botellones').innerText = `${totalBotellones} Cargas`;
+
+        if (puntosLatLng.length > 0) {
+          const encuadre = L.latLngBounds(puntosLatLng);
+          mapaGlobal.fitBounds(encuadre, { padding: [80, 80] });
+        }
+        
+        setTimeout(() => mapaGlobal.invalidateSize(), 350);
+      } catch (error) {
+        console.error("Error al abrir mapa global:", error);
+        showToast("Error al cargar la ruta. Cierra e intenta de nuevo.", "error");
       }
-      
-      setTimeout(() => mapaGlobal.invalidateSize(), 350);
-    }
+    };
+
+    window.cerrarMapaGlobal = function() {
+      const modal = document.getElementById('pantallaMapaGlobalOverlay');
+      modal.classList.remove('active');
+      setTimeout(() => modal.style.display = 'none', 300);
+    };
+
+
 
     function cerrarMapaGlobal() {
       const modal = document.getElementById('pantallaMapaGlobalOverlay');
