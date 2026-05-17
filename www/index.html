@@ -784,16 +784,17 @@
         // === MAGIA: LIMPIEZA DE LA DIRECCIÓN Y GPS ===
         let dirLimpia = "Dirección no especificada";
         let coordTexto = "";
+        let destLat = null;
+        let destLng = null;
         
         if (cliente.direccion) {
-          // Detectamos si la dirección tiene el famoso enlace largo o el texto de GPS
           if (cliente.direccion.includes('| GPS:')) {
              const partes = cliente.direccion.split('| GPS:');
-             dirLimpia = partes[0].trim(); // Extraemos solo el texto legible
+             dirLimpia = partes[0].trim(); 
              const coords = partes[1].split(',');
-             const lat = parseFloat(coords[0]).toFixed(4);
-             const lng = parseFloat(coords[1]).toFixed(4);
-             coordTexto = `${lat}, ${lng}`; // Acortamos a 4 decimales
+             destLat = parseFloat(coords[0]);
+             destLng = parseFloat(coords[1]);
+             coordTexto = `${destLat.toFixed(4)}, ${destLng.toFixed(4)}`; 
           } else {
              dirLimpia = cliente.direccion;
           }
@@ -847,15 +848,21 @@
             <div class="pedido-acciones">
         `;
 
-        // Botones según el estado
+     // Botones según el estado
         if (p.estado === 'pendiente') {
           cardHtml += `
-            <button class="btn-action btn-aceptar" onclick="abrirModalChoferes('${p.id}')">👨‍✈️ Asignar Chofer</button>
-            <button class="btn-action btn-rechazar" onclick="completarPedido('${p.id}', 'cancelado')" title="Cancelar Pedido">❌</button>
+            <div style="display:flex; gap:10px; width:100%; margin-bottom:10px;">
+              <button class="btn-action btn-aceptar" style="flex:1;" onclick="abrirModalChoferes('${p.id}')">👨‍✈️ Asignar Chofer</button>
+              <button class="btn-action btn-aceptar" style="background: #10b981; flex:1;" onclick="abrirControlRuta('${p.id}', ${destLat}, ${destLng}, '${escapeHtml(cliente.nombre || 'Cliente')}', '${escapeHtml(dirLimpia)}')">🛵 Atender Yo</button>
+            </div>
+            <button class="btn-action btn-rechazar" style="width:100%;" onclick="completarPedido('${p.id}', 'cancelado')" title="Cancelar Pedido">❌ Cancelar Pedido</button>
           `;
         } else {
           cardHtml += `
-            <button class="btn-action btn-aceptar" style="background: var(--green);" onclick="completarPedido('${p.id}')">✅ Marcar Entregado</button>
+            <div style="display:flex; gap:10px; width:100%;">
+              <button class="btn-action btn-aceptar" style="background: #0ea5e9; flex:1;" onclick="abrirControlRuta('${p.id}', ${destLat}, ${destLng}, '${escapeHtml(cliente.nombre || 'Cliente')}', '${escapeHtml(dirLimpia)}')">🗺️ Ver Ruta</button>
+              <button class="btn-action btn-aceptar" style="background: var(--green); flex:1;" onclick="completarPedido('${p.id}')">✅ Entregado</button>
+            </div>
           `;
         }
 
