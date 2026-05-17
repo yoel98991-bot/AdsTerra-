@@ -508,91 +508,88 @@
       }
       
       const btn = document.getElementById('btn-gps'); 
-      btn.innerHTML = "⏳ Localizando y traduciendo...";
-      btn.style.pointerEvents = "none"; // Evitar múltiples clics
+      btn.innerHTML = "⏳ Conectando con satélites...";
+      btn.style.pointerEvents = "none";
       
-      // enableHighAccuracy: true fuerza al teléfono a usar el chip GPS real, no solo la red WiFi/Antenas
+      // === CONFIGURACIÓN ULTRA ESTRICTA DEL GPS ===
+      const opcionesGPS = {
+        enableHighAccuracy: true, // Exige usar el chip GPS real
+        timeout: 15000,           // Le da 15 segundos para fijar los satélites
+        maximumAge: 0             // Prohíbe usar ubicaciones viejas guardadas en la memoria
+      };
+
       navigator.geolocation.getCurrentPosition(async (pos) => {
         const lat = pos.coords.latitude;
         const lng = pos.coords.longitude;
         coordsGPS = `${lat.toFixed(5)},${lng.toFixed(5)}`;
         
         try {
-          // 1. Traducir coordenadas a dirección exacta usando Nominatim (Gratis y preciso)
-          const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`);
+          // === MAGIA: FORZAR ZOOM A NIVEL DE CALLE (zoom=18) ===
+          const urlAPI = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`;
+          const res = await fetch(urlAPI);
           const data = await res.json();
           
           let direccionTraducida = "Ubicación exacta detectada";
           
           if (data && data.address) {
-            const calle = data.address.road || '';
+            // Buscamos específicamente el nombre de la calle (road)
+            const calle = data.address.road || data.address.pedestrian || '';
             const numero = data.address.house_number || '';
             const barrio = data.address.suburb || data.address.neighbourhood || '';
-            const ciudad = data.address.city || data.address.town || '';
             
-            // Armar una dirección natural y precisa
             let partes = [];
-            if (calle) partes.push(numero ? `${calle} #${numero}` : calle);
+            
+            // Si la base de datos conoce la calle, la ponemos primero
+            if (calle) {
+               partes.push(numero ? `${calle} #${numero}` : calle);
+            }
+            
+            // Luego agregamos el sector (ej. Lomas del Funval)
             if (barrio) partes.push(barrio);
-            if (ciudad) partes.push(ciudad);
             
             if (partes.length > 0) {
               direccionTraducida = partes.join(', ');
             } else if (data.display_name) {
-               // Fallback por si es una zona sin calles registradas
+              // Plan B
               direccionTraducida = data.display_name.split(',').slice(0, 3).join(',');
             }
           }
           
-          // 2. Formatear exactamente como lo lee tu app de Administrador
           const direccionFinal = `${direccionTraducida} | GPS: ${coordsGPS}`;
           
-          // 3. Guardar automáticamente en Supabase (Tabla clientes)
           const { error } = await db.from('clientes')
             .update({ direccion: direccionFinal })
             .eq('id', usuarioActual.id);
             
           if (error) throw error;
           
-          // 4. Actualizar la variable local y la interfaz del cliente al instante
           usuarioActual.direccion = direccionFinal;
           guardarLocal(usuarioActual);
           
           document.getElementById('resumen-direccion').innerText = direccionFinal;
           document.getElementById('perfil-direccion').value = direccionFinal;
           
-          // Éxito visual
-          btn.innerHTML = "✅ Ubicación Guardada con Precisión"; 
+          btn.innerHTML = "✅ Ubicación Exacta Guardada"; 
           btn.style.background = "#DCFCE7"; 
           btn.style.color = "#16A34A";
-          showToast("Ubicación guardada en tu perfil");
+          showToast("Ubicación con precisión de calle guardada");
           
         } catch (error) {
-          console.error("Error al traducir o guardar GPS:", error);
-          // Si falla el internet o el traductor, guardamos las coordenadas crudas como plan B
+          console.error("Error GPS:", error);
           const fallbackDir = `Mi Ubicación | GPS: ${coordsGPS}`;
           await db.from('clientes').update({ direccion: fallbackDir }).eq('id', usuarioActual.id);
-          
-          usuarioActual.direccion = fallbackDir;
-          guardarLocal(usuarioActual);
-          
+          usuarioActual.direccion = fallbackDir; guardarLocal(usuarioActual);
           document.getElementById('resumen-direccion').innerText = fallbackDir;
-          btn.innerHTML = "✅ GPS Compartido (Solo coordenadas)"; 
-          btn.style.background = "#DCFCE7"; 
-          btn.style.color = "#16A34A";
+          btn.innerHTML = "✅ Coordenadas Guardadas"; 
         } finally {
           btn.style.pointerEvents = "auto";
         }
         
       }, (err) => { 
-        btn.innerHTML = "⚠️ Activa el GPS y da permisos"; 
+        btn.innerHTML = "⚠️ Fallo al leer GPS"; 
         btn.style.pointerEvents = "auto";
-        showToast("Error de ubicación", true);
-      }, { 
-        enableHighAccuracy: true, // Precisión de calle
-        timeout: 10000, 
-        maximumAge: 0 
-      });
+        showToast("Error: Revisa que tu GPS esté encendido", true);
+      }, opcionesGPS);
     }
    
 
