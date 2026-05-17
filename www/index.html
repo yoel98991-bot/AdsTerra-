@@ -471,6 +471,11 @@
     </div>
   </div>
 
+  <!-- Solo un botón flotante, eliminada la duplicidad -->
+  <button class="fab" id="fab-clientes" onclick="openClientModal()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+  </button>
+
   <div class="modal-overlay" id="modalClientOverlay">
     <div class="modal-sheet">
       <div class="modal-handle"></div>
@@ -627,10 +632,6 @@
     </div>
   </div>
 
-  <button class="fab" id="fab-clientes" onclick="openClientModal()">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-  </button>
-
   <script src="https://cdn.jsdelivr.net/npm/@capacitor/geolocation@6/dist/capacitor-geolocation.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@capacitor/local-notifications@6/dist/capacitor-local-notifications.js"></script>
   
@@ -665,6 +666,9 @@
 
     let mapaGlobal = null;
     let listaMarcadoresGlobales = [];
+
+    // 🔒 Bandera para evitar reentrada en completarPedido
+    let procesandoPedido = null;
 
     // ========== 3. FUNCIONES DE UTILIDAD ==========
     function showToast(message, type = 'success') {
@@ -739,9 +743,8 @@
       overlay.addEventListener('click', function(e) { if (e.target === this) closeModal(this.id); });
     });
 
-    // ========== 5. SINCRONIZACIÓN DE DATOS ==========
+    // ========== 5. SINCRONIZACIÓN DE DATOS (protegida contra reentrada) ==========
     let cargandoDatos = false;
-
     async function cargarDatosCompletos() {
       if (cargandoDatos) return;
       cargandoDatos = true;
@@ -956,36 +959,45 @@
       }
     }
 
-    let procesandoPedido = null;
-
+    // ========== CORRECCIÓN: completarPedido protegido contra reentrada ==========
     async function completarPedido(id) {
       if (procesandoPedido === id) return;
       procesandoPedido = id;
 
       const pedido = pedidosActivos.find(p => p.id === id);
-      if (!pedido) { procesandoPedido = null; return; }
+      if (!pedido) {
+        procesandoPedido = null;
+        return;
+      }
 
-      // Eliminar de la lista local inmediatamente (Protección contra el evento Realtime)
+      // Eliminamos inmediatamente del array local para evitar que el evento Realtime lo vuelva a procesar
       pedidosActivos = pedidosActivos.filter(p => p.id !== id);
+      renderPedidos();
 
       await db.from('pedidos').update({ estado: 'entregado' }).eq('id', id);
       cerrarRuta();
 
-      const idVenta = crypto.randomUUID(); 
+      const idVenta = crypto.randomUUID();
       const fechaHoy = new Date().toISOString().split('T')[0];
-      const m = pedido.items?.mineral || 0; 
+      const m = pedido.items?.mineral || 0;
       const s = pedido.items?.saborizada || 0;
-      
-      ventas.push({ id: idVenta, fecha: fechaHoy, clienteId: pedido.cliente_id, mineral: m, saborizada: s, envasesDevueltos: 0, total: pedido.monto_total });
-      stock.mineral -= m; stock.saborizada -= s;
-      
+
+      ventas.push({
+        id: idVenta, fecha: fechaHoy, clienteId: pedido.cliente_id,
+        mineral: m, saborizada: s, envasesDevueltos: 0, total: pedido.monto_total
+      });
+      stock.mineral -= m;
+      stock.saborizada -= s;
+
       await Promise.all([
         db.from('stock').upsert({ id: 1, mineral: stock.mineral, saborizada: stock.saborizada, envases_vacios: stock.envasesVacios }),
-        db.from('ventas').insert({ id: idVenta, fecha: fechaHoy, cliente_id: pedido.cliente_id, mineral: m, saborizada: s, envases_devueltos: 0, total: pedido.monto_total })
+        db.from('ventas').insert({
+          id: idVenta, fecha: fechaHoy, cliente_id: pedido.cliente_id,
+          mineral: m, saborizada: s, envases_devueltos: 0, total: pedido.monto_total
+        })
       ]);
-      
-      renderPedidos(); 
-      cargarMovimiento(); 
+
+      cargarMovimiento();
       actualizarStockUI();
       showToast('Pedido Entregado con Éxito');
       procesandoPedido = null;
@@ -1201,9 +1213,6 @@
     }
 
     // ========== 9. MÓDULO RUTA GLOBAL MULTI-PARADAS ==========
-    let mapaGlobal = null;
-    let listaMarcadoresGlobales = [];
-
     window.abrirMapaGlobal = function() {
       try {
         const modal = document.getElementById('pantallaMapaGlobalOverlay');
@@ -1556,13 +1565,13 @@
           }
 
           const idx = pedidosActivos.findIndex(p => String(p.id).trim() === String(payload.new.id).trim());
-          if (idx === -1) return; // Si no lo encuentra, es porque se completó localmente (Candado Anti-Reentrada activado)
+          if (idx === -1) return;
 
-          const estadoAnterior = pedidosActivos[idx].estado; 
+          const estadoAnterior = pedidosActivos[idx].estado;
 
-          // Sincronización local en caso de que otro dispositivo o chofer haya completado la ruta
-          if (payload.new.estado === 'entregado' && estadoAnterior !== 'entregado') { 
-            showToast('Un chofer ha entregado un pedido ✅', 'success'); 
+          // 🔥 CORRECCIÓN: Si alguien más completó el pedido, sincronizamos localmente sin re-disparar
+          if (payload.new.estado === 'entregado' && estadoAnterior !== 'entregado') {
+            showToast('Un chofer ha entregado un pedido ✅', 'success');
 
             const pedido = pedidosActivos[idx];
             const idVenta = crypto.randomUUID();
@@ -1570,7 +1579,6 @@
             const m = pedido.items?.mineral || 0;
             const s = pedido.items?.saborizada || 0;
 
-            // Registrar venta local
             ventas.push({
               id: idVenta, fecha: fechaHoy, clienteId: pedido.cliente_id,
               mineral: m, saborizada: s, envasesDevueltos: 0, total: pedido.monto_total
@@ -1578,11 +1586,11 @@
             stock.mineral -= m;
             stock.saborizada -= s;
 
-            // Inserción silenciosa local (Sin llamar de nuevo a update/completar)
-            await Promise.all([
-              db.from('ventas').insert({ id: idVenta, fecha: fechaHoy, cliente_id: pedido.cliente_id, mineral: m, saborizada: s, envases_devueltos: 0, total: pedido.monto_total }),
-              db.from('stock').upsert({ id: 1, mineral: stock.mineral, saborizada: stock.saborizada, envases_vacios: stock.envasesVacios })
-            ]);
+            await db.from('ventas').insert({
+              id: idVenta, fecha: fechaHoy, cliente_id: pedido.cliente_id,
+              mineral: m, saborizada: s, envases_devueltos: 0, total: pedido.monto_total
+            });
+            await db.from('stock').upsert({ id: 1, mineral: stock.mineral, saborizada: stock.saborizada, envases_vacios: stock.envasesVacios });
 
             pedidosActivos.splice(idx, 1);
             renderPedidos();
@@ -1592,11 +1600,11 @@
             return;
           }
 
-          // Otras actualizaciones normales de Realtime
-          pedidosActivos[idx].estado = payload.new.estado; 
+          // Otros cambios (asignación de chofer, cambio a "en_camino")
+          pedidosActivos[idx].estado = payload.new.estado;
           pedidosActivos[idx].chofer_id = payload.new.chofer_id;
           pedidosActivos[idx].ubicacion_chofer = payload.new.ubicacion_chofer;
-          renderPedidos(); 
+          renderPedidos();
         })
         .subscribe();
 
@@ -1617,6 +1625,7 @@
       db.channel('operaciones_central')
         .on('broadcast', { event: 'accion_chofer' }, (event) => {
           const datosChofer = event.payload; 
+          console.log("Señal instantánea del chofer capturada:", datosChofer);
           
           if (datosChofer.estado === 'cancelado') showToast('Un pedido ha sido cancelado ❌', 'info');
           if (datosChofer.estado === 'entregado') showToast('Un chofer ha entregado un pedido ✅', 'success');
@@ -1747,7 +1756,7 @@
       const savedAvatar = localStorage.getItem('agua_avatar');
       if (savedAvatar) document.getElementById('profile-img').src = savedAvatar;
       await cargarDatosCompletos();
-      escucharRealtime();
+      escucharRealtime(); // Se llama una sola vez
       registrarPush();
       cargarLogoActual();
     });
