@@ -1671,14 +1671,30 @@
         if (error) console.error('Error inyectando token push de administrador:', error.message);
       });
 
-      PushNotifications.addListener('pushNotificationReceived', (notif) => { 
-        showToast('🔔 ¡Notificación entrante!', 'info'); 
-        cargarDatosCompletos(); 
+            PushNotifications.addListener('pushNotificationReceived', (notif) => {
+        console.log("📩 Push recibida en primer plano:", notif);
+        const data = notif.data;
+        // Si es una cancelación o entrega, actualizamos solo la lista de pedidos
+        if (data && (data.type === "pedido_cancelado" || data.type === "pedido_entregado")) {
+          showToast(data.type === "pedido_cancelado" ? "Pedido cancelado por chofer ❌" : "Pedido entregado ✅", "info");
+          recargarPedidosActivos();  // recarga instantánea
+        } else {
+          // Para otros tipos (ej. nuevo pedido) recargamos todo
+          showToast('🔔 ¡Notificación entrante!', 'info');
+          cargarDatosCompletos();
+        }
       });
       
-      PushNotifications.addListener('pushNotificationActionPerformed', (notif) => { 
-        cargarDatosCompletos(); 
+      PushNotifications.addListener('pushNotificationActionPerformed', (notif) => {
+        console.log("📩 Push tocada:", notif);
+        const data = notif.data;
+        if (data && (data.type === "pedido_cancelado" || data.type === "pedido_entregado")) {
+          recargarPedidosActivos();
+        } else {
+          cargarDatosCompletos();
+        }
       });
+      
     }
 
     // ========== MÓDULO DE MARKETING ==========
