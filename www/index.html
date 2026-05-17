@@ -1400,7 +1400,8 @@ async function asignarChofer(choferId, choferNombre, choferTel) {
       else container.scrollLeft = 0;
     }
 
-    // ========== 14. INICIALIZACIÓN Y SUBSCRIPCIONES (VERSIÓN BLINDADA) ==========
+    
+        // ========== 14. INICIALIZACIÓN Y SUBSCRIPCIONES (CON CHIVATO DE DIAGNÓSTICO) ==========
     async function escucharRealtime() {
       // 1. Escuchar la tabla de Pedidos
       db.channel('public:pedidos')
@@ -1420,27 +1421,36 @@ async function asignarChofer(choferId, choferNombre, choferTel) {
           
           const nuevoEstado = payload.new.estado;
 
-          // === LA BALA DE PLATA: RECARGA FRESCA ===
-          // Si el pedido se cancela o se entrega, ignoramos la memoria temporal.
-          // Forzamos a la app a descargar los datos reales desde cero. Es tan rápido 
-          // que no notarás parpadeos, y elimina cualquier tarjeta fantasma 100% garantizado.
+          // === CHIVATO VISUAL: Esto nos confirmará si Supabase está enviando la señal ===
+          if (nuevoEstado === 'cancelado') {
+             showToast('🚨 Señal de cancelación recibida desde la nube', 'error');
+          }
+
+          // === TRITURADORA DIRECTA ===
           if (nuevoEstado === 'cancelado' || nuevoEstado === 'entregado') {
             
-            if (nuevoEstado === 'cancelado') showToast('Un pedido ha sido cancelado ❌', 'info');
             if (nuevoEstado === 'entregado') showToast('Un chofer ha entregado un pedido ✅', 'success');
+
+            // 1. Buscamos y destruimos la tarjeta de la memoria local a la fuerza
+            const idx = pedidosActivos.findIndex(p => String(p.id).trim() === String(payload.new.id).trim());
+            if (idx > -1) {
+               pedidosActivos.splice(idx, 1);
+            }
             
-            await cargarDatosCompletos(); // Descarga la lista limpia
+            // 2. Borramos todo el HTML y lo volvemos a pintar sin la tarjeta
+            renderPedidos(); 
+            
+            // 3. Volvemos a sincronizar con la base de datos por seguridad
+            await cargarDatosCompletos();
             return; 
           }
 
-          // === SOLO PARA EL GPS ===
-          // Las coordenadas del GPS sí las actualizamos de forma directa para que la 
-          // pantalla no se esté recargando cada 2 segundos mientras el chofer maneja.
-          const idx = pedidosActivos.findIndex(p => String(p.id).trim() === String(payload.new.id).trim());
-          if (idx !== -1) {
-            pedidosActivos[idx].estado = nuevoEstado; 
-            pedidosActivos[idx].chofer_id = payload.new.chofer_id;
-            pedidosActivos[idx].ubicacion_chofer = payload.new.ubicacion_chofer;
+          // === SI SOLO SE ESTÁ MOVIENDO EL GPS O ASIGNANDO CHOFER ===
+          const indexGps = pedidosActivos.findIndex(p => String(p.id).trim() === String(payload.new.id).trim());
+          if (indexGps !== -1) {
+            pedidosActivos[indexGps].estado = nuevoEstado; 
+            pedidosActivos[indexGps].chofer_id = payload.new.chofer_id;
+            pedidosActivos[indexGps].ubicacion_chofer = payload.new.ubicacion_chofer;
             renderPedidos(); 
           }
         })
@@ -1462,6 +1472,7 @@ async function asignarChofer(choferId, choferNombre, choferTel) {
             llenarSelectClientes();
         }).subscribe();
     }
+
 
 
 
