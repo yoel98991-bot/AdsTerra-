@@ -471,10 +471,6 @@
     </div>
   </div>
 
-  <button class="fab" id="fab-clientes" onclick="openClientModal()">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-  </button>
-
   <div class="modal-overlay" id="modalClientOverlay">
     <div class="modal-sheet">
       <div class="modal-handle"></div>
@@ -744,7 +740,11 @@
     });
 
     // ========== 5. SINCRONIZACIÓN DE DATOS ==========
+    let cargandoDatos = false;
+
     async function cargarDatosCompletos() {
+      if (cargandoDatos) return;
+      cargandoDatos = true;
       showToast('Sincronizando datos...', 'info');
       try {
         const [
@@ -773,6 +773,8 @@
       } catch (err) {
         console.error("Error al sincronizar:", err);
         showToast('Error al sincronizar', 'error');
+      } finally {
+        cargandoDatos = false;
       }
     }
 
@@ -954,21 +956,39 @@
       }
     }
 
+    let procesandoPedido = null;
+
     async function completarPedido(id) {
+      if (procesandoPedido === id) return;
+      procesandoPedido = id;
+
       const pedido = pedidosActivos.find(p => p.id === id);
+      if (!pedido) { procesandoPedido = null; return; }
+
+      // Eliminar de la lista local inmediatamente (Protección contra el evento Realtime)
+      pedidosActivos = pedidosActivos.filter(p => p.id !== id);
+
       await db.from('pedidos').update({ estado: 'entregado' }).eq('id', id);
       cerrarRuta();
-      if(pedido) {
-          const idVenta = crypto.randomUUID(); const fechaHoy = new Date().toISOString().split('T')[0];
-          const m = pedido.items.mineral || 0; const s = pedido.items.saborizada || 0;
-          ventas.push({ id: idVenta, fecha: fechaHoy, clienteId: pedido.cliente_id, mineral: m, saborizada: s, envasesDevueltos: 0, total: pedido.monto_total });
-          stock.mineral -= m; stock.saborizada -= s;
-          await db.from('stock').upsert({ id: 1, mineral: stock.mineral, saborizada: stock.saborizada, envases_vacios: stock.envasesVacios });
-          await db.from('ventas').insert({ id: idVenta, fecha: fechaHoy, cliente_id: pedido.cliente_id, mineral: m, saborizada: s, envases_devueltos: 0, total: pedido.monto_total });
-      }
-      pedidosActivos = pedidosActivos.filter(p => p.id !== id);
-      renderPedidos(); cargarMovimiento(); actualizarStockUI();
+
+      const idVenta = crypto.randomUUID(); 
+      const fechaHoy = new Date().toISOString().split('T')[0];
+      const m = pedido.items?.mineral || 0; 
+      const s = pedido.items?.saborizada || 0;
+      
+      ventas.push({ id: idVenta, fecha: fechaHoy, clienteId: pedido.cliente_id, mineral: m, saborizada: s, envasesDevueltos: 0, total: pedido.monto_total });
+      stock.mineral -= m; stock.saborizada -= s;
+      
+      await Promise.all([
+        db.from('stock').upsert({ id: 1, mineral: stock.mineral, saborizada: stock.saborizada, envases_vacios: stock.envasesVacios }),
+        db.from('ventas').insert({ id: idVenta, fecha: fechaHoy, cliente_id: pedido.cliente_id, mineral: m, saborizada: s, envases_devueltos: 0, total: pedido.monto_total })
+      ]);
+      
+      renderPedidos(); 
+      cargarMovimiento(); 
+      actualizarStockUI();
       showToast('Pedido Entregado con Éxito');
+      procesandoPedido = null;
     }
 
     async function cancelarPedido(id) {
@@ -1528,7 +1548,7 @@
           } catch(e) {}
           showToast('¡NUEVO PEDIDO RECIBIDO! 🔔'); renderPedidos();
         })
-        .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'pedidos' }, (payload) => {
+        .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'pedidos' }, async (payload) => {
           if (payload.new.estado === 'cancelado') {
             pedidosActivos = pedidosActivos.filter(p => String(p.id).trim() !== String(payload.new.id).trim());
             renderPedidos();
@@ -1536,19 +1556,47 @@
           }
 
           const idx = pedidosActivos.findIndex(p => String(p.id).trim() === String(payload.new.id).trim());
-          if (idx !== -1) {
-            const estadoAnterior = pedidosActivos[idx].estado; 
-            pedidosActivos[idx].estado = payload.new.estado; 
-            pedidosActivos[idx].chofer_id = payload.new.chofer_id;
-            pedidosActivos[idx].ubicacion_chofer = payload.new.ubicacion_chofer;
+          if (idx === -1) return; // Si no lo encuentra, es porque se completó localmente (Candado Anti-Reentrada activado)
 
-            if (payload.new.estado === 'entregado' && estadoAnterior !== 'entregado') { 
-              showToast('Un chofer ha entregado un pedido ✅', 'success'); 
-              completarPedido(payload.new.id); 
-            } else { 
-              renderPedidos(); 
-            }
+          const estadoAnterior = pedidosActivos[idx].estado; 
+
+          // Sincronización local en caso de que otro dispositivo o chofer haya completado la ruta
+          if (payload.new.estado === 'entregado' && estadoAnterior !== 'entregado') { 
+            showToast('Un chofer ha entregado un pedido ✅', 'success'); 
+
+            const pedido = pedidosActivos[idx];
+            const idVenta = crypto.randomUUID();
+            const fechaHoy = new Date().toISOString().split('T')[0];
+            const m = pedido.items?.mineral || 0;
+            const s = pedido.items?.saborizada || 0;
+
+            // Registrar venta local
+            ventas.push({
+              id: idVenta, fecha: fechaHoy, clienteId: pedido.cliente_id,
+              mineral: m, saborizada: s, envasesDevueltos: 0, total: pedido.monto_total
+            });
+            stock.mineral -= m;
+            stock.saborizada -= s;
+
+            // Inserción silenciosa local (Sin llamar de nuevo a update/completar)
+            await Promise.all([
+              db.from('ventas').insert({ id: idVenta, fecha: fechaHoy, cliente_id: pedido.cliente_id, mineral: m, saborizada: s, envases_devueltos: 0, total: pedido.monto_total }),
+              db.from('stock').upsert({ id: 1, mineral: stock.mineral, saborizada: stock.saborizada, envases_vacios: stock.envasesVacios })
+            ]);
+
+            pedidosActivos.splice(idx, 1);
+            renderPedidos();
+            cargarMovimiento();
+            actualizarStockUI();
+            cerrarRuta();
+            return;
           }
+
+          // Otras actualizaciones normales de Realtime
+          pedidosActivos[idx].estado = payload.new.estado; 
+          pedidosActivos[idx].chofer_id = payload.new.chofer_id;
+          pedidosActivos[idx].ubicacion_chofer = payload.new.ubicacion_chofer;
+          renderPedidos(); 
         })
         .subscribe();
 
@@ -1569,7 +1617,6 @@
       db.channel('operaciones_central')
         .on('broadcast', { event: 'accion_chofer' }, (event) => {
           const datosChofer = event.payload; 
-          console.log("Señal instantánea del chofer capturada:", datosChofer);
           
           if (datosChofer.estado === 'cancelado') showToast('Un pedido ha sido cancelado ❌', 'info');
           if (datosChofer.estado === 'entregado') showToast('Un chofer ha entregado un pedido ✅', 'success');
