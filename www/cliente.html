@@ -368,6 +368,11 @@
       
       cargarPrecios(); chequearPedidoActivo();
       db.channel('rastreo').on('postgres_changes', { event:'*', schema:'public', table:'pedidos', filter:`cliente_id=eq.${usuarioActual.id}` }, () => chequearPedidoActivo()).subscribe();
+
+      // Escucha de nuevas ventas para actualizar la tarjeta de lealtad en tiempo real
+db.channel('lealtad').on('postgres_changes', { event:'INSERT', schema:'public', table:'ventas', filter:`cliente_id=eq.${usuarioActual.id}` }, () => {
+  cargarLealtad();
+}).subscribe();
       
       // 👇 AQUÍ ACTIVAMOS LA ANTENA DE NOTIFICACIONES AL INICIAR SESIÓN 👇
       registrarPushCliente();
