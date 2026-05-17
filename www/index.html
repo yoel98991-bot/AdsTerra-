@@ -201,6 +201,10 @@
     .lealtad-badge { background: #fef3c7; color: #d97706; padding: 6px 12px; border-radius: 100px; font-size: 12px; font-weight: 800; display: flex; align-items: center; gap: 4px; }
     .panel-acciones { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 16px; margin-bottom: 16px;}
 
+    /* ========== MAPA GLOBAL MULTI-PARADAS ========== */
+    #pantallaMapaGlobalOverlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: var(--system-bg); z-index: 99999; display: none; flex-direction: column; opacity: 0; transition: opacity 0.3s ease; }
+    #pantallaMapaGlobalOverlay.active { opacity: 1; }
+    
     /* ========== BARRA DE PESTAÑAS ========== */
     .tab-bar { position: fixed; bottom: 0; left: 0; right: 0; background: var(--tab-bg); backdrop-filter: blur(20px); border-top: 1px solid rgba(0,0,0,0.05); display: flex; justify-content: space-around; align-items: center; height: calc(env(safe-area-inset-bottom) + 70px); padding-bottom: env(safe-area-inset-bottom); z-index: 150; }
     .tab-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #94a3b8; font-size: 11px; font-weight: 700; gap: 6px; padding: 10px 0; cursor: pointer; transition: color 0.2s;}
@@ -278,7 +282,7 @@
 
     <div id="sub-pedidos">
       <button class="btn-primary" style="margin-bottom: 16px; background: linear-gradient(135deg, #10b981, #059669); box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);" onclick="abrirMapaGlobal()">
-        🗺️ Ver Mapa General de Reparto (Multi-paradas)
+        🗺️ Ver Mapa General de Reparto
       </button>
 
       <div id="lista-pedidos-vacia" style="text-align: center; padding: 40px 20px; color: var(--text-secondary);">
@@ -584,12 +588,11 @@
     </div>
   </div>
 
-    <div id="pantallaMapaGlobalOverlay" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: var(--system-bg); z-index: 99999; display: none; flex-direction: column; opacity: 0; transition: opacity 0.3s ease;">
-    
+  <div id="pantallaMapaGlobalOverlay">
     <button onclick="cerrarMapaGlobal()" style="position: absolute; top: 30px; left: 20px; z-index: 999999; width: 48px; height: 48px; border-radius: 24px; background: white; border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.2); display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text-primary);">
       <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="15 18 9 12 15 6"/></svg>
     </button>
-
+    
     <div id="mapa-global-reparto" style="flex: 1; width: 100%; z-index: 1;"></div>
     
     <div style="position: absolute; bottom: 30px; left: 20px; right: 20px; background: white; z-index: 100000; border-radius: 20px; padding: 16px 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); display: flex; justify-content: space-between; align-items: center;">
@@ -600,7 +603,6 @@
       <span style="background: rgba(14, 165, 233, 0.1); color: var(--tint); padding: 6px 12px; border-radius: 100px; font-size: 13px; font-weight: 800;" id="badge-total-botellones">0 Cargas</span>
     </div>
   </div>
-
 
   <div class="tab-bar">
     <div class="tab-item active" data-screen="inicio" onclick="switchTab('inicio')">
@@ -682,7 +684,7 @@
       setTimeout(() => { toast.remove(); }, 3400);
     }
 
-    function escapeHtml(text) { return String(text).replace(/[&<>"]/g, m => ({'&':'&','<':'<','>':'>','"':'位'}[m])); }
+    function escapeHtml(text) { return String(text).replace(/[&<>"]/g, m => ({'&':'&','<':'<','>':'>','"':'&quot;'}[m])); }
     function formatearBs(monto) { return 'Bs ' + monto.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
 
     function animarNumero(id, endValue, duration) {
@@ -1178,34 +1180,37 @@
       modal.classList.remove('active'); setTimeout(() => modal.style.display = 'none', 300);
     }
 
-    // ========== 9. MÓDULO RUTA GLOBAL MULTI-PARADAS (CORREGIDO) ==========
+    // ========== 9. MÓDULO RUTA GLOBAL MULTI-PARADAS ==========
     let mapaGlobal = null;
     let listaMarcadoresGlobales = [];
 
     window.abrirMapaGlobal = function() {
       try {
         const modal = document.getElementById('pantallaMapaGlobalOverlay');
-        modal.style.display = 'flex';
+        if (!modal) { alert("Error: Panel de mapa no encontrado"); return; }
         
-        // 🔥 EL FIX MÁGICO: Forzamos que deje de ser invisible
+        modal.style.display = 'flex';
         setTimeout(() => {
           modal.classList.add('active');
-          modal.style.opacity = '1'; 
+          modal.style.opacity = '1';
         }, 10);
         
         const pendientes = pedidosActivos.filter(p => p.estado === 'pendiente' || p.estado === 'en_camino');
-        document.getElementById('lbl-total-paradas').innerText = `${pendientes.length} paradas pendientes`;
+        const lbl = document.getElementById('lbl-total-paradas');
+        if (lbl) lbl.innerText = `${pendientes.length} paradas pendientes`;
         
         let totalBotellones = 0;
 
-        // Crear mapa solo si no existe
         if (!mapaGlobal) {
           mapaGlobal = L.map('mapa-global-reparto', { zoomControl: false }).setView([10.1620, -67.9996], 13);
           L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png').addTo(mapaGlobal);
         }
 
-        // Limpiar pines antiguos
-        listaMarcadoresGlobales.forEach(m => mapaGlobal.removeLayer(m));
+        if (listaMarcadoresGlobales && listaMarcadoresGlobales.length > 0) {
+            listaMarcadoresGlobales.forEach(m => {
+                if(mapaGlobal.hasLayer(m)) mapaGlobal.removeLayer(m);
+            });
+        }
         listaMarcadoresGlobales = [];
 
         let puntosLatLng = [];
@@ -1219,77 +1224,65 @@
           totalBotellones += (min + sab);
 
           if (cliente.direccion && cliente.direccion.includes('| GPS:')) {
-            const coords = cliente.direccion.split('| GPS:')[1].trim().split(',');
-            const lat = parseFloat(coords[0]);
-            const lng = parseFloat(coords[1]);
-            
-            if (!isNaN(lat) && !isNaN(lng)) {
-              puntosLatLng.push([lat, lng]);
-              
-              const colorBurbuja = pedido.estado === 'en_camino' ? '#0ea5e9' : '#f59e0b';
-              
-              const pinNumerado = L.divIcon({
-                html: `<div style="width:34px; height:34px; border-radius:50%; background:${colorBurbuja}; color:white; border:2.5px solid white; box-shadow:0 4px 10px rgba(0,0,0,0.3); display:flex; justify-content:center; align-items:center; font-weight:800; font-size:14px;">
-                         ${index + 1}
-                       </div>`,
-                className: '',
-                iconSize: [34, 34],
-                iconAnchor: [17, 17]
-              });
+            const partes = cliente.direccion.split('| GPS:');
+            if(partes.length > 1) {
+                const coords = partes[1].trim().split(',');
+                if (coords.length >= 2) {
+                    const lat = parseFloat(coords[0]);
+                    const lng = parseFloat(coords[1]);
+                    
+                    if (!isNaN(lat) && !isNaN(lng)) {
+                      puntosLatLng.push([lat, lng]);
+                      const colorBurbuja = pedido.estado === 'en_camino' ? '#0ea5e9' : '#f59e0b';
+                      
+                      const pinNumerado = L.divIcon({
+                        html: `<div style="width:34px; height:34px; border-radius:50%; background:${colorBurbuja}; color:white; border:2.5px solid white; box-shadow:0 4px 10px rgba(0,0,0,0.3); display:flex; justify-content:center; align-items:center; font-weight:800; font-size:14px;">${index + 1}</div>`,
+                        className: '',
+                        iconSize: [34, 34],
+                        iconAnchor: [17, 17]
+                      });
 
-              let desglose = [];
-              if (min > 0) desglose.push(`${min} Mineral`);
-              if (sab > 0) desglose.push(`${sab} Saborizada`);
+                      let desglose = [];
+                      if (min > 0) desglose.push(`${min} Min`);
+                      if (sab > 0) desglose.push(`${sab} Sab`);
 
-              const marcador = L.marker([lat, lng], { icon: pinNumerado })
-                .addTo(mapaGlobal)
-                .bindPopup(`
-                  <div style="font-family:inherit; padding:2px;">
-                    <strong style="font-size:14px; display:block; margin-bottom:4px;">${index + 1}. ${cliente.nombre || 'Cliente'}</strong>
-                    <span style="font-size:12px; color:var(--text-secondary); display:block; margin-bottom:4px;">📦 Lote: ${desglose.join(' + ') || 'Vacío'}</span>
-                    <span style="font-size:12px; font-weight:700; color:var(--green);">Monto: Bs ${pedido.monto_total || 0}</span>
-                  </div>
-                `);
-              
-              listaMarcadoresGlobales.push(marcador);
+                      const marcador = L.marker([lat, lng], { icon: pinNumerado })
+                        .addTo(mapaGlobal)
+                        .bindPopup(`<div style="font-family:inherit; padding:2px;"><strong style="font-size:14px; display:block; margin-bottom:4px;">${index + 1}. ${cliente.nombre || 'Cliente'}</strong><span style="font-size:12px; color:var(--text-secondary); display:block; margin-bottom:4px;">📦 Lote: ${desglose.join(' + ') || 'Vacío'}</span><span style="font-size:12px; font-weight:700; color:var(--green);">Monto: Bs ${pedido.monto_total || 0}</span></div>`);
+                      
+                      listaMarcadoresGlobales.push(marcador);
+                    }
+                }
             }
           }
         });
 
-        document.getElementById('badge-total-botellones').innerText = `${totalBotellones} Cargas`;
+        const badge = document.getElementById('badge-total-botellones');
+        if(badge) badge.innerText = `${totalBotellones} Cargas`;
 
-        if (puntosLatLng.length > 0) {
-          const encuadre = L.latLngBounds(puntosLatLng);
-          mapaGlobal.fitBounds(encuadre, { padding: [80, 80] });
-        }
-        
-        setTimeout(() => mapaGlobal.invalidateSize(), 350);
+        setTimeout(() => {
+            if (mapaGlobal) {
+                mapaGlobal.invalidateSize();
+                if (puntosLatLng.length > 0) {
+                  mapaGlobal.fitBounds(L.latLngBounds(puntosLatLng), { padding: [80, 80] });
+                }
+            }
+        }, 350);
+
       } catch (error) {
         console.error("Error al abrir mapa global:", error);
-        showToast("Error al cargar la ruta. Cierra e intenta de nuevo.", "error");
+        alert("Hubo un error al abrir el mapa: " + error.message);
       }
     };
 
     window.cerrarMapaGlobal = function() {
       const modal = document.getElementById('pantallaMapaGlobalOverlay');
-      modal.classList.remove('active');
-      modal.style.opacity = '0'; // 🔥 FIX: Lo volvemos invisible al cerrar
-      setTimeout(() => modal.style.display = 'none', 300);
+      if(modal) {
+          modal.classList.remove('active');
+          modal.style.opacity = '0';
+          setTimeout(() => modal.style.display = 'none', 300);
+      }
     };
-
-    window.cerrarMapaGlobal = function() {
-      const modal = document.getElementById('pantallaMapaGlobalOverlay');
-      modal.classList.remove('active');
-      setTimeout(() => modal.style.display = 'none', 300);
-    };
-
-
-
-    function cerrarMapaGlobal() {
-      const modal = document.getElementById('pantallaMapaGlobalOverlay');
-      modal.classList.remove('active');
-      setTimeout(() => modal.style.display = 'none', 300);
-    }
 
     // ========== 10. VENTAS MANUALES E INVENTARIO ==========
     function llenarSelectClientes() {
@@ -1536,7 +1529,6 @@
           showToast('¡NUEVO PEDIDO RECIBIDO! 🔔'); renderPedidos();
         })
         .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'pedidos' }, (payload) => {
-          // Solución Filtro de Respaldo por Base de Datos
           if (payload.new.estado === 'cancelado') {
             pedidosActivos = pedidosActivos.filter(p => String(p.id).trim() !== String(payload.new.id).trim());
             renderPedidos();
@@ -1573,7 +1565,7 @@
             renderClientList(); llenarSelectClientes();
         }).subscribe();
 
-      // 🔥 3. CANAL DE BROADCAST DE EMERGENCIA (Pulveriza el lag y elimina las tarjetas fantasmas al instante) 🔥
+      // 🔥 3. CANAL DE BROADCAST DE EMERGENCIA
       db.channel('operaciones_central')
         .on('broadcast', { event: 'accion_chofer' }, (event) => {
           const datosChofer = event.payload; 
@@ -1582,7 +1574,6 @@
           if (datosChofer.estado === 'cancelado') showToast('Un pedido ha sido cancelado ❌', 'info');
           if (datosChofer.estado === 'entregado') showToast('Un chofer ha entregado un pedido ✅', 'success');
           
-          // Borrar la tarjeta local de la pantalla en 0.01 segundos
           const idx = pedidosActivos.findIndex(p => String(p.id).trim() === String(datosChofer.id).trim());
           if (idx > -1) {
              pedidosActivos.splice(idx, 1);
@@ -1616,8 +1607,6 @@
       if (permStatus.receive !== 'granted') return;
 
       await PushNotifications.register();
-
-      PushNotifications.register();
 
       PushNotifications.addListener('registration', async (token) => {
         const { error } = await db.from('dispositivos').upsert({ 
