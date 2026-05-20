@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -6,7 +7,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="theme-color" content="#f4f6f9">
-  <title>AguaBol - Centro de Operaciones</title>
+  <title>AguaLigt- Centro de Operaciones</title>
   
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
@@ -577,10 +578,20 @@
         </div>
       </div>
       
-      <div class="panel-acciones">
+            <div class="panel-acciones" id="panel-acciones-normales">
         <button class="btn-outline" style="color: var(--destructive); border-color: #fecaca; background: #fef2f2; margin: 0;" id="btn-cancelar-ruta">Cancelar Pedido</button>
         <button class="btn-primary" style="background: #10b981; margin: 0;" id="btn-completar-ruta">Marcar Entregado</button>
       </div>
+      <!-- BOTONES DE PREMIO OCULTOS POR DEFECTO -->
+      <div class="panel-acciones" id="panel-acciones-premio" style="display: none; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 16px; margin-bottom: 16px;">
+        <button class="btn-primary" style="background: #0ea5e9; margin: 0; font-size: 13px; padding: 12px;" id="btn-premio-mineral">🎁 Regalar Mineral</button>
+        <button class="btn-primary" style="background: #d97706; margin: 0; font-size: 13px; padding: 12px;" id="btn-premio-saborizada">🎁 Saborizada 50%</button>
+      </div>
+      <div style="margin-top: -8px; margin-bottom: 16px; display: none;" id="panel-cancelar-premio">
+        <button class="btn-outline" style="color: var(--destructive); border-color: #fecaca; background: #fef2f2; width: 100%;" id="btn-cancelar-ruta-premio">Cancelar Pedido</button>
+      </div>
+
+
       <button id="btn-iniciar-viaje" class="btn-primary" style="background: linear-gradient(135deg, #10b981, #059669); width: 100%; margin-top: 12px;">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
         Iniciar Navegación (En App)
@@ -670,6 +681,20 @@
     let procesandoPedido = null;
 
     // ========== 3. FUNCIONES DE UTILIDAD ==========
+    
+        function calcularDistancia(lat1, lon1, lat2, lon2) {
+      const R = 6371; // Radio de la Tierra en kilómetros
+      const dLat = (lat2 - lat1) * Math.PI / 180;
+      const dLon = (lon2 - lon1) * Math.PI / 180;
+      const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                Math.sin(dLon/2) * Math.sin(dLon/2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+      return R * c; // Devuelve la distancia en km
+    }
+
+
+    
     function showToast(message, type = 'success') {
       const container = document.getElementById('toast-container');
       const toast = document.createElement('div');
@@ -781,11 +806,12 @@
     }
 
     // ========== 6. OPERACIONES: PEDIDOS EN VIVO ==========
-    function calcularLealtadCliente(clienteId) {
+        function calcularLealtadCliente(clienteId) {
       const compras = ventas.filter(v => v.clienteId === clienteId);
       let total = 0; compras.forEach(c => { total += (c.mineral || 0) + (c.saborizada || 0); });
-      return total % 10;
+      return total % 11; // Ahora divide entre 11 turnos (10 compras + 1 regalo)
     }
+
 
     function renderPedidos() {
       const container = document.getElementById('lista-pedidos-container');
@@ -913,6 +939,7 @@
       });
       openModal('modalChoferesOverlay');
     }
+    
 
     async function asignarChofer(choferId, choferNombre, choferTel) {
       closeModal('modalChoferesOverlay');
@@ -957,19 +984,17 @@
         showToast(`Enlace para chofer:\n${linkMagico}`, 'info');
       }
     }
+    
+    
 
     // ========== CORRECCIÓN: completarPedido protegido contra reentrada ==========
-    async function completarPedido(id) {
+        async function completarPedido(id, tipoPremio = null) {
       if (procesandoPedido === id) return;
       procesandoPedido = id;
 
       const pedido = pedidosActivos.find(p => p.id === id);
-      if (!pedido) {
-        procesandoPedido = null;
-        return;
-      }
+      if (!pedido) { procesandoPedido = null; return; }
 
-      // Eliminamos inmediatamente del array local para evitar que el evento Realtime lo vuelva a procesar
       pedidosActivos = pedidosActivos.filter(p => p.id !== id);
       renderPedidos();
 
@@ -980,32 +1005,36 @@
       const fechaHoy = new Date().toISOString().split('T')[0];
       const m = pedido.items?.mineral || 0;
       const s = pedido.items?.saborizada || 0;
+      
+      let totalCobrado = parseFloat(pedido.monto_total);
+
+      // APLICAR EL DESCUENTO SI EL CLIENTE USÓ SU PREMIO
+      if (tipoPremio === 'mineral' && m > 0) {
+        totalCobrado -= precioMineral; 
+      } else if (tipoPremio === 'saborizada' && s > 0) {
+        totalCobrado -= (precioSaborizada / 2);
+      }
+      if(totalCobrado < 0) totalCobrado = 0; // Evitar saldos negativos
 
       ventas.push({
         id: idVenta, fecha: fechaHoy, clienteId: pedido.cliente_id,
-        mineral: m, saborizada: s, envasesDevueltos: 0, total: pedido.monto_total
+        mineral: m, saborizada: s, envasesDevueltos: 0, total: totalCobrado
       });
-      stock.mineral -= m;
-      stock.saborizada -= s;
+      stock.mineral -= m; stock.saborizada -= s;
 
       await Promise.all([
         db.from('stock').upsert({ id: 1, mineral: stock.mineral, saborizada: stock.saborizada, envases_vacios: stock.envasesVacios }),
         db.from('ventas').insert({
-          id: idVenta,
-          pedido_id: id, // ✅ Añadido
-          fecha: fechaHoy,
-          cliente_id: pedido.cliente_id,
-          mineral: m, saborizada: s,
-          envases_devueltos: 0,
-          total: pedido.monto_total
+          id: idVenta, pedido_id: id, fecha: fechaHoy, cliente_id: pedido.cliente_id,
+          mineral: m, saborizada: s, envases_devueltos: 0, total: totalCobrado
         })
       ]);
 
-      cargarMovimiento();
-      actualizarStockUI();
-      showToast('Pedido Entregado con Éxito');
+      cargarMovimiento(); actualizarStockUI();
+      showToast(tipoPremio ? '¡Premio Entregado! ✅' : 'Pedido Entregado con Éxito');
       procesandoPedido = null;
     }
+
 
     async function cancelarPedido(id) {
       if(confirm('¿Seguro que deseas cancelar este pedido? Se notificará al cliente.')) {
@@ -1121,11 +1150,34 @@
         document.getElementById('ruta-lealtad-texto').textContent = `${puntos}/10 Compras`;
         const chofer = choferes.find(c => c.id === pedido.chofer_id);
         document.getElementById('ruta-chofer-asignado').textContent = chofer ? `Repartidor: ${chofer.nombre}` : 'Reparto Propio (Administrador)';
-        document.getElementById('btn-cancelar-ruta').style.display = 'block';
-        document.getElementById('btn-completar-ruta').style.display = 'block';
+        
+                const panelNormales = document.getElementById('panel-acciones-normales');
+        const panelPremio = document.getElementById('panel-acciones-premio');
+        const panelCancelarPremio = document.getElementById('panel-cancelar-premio');
+
+        // SI LOS PUNTOS SON 10, ESTA ES LA ENTREGA 11 (RECARGA GRATIS)
+        if(puntos === 10) { 
+          document.getElementById('ruta-lealtad-texto').textContent = '🎁 ¡RECARGA GRATIS!';
+          panelNormales.style.display = 'none';
+          panelPremio.style.display = 'grid';
+          panelCancelarPremio.style.display = 'block';
+          
+          document.getElementById('btn-premio-mineral').onclick = () => completarPedido(pedidoId, 'mineral');
+          document.getElementById('btn-premio-saborizada').onclick = () => completarPedido(pedidoId, 'saborizada');
+          document.getElementById('btn-cancelar-ruta-premio').onclick = () => cancelarPedido(pedidoId);
+        } else {
+          document.getElementById('ruta-lealtad-texto').textContent = `${puntos}/10 Compras`;
+          panelNormales.style.display = 'grid';
+          panelPremio.style.display = 'none';
+          panelCancelarPremio.style.display = 'none';
+          
+          document.getElementById('btn-cancelar-ruta').onclick = () => cancelarPedido(pedidoId);
+          document.getElementById('btn-completar-ruta').onclick = () => completarPedido(pedidoId);
+        }
         btnViaje.style.display = 'flex';
-        document.getElementById('btn-cancelar-ruta').onclick = () => cancelarPedido(pedidoId);
-        document.getElementById('btn-completar-ruta').onclick = () => completarPedido(pedidoId);
+
+        
+        
         if(pedido.estado === 'pendiente') {
           db.from('pedidos').update({ estado: 'en_camino', chofer_id: null }).eq('id', pedidoId).then(()=>{
              pedido.estado = 'en_camino'; renderPedidos();
@@ -1217,96 +1269,126 @@
     }
 
     // ========== 9. MÓDULO RUTA GLOBAL MULTI-PARADAS ==========
-    window.abrirMapaGlobal = function() {
+        window.abrirMapaGlobal = function() {
       try {
         const modal = document.getElementById('pantallaMapaGlobalOverlay');
-        if (!modal) { alert("Error: Panel de mapa no encontrado"); return; }
+        if (!modal) return;
         
         modal.style.display = 'flex';
-        setTimeout(() => {
-          modal.classList.add('active');
-          modal.style.opacity = '1';
-        }, 10);
+        setTimeout(() => { modal.classList.add('active'); modal.style.opacity = '1'; }, 10);
         
-        const pendientes = pedidosActivos.filter(p => p.estado === 'pendiente' || p.estado === 'en_camino');
-        const lbl = document.getElementById('lbl-total-paradas');
-        if (lbl) lbl.innerText = `${pendientes.length} paradas pendientes`;
-        
-        let totalBotellones = 0;
-
         if (!mapaGlobal) {
           mapaGlobal = L.map('mapa-global-reparto', { zoomControl: false }).setView([10.1620, -67.9996], 13);
           L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png').addTo(mapaGlobal);
         }
 
         if (listaMarcadoresGlobales && listaMarcadoresGlobales.length > 0) {
-            listaMarcadoresGlobales.forEach(m => {
-                if(mapaGlobal.hasLayer(m)) mapaGlobal.removeLayer(m);
-            });
+            listaMarcadoresGlobales.forEach(m => { if(mapaGlobal.hasLayer(m)) mapaGlobal.removeLayer(m); });
         }
         listaMarcadoresGlobales = [];
 
-        let puntosLatLng = [];
+        // 1. SOLICITAR UBICACIÓN GPS DEL ADMINISTRADOR
+        navigator.geolocation.getCurrentPosition((pos) => {
+            const adminLat = pos.coords.latitude;
+            const adminLng = pos.coords.longitude;
 
-        pendientes.forEach((pedido, index) => {
-          const cliente = pedido.clientes || {};
-          const items = pedido.items || {};
-          
-          const min = parseInt(items.mineral) || 0;
-          const sab = parseInt(items.saborizada) || 0;
-          totalBotellones += (min + sab);
+            // Pin del administrador
+            const adminIcon = L.divIcon({ html: '📍', className: '', iconSize: [24, 24] });
+            const mAdmin = L.marker([adminLat, adminLng], {icon: adminIcon}).addTo(mapaGlobal).bindPopup("Tu Ubicación");
+            listaMarcadoresGlobales.push(mAdmin);
 
-          if (cliente.direccion && cliente.direccion.includes('| GPS:')) {
-            const partes = cliente.direccion.split('| GPS:');
-            if(partes.length > 1) {
-                const coords = partes[1].trim().split(',');
-                if (coords.length >= 2) {
-                    const lat = parseFloat(coords[0]);
-                    const lng = parseFloat(coords[1]);
-                    
-                    if (!isNaN(lat) && !isNaN(lng)) {
-                      puntosLatLng.push([lat, lng]);
-                      const colorBurbuja = pedido.estado === 'en_camino' ? '#0ea5e9' : '#f59e0b';
-                      
-                      const pinNumerado = L.divIcon({
-                        html: `<div style="width:34px; height:34px; border-radius:50%; background:${colorBurbuja}; color:white; border:2.5px solid white; box-shadow:0 4px 10px rgba(0,0,0,0.3); display:flex; justify-content:center; align-items:center; font-weight:800; font-size:14px;">${index + 1}</div>`,
-                        className: '',
-                        iconSize: [34, 34],
-                        iconAnchor: [17, 17]
-                      });
+            let clientesActivos = [];
+            let totalBotellones = 0;
 
-                      let desglose = [];
-                      if (min > 0) desglose.push(`${min} Min`);
-                      if (sab > 0) desglose.push(`${sab} Sab`);
-
-                      const marcador = L.marker([lat, lng], { icon: pinNumerado })
-                        .addTo(mapaGlobal)
-                        .bindPopup(`<div style="font-family:inherit; padding:2px;"><strong style="font-size:14px; display:block; margin-bottom:4px;">${index + 1}. ${cliente.nombre || 'Cliente'}</strong><span style="font-size:12px; color:var(--text-secondary); display:block; margin-bottom:4px;">📦 Lote: ${desglose.join(' + ') || 'Vacío'}</span><span style="font-size:12px; font-weight:700; color:var(--green);">Monto: Bs ${pedido.monto_total || 0}</span></div>`);
-                      
-                      listaMarcadoresGlobales.push(marcador);
-                    }
+            // 2. CLASIFICAR TODOS LOS CLIENTES DEL CRM
+            clients.forEach(cliente => {
+                let destLat = null, destLng = null;
+                if (cliente.address && cliente.address.includes('| GPS:')) {
+                    const coords = cliente.address.split('| GPS:')[1].trim().split(',');
+                    if (coords.length >= 2) { destLat = parseFloat(coords[0]); destLng = parseFloat(coords[1]); }
                 }
-            }
-          }
-        });
+                if (destLat === null || destLng === null) return; // Sin GPS no entra al mapa
 
-        const badge = document.getElementById('badge-total-botellones');
-        if(badge) badge.innerText = `${totalBotellones} Cargas`;
+                const pedidoEnVivo = pedidosActivos.find(p => p.cliente_id === cliente.id && (p.estado === 'pendiente' || p.estado === 'en_camino'));
+                const stats = getClientStats(cliente.id);
 
-        setTimeout(() => {
-            if (mapaGlobal) {
-                mapaGlobal.invalidateSize();
-                if (puntosLatLng.length > 0) {
-                  mapaGlobal.fitBounds(L.latLngBounds(puntosLatLng), { padding: [80, 80] });
+                if (pedidoEnVivo || stats.pedidoPendiente) {
+                   clientesActivos.push({
+                      cliente: cliente, lat: destLat, lng: destLng, pedido: pedidoEnVivo
+                   });
+                   if (pedidoEnVivo && pedidoEnVivo.items) {
+                       totalBotellones += (parseInt(pedidoEnVivo.items.mineral) || 0) + (parseInt(pedidoEnVivo.items.saborizada) || 0);
+                   }
+                } else {
+                   // Pin Inactivo (Punto gris)
+                   const pinGris = L.circleMarker([destLat, destLng], { radius: 6, color: '#94a3b8', fillOpacity: 0.6, stroke: false }).addTo(mapaGlobal);
+                   listaMarcadoresGlobales.push(pinGris);
                 }
+            });
+
+            // 3. MOTOR MATEMÁTICO: ALGORITMO DEL VECINO MÁS CERCANO
+            let rutaOrdenada = [];
+            let currentLat = adminLat;
+            let currentLng = adminLng;
+            let noVisitados = [...clientesActivos];
+
+            while(noVisitados.length > 0) {
+                let nearestIdx = 0;
+                let minDist = Infinity;
+                for(let i=0; i < noVisitados.length; i++) {
+                   const d = calcularDistancia(currentLat, currentLng, noVisitados[i].lat, noVisitados[i].lng);
+                   if (d < minDist) { minDist = d; nearestIdx = i; }
+                }
+                const nearest = noVisitados.splice(nearestIdx, 1)[0];
+                rutaOrdenada.push(nearest);
+                currentLat = nearest.lat; currentLng = nearest.lng;
             }
-        }, 350);
+
+            // 4. DIBUJAR RUTA Y PINES NUMERADOS
+            let puntosRuta = [[adminLat, adminLng]]; // Empezamos a trazar la línea desde el admin
+            
+            rutaOrdenada.forEach((nodo, index) => {
+                puntosRuta.push([nodo.lat, nodo.lng]);
+                
+                let colorBurbuja = nodo.pedido ? (nodo.pedido.estado === 'en_camino' ? '#0ea5e9' : '#10b981') : '#f59e0b';
+                
+                const pinNumerado = L.divIcon({
+                  html: `<div style="width:34px; height:34px; border-radius:50%; background:${colorBurbuja}; color:white; border:2.5px solid white; box-shadow:0 4px 10px rgba(0,0,0,0.3); display:flex; justify-content:center; align-items:center; font-weight:800; font-size:14px;">${index + 1}</div>`,
+                  className: '', iconSize: [34, 34], iconAnchor: [17, 17]
+                });
+
+                let infoPopup = `<div style="font-family:inherit; padding:2px;"><strong style="font-size:14px;">${index + 1}. ${nodo.cliente.name}</strong>`;
+                if (nodo.pedido) { infoPopup += `<br><span style="font-size:12px; color:var(--green);">Bs ${nodo.pedido.monto_total}</span>`; } 
+                else { infoPopup += `<br><span style="font-size:12px; color:#d97706;">CRM: Toca Comprar</span>`; }
+                infoPopup += `</div>`;
+
+                const marcador = L.marker([nodo.lat, nodo.lng], { icon: pinNumerado }).addTo(mapaGlobal).bindPopup(infoPopup);
+                listaMarcadoresGlobales.push(marcador);
+            });
+
+            // Dibujar la línea punteada que conecta todos los puntos
+            if (puntosRuta.length > 1) {
+                const linea = L.polyline(puntosRuta, {color: '#10b981', weight: 4, dashArray: '8, 8', opacity: 0.8}).addTo(mapaGlobal);
+                listaMarcadoresGlobales.push(linea);
+                mapaGlobal.fitBounds(linea.getBounds(), { padding: [60, 60] });
+            } else {
+                mapaGlobal.setView([adminLat, adminLng], 14);
+            }
+
+            const lbl = document.getElementById('lbl-total-paradas');
+            if (lbl) lbl.innerText = `${rutaOrdenada.length} paradas óptimas`;
+            const badge = document.getElementById('badge-total-botellones');
+            if(badge) badge.innerText = `${totalBotellones} Cargas pendientes`;
+
+        }, (err) => {
+            showToast('Activa el GPS para trazar la ruta', 'error');
+        }, { enableHighAccuracy: true });
 
       } catch (error) {
         console.error("Error al abrir mapa global:", error);
-        alert("Hubo un error al abrir el mapa: " + error.message);
       }
     };
+
 
     window.cerrarMapaGlobal = function() {
       const modal = document.getElementById('pantallaMapaGlobalOverlay');
