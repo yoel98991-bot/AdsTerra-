@@ -1,6 +1,6 @@
 {
   "appId": "com.aguabol.cliente",
-  "appName": "AguaBol Cliente",
+  "appName": "Agualigt Clientes",
   "webDir": "www",
   "plugins": {
     "PushNotifications": {
