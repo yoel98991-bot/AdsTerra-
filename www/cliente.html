@@ -6,7 +6,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="theme-color" content="#F2F2F7">
-  <title>AguaBol - Cliente</title>
+  <title>Agua Light Cliente</title>
   
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   
@@ -158,7 +158,7 @@
   <div id="auth-screen">
     <div class="auth-card">
       <div class="auth-logo"><svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z"/></svg></div>
-      <h1 class="auth-title">AguaBol</h1>
+      <h1 class="auth-title">Agua Light</h1>
       <p class="auth-subtitle" id="auth-instruction">Ingresa tu WhatsApp para acceder a tu historial y pedidos.</p>
       <input type="tel" id="auth-phone" class="auth-input" placeholder="Número de teléfono">
       <div id="registro-campos">
@@ -226,11 +226,11 @@
         <div class="list-header">CATÁLOGO DE PRODUCTOS</div>
         <div class="ios-list">
           <div class="list-row">
-            <div class="row-info"><div class="row-icon min"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/></svg></div><div><div class="row-title">Agua Mineral</div><div class="row-desc" id="p-min">Bs 8.50</div></div></div>
+            <div class="row-info"><div class="row-icon min"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/></svg></div><div><div class="row-title">Agua Light</div><div class="row-desc" id="p-min">Bs 8.50</div></div></div>
             <div class="stepper"><button class="stepper-btn" onclick="cambiarCant('min',-1)">−</button><div class="stepper-val" id="qty-min">1</div><button class="stepper-btn" onclick="cambiarCant('min',1)">+</button></div>
           </div>
           <div class="list-row">
-            <div class="row-info"><div class="row-icon sab"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/></svg></div><div><div class="row-title">Saborizada</div><div class="row-desc" id="p-sab">Bs 10.00</div></div></div>
+            <div class="row-info"><div class="row-icon sab"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/></svg></div><div><div class="row-title"> Agua Saborizada</div><div class="row-desc" id="p-sab">Bs 10.00</div></div></div>
             <div class="stepper"><button class="stepper-btn" onclick="cambiarCant('sab',-1)">−</button><div class="stepper-val" id="qty-sab">0</div><button class="stepper-btn" onclick="cambiarCant('sab',1)">+</button></div>
           </div>
         </div>
@@ -253,7 +253,7 @@
     <div id="screen-lealtad" class="screen">
       <div class="wallet-card">
         <div style="display: flex; justify-content: space-between; align-items: center; position: relative; z-index: 2;">
-          <div><div style="font-size: 13px; opacity: 0.8; text-transform: uppercase; letter-spacing: 1px;">Club</div><div style="font-size: 24px; font-weight: 700;">AguaBol</div></div>
+          <div><div style="font-size: 13px; opacity: 0.8; text-transform: uppercase; letter-spacing: 1px;">Club</div><div style="font-size: 24px; font-weight: 700;">Agua Light</div></div>
           <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
         </div>
         <div class="stamps-grid" id="stamps-container"></div>
@@ -270,7 +270,7 @@
       </div>
       <button class="btn-primary btn-secondary" onclick="actualizarPerfil()">Guardar Cambios</button>
       <button class="btn-primary btn-destructive" onclick="cerrarSesion()">Cerrar Sesión</button>
-      <div style="text-align: center; margin-top: 40px; font-size: 12px; color: var(--text-muted);">AguaBol v2.0<br>Desarrollado para iOS y Android</div>
+      <div style="text-align: center; margin-top: 40px; font-size: 12px; color: var(--text-muted);">Agua Light v2.0<br>Desarrollado para iOS y Android</div>
     </div>
 
     <div class="tab-bar">
