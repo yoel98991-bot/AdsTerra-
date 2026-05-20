@@ -16,6 +16,13 @@ jobs:
       - run: npm install
       - run: npx cap add android
 
+      # --- NUEVO: GENERAR ÍCONOS ---
+      - name: Generar Íconos
+        run: |
+          npm install @capacitor/assets --save-dev
+          npx @capacitor/assets generate --android
+      # -----------------------------
+
       # Copiar google-services.json (debe estar en la raíz del repo)
       - name: Copiar google-services.json
         run: cp google-services.json android/app/google-services.json
