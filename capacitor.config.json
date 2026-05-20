@@ -1,6 +1,6 @@
 {
   "appId": "com.aguabol.centro",
-  "appName": "Agua light",
+  "appName": "Agua Light Admin",
   "webDir": "www",
   "plugins": {
     "PushNotifications": {
