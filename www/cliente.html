@@ -623,18 +623,19 @@ db.channel('lealtad').on('postgres_changes', { event:'INSERT', schema:'public', 
       }
     }
 
-    async function cargarLealtad() {
+        async function cargarLealtad() {
       const { data: v } = await db.from('ventas').select('mineral, saborizada').eq('cliente_id', usuarioActual.id);
       let tot = 0; v?.forEach(x => tot += (x.mineral+x.saborizada));
       
-      let pts = tot % 10;
-      if (pts === 0 && tot > 0) { pts = 10; }
+      // EL NUEVO CEREBRO: El ciclo ahora es de 11 pasos
+      let pts = tot % 11; 
       
       const faltan = 10 - pts;
       const lblStatus = document.getElementById('status-lealtad');
       
-      if (faltan === 0) {
-        lblStatus.innerHTML = "¡Felicidades! Tienes un botellón GRATIS 🎉";
+      // Si tiene 10 puntos, la tarjeta de sellos está llena y su próxima compra será el premio
+      if (pts === 10) {
+        lblStatus.innerHTML = "¡Felicidades! Tu próxima recarga es GRATIS 🎁";
         lblStatus.style.background = "rgba(255, 149, 0, 0.2)";
         lblStatus.style.color = "var(--gold)";
       } else {
@@ -646,9 +647,10 @@ db.channel('lealtad').on('postgres_changes', { event:'INSERT', schema:'public', 
       const cont = document.getElementById('stamps-container'); 
       cont.innerHTML = '';
       
+      // La interfaz siempre dibujará 10 espacios (los sellos pagados)
       for (let i = 1; i <= 10; i++) {
         const isFilled = i <= pts;
-        const isFree = i === 10;
+        const isFree = i === 10; // Al llegar al espacio 10, brilla en dorado
         const delay = isFilled ? (i * 0.12) : 0; 
         
         let clases = 'stamp-spot';
@@ -663,6 +665,7 @@ db.channel('lealtad').on('postgres_changes', { event:'INSERT', schema:'public', 
           </div>`;
       }
     }
+
 
     async function actualizarPerfil() {
       const n = document.getElementById('perfil-nombre').value; const d = document.getElementById('perfil-direccion').value;
