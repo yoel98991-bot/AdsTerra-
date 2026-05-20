@@ -23,6 +23,13 @@ jobs:
 
       - run: npx cap add android
       
+      # --- NUEVO: GENERAR ÍCONOS ---
+      - name: Generar Íconos
+        run: |
+          npm install @capacitor/assets --save-dev
+          npx @capacitor/assets generate --android
+      # -----------------------------
+
       # Esta es la línea corregida:
       - run: cp google-services-cliente.json android/app/google-services.json
 
