@@ -1,51 +1,71 @@
-<!DOCTYPE html>
+
 <html lang="es">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <meta name="theme-color" content="#F2F2F7">
   <title>Entrega - AguaBol</title>
+  
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+
   <style>
     :root { --tint: #0ea5e9; --bg: #F2F2F7; --card: #FFFFFF; --text-main: #000000; --text-muted: #8A8A8E; --green: #34C759; --red: #FF3B30; --radius: 20px; }
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif; -webkit-tap-highlight-color: transparent; }
-    body { background: var(--bg); color: var(--text-main); display: flex; flex-direction: column; height: 100dvh; padding: 20px; padding-top: calc(env(safe-area-inset-top) + 20px); }
+    body { background: var(--bg); color: var(--text-main); display: flex; flex-direction: column; height: 100dvh; padding: 20px; padding-top: calc(env(safe-area-inset-top) + 20px); overflow-y: auto; }
     
     .loading-screen, .error-screen, .success-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 100; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 24px; }
     .hidden { display: none !important; }
     
-    .header { text-align: center; margin-bottom: 24px; }
+    .header { text-align: center; margin-bottom: 16px; }
     .badge { display: inline-block; background: rgba(14, 165, 233, 0.15); color: var(--tint); padding: 6px 12px; border-radius: 100px; font-weight: 700; font-size: 13px; text-transform: uppercase; margin-bottom: 12px; }
     
     .card { background: var(--card); border-radius: var(--radius); padding: 24px; box-shadow: 0 8px 24px rgba(0,0,0,0.04); margin-bottom: 20px; }
+    .card-mapa { padding: 0; overflow: hidden; position: relative; border-radius: var(--radius); margin-bottom: 20px; box-shadow: 0 8px 24px rgba(0,0,0,0.04); }
     
-    .cliente-nombre { font-size: 28px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 8px; }
-    .cliente-dir { font-size: 16px; color: var(--text-muted); line-height: 1.4; margin-bottom: 20px; background: #f8fafc; padding: 12px; border-radius: 12px; border: 1px solid #e2e8f0; }
+    .cliente-nombre { font-size: 24px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 8px; }
+    .cliente-dir { font-size: 15px; color: var(--text-muted); line-height: 1.4; margin-bottom: 20px; background: #f8fafc; padding: 12px; border-radius: 12px; border: 1px solid #e2e8f0; }
     
-    .items-box { border-top: 1px dashed var(--text-muted); padding-top: 20px; display: flex; justify-content: space-between; align-items: flex-end; }
-    .monto-total { font-size: 32px; font-weight: 800; color: var(--green); letter-spacing: -1px; }
+    .items-box { border-top: 1px dashed var(--text-muted); padding-top: 16px; display: flex; justify-content: space-between; align-items: flex-end; }
+    .monto-total { font-size: 28px; font-weight: 800; color: var(--green); letter-spacing: -1px; }
     
-    .btn { width: 100%; padding: 18px; border-radius: 16px; font-size: 18px; font-weight: 700; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 12px; transition: transform 0.1s; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+    .btn { width: 100%; padding: 16px; border-radius: 16px; font-size: 16px; font-weight: 700; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 12px; transition: transform 0.1s; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
     .btn:active { transform: scale(0.96); }
     
     .btn-waze { background: #E5E5EA; color: #000000; box-shadow: none; }
     .btn-gps { background: var(--tint); color: white; }
     .btn-gps.active { background: #FF3B30; animation: pulse 2s infinite; }
-    .btn-entregar { background: var(--green); color: white; margin-top: 24px; }
+    .btn-entregar { background: var(--green); color: white; margin-top: 12px; margin-bottom: 40px; }
     
     @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(255, 59, 48, 0.4); } 70% { box-shadow: 0 0 0 15px rgba(255, 59, 48, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 59, 48, 0); } }
+
+    /* Estilos para los marcadores numéricos del mapa */
+    .marker-numero { background-color: var(--tint); color: white; border-radius: 50%; width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; font-weight: bold; border: 2px solid white; box-shadow: 0 2px 6px rgba(0,0,0,0.4); font-size: 14px; }
+    .marker-actual { background-color: var(--warning, #f59e0b); }
   </style>
 </head>
 <body>
 
-  <div id="pantalla-carga" class="loading-screen"><h2>⏳ Cargando pedido...</h2></div>
+  <div id="pantalla-carga" class="loading-screen"><h2>⏳ Cargando sistema...</h2></div>
   <div id="pantalla-error" class="error-screen hidden"><h2 style="font-size: 40px; margin-bottom:12px;">🚫</h2><h2>Enlace inválido o pedido no encontrado.</h2></div>
   <div id="pantalla-exito" class="success-screen hidden"><h2 style="font-size: 60px; margin-bottom:12px;">✅</h2><h2 style="color: var(--green);">¡Entrega Registrada!</h2><p style="color: var(--text-muted); margin-top: 8px;">Ya puedes cerrar esta ventana.</p></div>
 
   <div id="pantalla-app" class="hidden">
     <div class="header"><div class="badge" id="lbl-estado">En Camino</div></div>
 
+    <div class="card-mapa">
+      <div id="mapa-chofer" style="width: 100%; height: 280px; z-index: 1;"></div>
+      <div id="mapa-overlay" style="position: absolute; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.85); z-index: 2; display:flex; align-items:center; justify-content:center; flex-direction:column; backdrop-filter: blur(2px);">
+         <span style="font-size:32px; margin-bottom:12px; display:inline-block; animation: pulse 2s infinite;">📍</span>
+         <p style="font-weight:700; color:#111827; font-size:15px;">Calculando ruta óptima...</p>
+         <p style="color:var(--text-muted); font-size:13px; margin-top:4px;">Buscando tu ubicación</p>
+      </div>
+    </div>
+
     <div class="card">
+      <div style="font-size: 12px; font-weight: 700; color: var(--tint); text-transform: uppercase; margin-bottom: 4px;">Atendiendo a:</div>
       <div class="cliente-nombre" id="lbl-nombre">Cargando...</div>
       <div class="cliente-dir" id="lbl-direccion">Cargando dirección...</div>
       
@@ -79,9 +99,9 @@
     let gpsWatchId = null;
     let clienteLat = null;
     let clienteLng = null;
+    let mapaChofer = null;
 
     async function inicializar() {
-      // 1. Obtener el ID del pedido de la URL (?id=...)
       const parametros = new URLSearchParams(window.location.search);
       pedidoID = parametros.get('id');
 
@@ -90,7 +110,6 @@
         return document.getElementById('pantalla-error').classList.remove('hidden');
       }
 
-      // 2. Buscar el pedido en Supabase
       const { data: p, error } = await db.from('pedidos').select('*, clientes(*)').eq('id', pedidoID).single();
       
       if (error || !p) {
@@ -106,13 +125,15 @@
 
       pedidoActual = p;
       mostrarDatos();
+
+      // INICIAR LÓGICA DE MAPA AL CARGAR
+      iniciarInteligenciaRuta();
     }
 
     function mostrarDatos() {
       const cli = pedidoActual.clientes;
       document.getElementById('lbl-nombre').innerText = cli.nombre;
       
-      // Limpiar y extraer dirección
       let dirLimpia = cli.direccion || 'Sin dirección';
       if (dirLimpia.includes('| GPS:')) {
         const partes = dirLimpia.split('| GPS:');
@@ -123,18 +144,135 @@
       }
       document.getElementById('lbl-direccion').innerText = dirLimpia;
 
-      // Detalle
       let detalle = [];
       if (pedidoActual.items.mineral > 0) detalle.push(`${pedidoActual.items.mineral} Min`);
       if (pedidoActual.items.saborizada > 0) detalle.push(`${pedidoActual.items.saborizada} Sab`);
       document.getElementById('lbl-detalle').innerText = detalle.join(' + ');
       
-      // Monto
       document.getElementById('lbl-monto').innerText = `Bs ${pedidoActual.monto_total}`;
 
       document.getElementById('pantalla-carga').classList.add('hidden');
       document.getElementById('pantalla-app').classList.remove('hidden');
     }
+
+    // ==========================================
+    // LÓGICA DEL MAPA Y RUTAS (NUEVO)
+    // ==========================================
+
+    function calcularDistancia(lat1, lon1, lat2, lon2) {
+        const R = 6371; 
+        const dLat = (lat2 - lat1) * Math.PI / 180;
+        const dLon = (lon2 - lon1) * Math.PI / 180;
+        const a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon/2) * Math.sin(dLon/2);
+        return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)));
+    }
+
+    async function iniciarInteligenciaRuta() {
+        if (!navigator.geolocation) {
+            document.getElementById('mapa-overlay').innerHTML = "<p>GPS no soportado en tu navegador.</p>";
+            return;
+        }
+
+        // 1. Pedir ubicación del chofer
+        navigator.geolocation.getCurrentPosition(async (pos) => {
+            const choferLat = pos.coords.latitude;
+            const choferLng = pos.coords.longitude;
+
+            // 2. Traer TODOS los pedidos pendientes para organizar la ruta global
+            const { data: pendientes, error } = await db.from('pedidos')
+                .select('*, clientes(*)')
+                .in('estado', ['pendiente', 'en_camino']);
+
+            if (error || !pendientes) {
+                document.getElementById('mapa-overlay').innerHTML = "<p>No se pudieron cargar las rutas.</p>";
+                return;
+            }
+
+            // Extraer solo los que tienen GPS válido
+            const pedidosValidos = pendientes.filter(p => {
+                let dir = p.clientes?.direccion || '';
+                return dir.includes('| GPS:');
+            }).map(p => {
+                const coords = p.clientes.direccion.split('| GPS:')[1].split(',');
+                return {
+                    id: p.id,
+                    cliente: p.clientes.nombre,
+                    lat: parseFloat(coords[0].trim()),
+                    lng: parseFloat(coords[1].trim())
+                };
+            });
+
+            dibujarMapaOptimo(choferLat, choferLng, pedidosValidos);
+            
+            // Ocultar la pantalla de carga del mapa
+            document.getElementById('mapa-overlay').classList.add('hidden');
+
+            // Forzar actualización visual del mapa porque estaba oculto
+            if (mapaChofer) {
+                setTimeout(() => mapaChofer.invalidateSize(), 100);
+            }
+
+        }, (err) => {
+            document.getElementById('mapa-overlay').innerHTML = "<p style='text-align:center; padding:10px;'>Activa tu GPS y recarga la página para calcular la ruta óptima.</p>";
+        }, { enableHighAccuracy: true });
+    }
+
+    function dibujarMapaOptimo(choferLat, choferLng, pedidosPendientes) {
+        if (!mapaChofer) {
+            mapaChofer = L.map('mapa-chofer').setView([choferLat, choferLng], 14);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mapaChofer);
+        }
+
+        // Pin del Chofer
+        L.marker([choferLat, choferLng]).addTo(mapaChofer)
+         .bindPopup("📍 <b>Tú estás aquí</b>").openPopup();
+
+        // ALGORITMO: Ordenar paradas por distancia (El más cercano primero)
+        let rutaOptimizada = [];
+        let puntoActual = { lat: choferLat, lng: choferLng };
+        let paradas = [...pedidosPendientes]; 
+
+        while (paradas.length > 0) {
+            paradas.sort((a, b) => calcularDistancia(puntoActual.lat, puntoActual.lng, a.lat, a.lng) - calcularDistancia(puntoActual.lat, puntoActual.lng, b.lat, b.lng));
+            let siguiente = paradas.shift();
+            rutaOptimizada.push(siguiente);
+            puntoActual = { lat: siguiente.lat, lng: siguiente.lng };
+        }
+
+        // Dibujar en el mapa
+        let coordenadasRuta = [[choferLat, choferLng]];
+        
+        rutaOptimizada.forEach((pedido, index) => {
+            let numeroParada = index + 1;
+            coordenadasRuta.push([pedido.lat, pedido.lng]);
+            
+            // Destacar si este pin es el pedido que tiene abierto actualmente
+            let isActual = (pedido.id === parseInt(pedidoID));
+            let extraClass = isActual ? ' marker-actual' : '';
+            
+            let customIcon = L.divIcon({ 
+                html: `<div class="marker-numero${extraClass}">${numeroParada}</div>`, 
+                className: '', iconSize: [26, 26], iconAnchor: [13, 13] 
+            });
+
+            L.marker([pedido.lat, pedido.lng], {icon: customIcon})
+             .addTo(mapaChofer)
+             .bindPopup(`<b>Parada ${numeroParada}:</b><br>${pedido.cliente}${isActual ? '<br><i>(Pedido Actual)</i>' : ''}`);
+        });
+
+        // Trazar línea de ruta
+        L.polyline(coordenadasRuta, {color: '#0ea5e9', weight: 4, opacity: 0.8, dashArray: '5, 8'}).addTo(mapaChofer);
+        
+        // Ajustar el zoom automáticamente
+        if(coordenadasRuta.length > 1) {
+            mapaChofer.fitBounds(coordenadasRuta, { padding: [30, 30] });
+        }
+    }
+
+
+    // ==========================================
+    // FUNCIONES ORIGINALES MANTENIDAS
+    // ==========================================
 
     function abrirWaze() {
       if (clienteLat && clienteLng) {
@@ -150,13 +288,11 @@
       const txt = document.getElementById('txt-gps');
 
       if (gpsWatchId) {
-        // Apagar GPS
         navigator.geolocation.clearWatch(gpsWatchId);
         gpsWatchId = null;
         btn.classList.remove('active');
         txt.innerText = '📡 Transmitir mi ubicación al cliente';
       } else {
-        // Encender GPS
         if (navigator.geolocation) {
           btn.classList.add('active');
           txt.innerText = '🛑 Detener Transmisión GPS';
@@ -164,7 +300,6 @@
           gpsWatchId = navigator.geolocation.watchPosition(async (pos) => {
             const lat = pos.coords.latitude;
             const lng = pos.coords.longitude;
-            // Magia: Subimos la ubicación a Supabase para que el cliente la vea moverse
             await db.from('pedidos').update({ ubicacion_chofer: `${lat},${lng}` }).eq('id', pedidoID);
           }, (err) => alert('Debes permitir el acceso al GPS para que el cliente te vea.'), { enableHighAccuracy: true });
         } else {
@@ -175,18 +310,14 @@
 
     async function marcarEntregado() {
       if (confirm('¿Confirmas que entregaste los botellones y recibiste el pago?')) {
-        // 1. Apagamos GPS si estaba encendido
         if (gpsWatchId) navigator.geolocation.clearWatch(gpsWatchId);
         
-        // 2. Ocultar app y mostrar loading
         document.getElementById('pantalla-app').classList.add('hidden');
         document.getElementById('pantalla-carga').classList.remove('hidden');
         document.querySelector('#pantalla-carga h2').innerText = "Cerrando orden...";
 
-        // 3. Actualizamos en Supabase
         await db.from('pedidos').update({ estado: 'entregado' }).eq('id', pedidoID);
         
-        // 4. Mostrar Éxito
         document.getElementById('pantalla-carga').classList.add('hidden');
         document.getElementById('pantalla-exito').classList.remove('hidden');
       }
