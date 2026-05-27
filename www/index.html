@@ -888,9 +888,19 @@
         const items = p.items || {};
         const hora = new Date(p.created_at).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
         
-        let detalleItems = [];
-        if (items.mineral > 0) detalleItems.push(`${items.mineral} Min`);
-        if (items.saborizada > 0) detalleItems.push(`${items.saborizada} Sab`);
+        let detalleItems = []; 
+if (items.mineral > 0) detalleItems.push(`🧊 ${items.mineral} Min`); 
+
+if (items.saborizada > 0) {
+  let textoSabor = `🍹 ${items.saborizada} Sab`;
+  
+  // Verificamos si el cliente eligió sabores y los añadimos al texto
+  if (items.detalles_sabores && items.detalles_sabores.length > 0) {
+    textoSabor += ` (${items.detalles_sabores.join(', ')})`;
+  }
+  
+  detalleItems.push(textoSabor); 
+}
         
         let dirLimpia = "Dirección no especificada";
         let coordTexto = "";
