@@ -40,8 +40,23 @@ jobs:
           MANIFEST="android/app/src/main/AndroidManifest.xml"
           sed -i 's|</manifest>|    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />\n    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />\n    <uses-feature android:name="android.hardware.location.gps" />\n    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />\n</manifest>|g' $MANIFEST
 
-      - run: cd android && chmod +x gradlew && ./gradlew assembleDebug
+      # --- NUEVO: FIRMA Y COMPILACIÓN DE PRODUCCIÓN ---
+      - name: Decodificar Llave de Producción
+        run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > android/app/agualight.keystore
+
+      - name: Compilar APK Oficial Firmado (Release)
+        run: |
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleRelease \
+            -Pandroid.injected.signing.store.file=agualight.keystore \
+            -Pandroid.injected.signing.store.password=${{ secrets.KEYSTORE_PASSWORD }} \
+            -Pandroid.injected.signing.key.alias=${{ secrets.KEY_ALIAS }} \
+            -Pandroid.injected.signing.key.password=${{ secrets.KEYSTORE_PASSWORD }}
+      # ------------------------------------------------
+
+      # --- NUEVO: SUBIDA DEL APK DE PRODUCCIÓN ---
       - uses: actions/upload-artifact@v4
         with:
           name: Aguabol-Cliente-APK
-          path: android/app/build/outputs/apk/debug/app-debug.apk
+          path: android/app/build/outputs/apk/release/app-release.apk
