@@ -58,7 +58,6 @@
     .header-subtitle { font-size: 13px; font-weight: 600; color: var(--tint); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
     .avatar-mini { width: 38px; height: 38px; border-radius: 19px; background: #E5E5EA; color: var(--tint); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 16px; }
 
-    /* AQUI SE CORRIGIÓ EL PADDING BOTTOM DE 160px a 220px */
     .screen { display: none; position: absolute; top: 0; left: 0; right: 0; bottom: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: calc(env(safe-area-inset-top) + 100px) 20px calc(env(safe-area-inset-bottom) + 220px) 20px; }
     .screen.active { display: block; animation: fadeSlideUp 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) forwards; }
 
@@ -135,7 +134,6 @@
     }
 
     /* ========== REDES SOCIALES ========== */
-    /* AQUI SE AUMENTÓ EL MARGIN BOTTOM PARA EVITAR SOLAPAMIENTOS */
     .social-container { display: flex; gap: 12px; margin-top: 10px; margin-bottom: 40px; }
     .social-btn { flex: 1; background: var(--card); border-radius: var(--radius-md); padding: 16px 8px; text-align: center; text-decoration: none; color: var(--text-main); font-size: 12px; font-weight: 600; box-shadow: 0 2px 8px rgba(0,0,0,0.04); display: flex; flex-direction: column; align-items: center; gap: 8px; transition: transform 0.1s; }
     .social-btn:active { transform: scale(0.95); }
@@ -326,7 +324,8 @@
           <button style="background:transparent; border:none; color:var(--text-muted); font-size:24px; cursor:pointer;" onclick="cerrarModalSabores()">&times;</button>
         </div>
         <div class="sabores-grid">
-          <button class="sabor-btn" onclick="marcarSabor(this, 'Sport Manzana')">Sport Manzana</button>
+          <button class="sabor-btn" onclick="marcarSabor(this, 'Sport')">Sport</button>
+          <button class="sabor-btn" onclick="marcarSabor(this, 'Manzana')">Manzana</button>
           <button class="sabor-btn" onclick="marcarSabor(this, 'Pera')">Pera</button>
           <button class="sabor-btn" onclick="marcarSabor(this, 'Durazno')">Durazno</button>
           <button class="sabor-btn" onclick="marcarSabor(this, 'Piña')">Piña</button>
