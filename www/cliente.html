@@ -58,7 +58,7 @@
     .header-subtitle { font-size: 13px; font-weight: 600; color: var(--tint); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
     .avatar-mini { width: 38px; height: 38px; border-radius: 19px; background: #E5E5EA; color: var(--tint); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 16px; }
 
-    .screen { display: none; position: absolute; top: 0; left: 0; right: 0; bottom: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: calc(env(safe-area-inset-top) + 100px) 20px calc(env(safe-area-inset-bottom) + 120px) 20px; }
+    .screen { display: none; position: absolute; top: 0; left: 0; right: 0; bottom: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: calc(env(safe-area-inset-top) + 100px) 20px calc(env(safe-area-inset-bottom) + 160px) 20px; }
     .screen.active { display: block; animation: fadeSlideUp 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) forwards; }
 
     /* ========== LISTAS iOS ========== */
@@ -132,6 +132,25 @@
       0% { opacity: 0.2; transform: scale(0.5); }
       100% { opacity: 1; transform: scale(1); }
     }
+
+    /* ========== REDES SOCIALES ========== */
+    .social-container { display: flex; gap: 12px; margin-top: 10px; margin-bottom: 24px; }
+    .social-btn { flex: 1; background: var(--card); border-radius: var(--radius-md); padding: 16px 8px; text-align: center; text-decoration: none; color: var(--text-main); font-size: 12px; font-weight: 600; box-shadow: 0 2px 8px rgba(0,0,0,0.04); display: flex; flex-direction: column; align-items: center; gap: 8px; transition: transform 0.1s; }
+    .social-btn:active { transform: scale(0.95); }
+    .social-btn svg { width: 24px; height: 24px; }
+    .c-wa { color: #25D366; } .c-fb { color: #1877F2; } .c-web { color: var(--tint); }
+
+    /* ========== MODAL SABORES ========== */
+    .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); z-index: 9999; display: flex; justify-content: center; align-items: flex-end; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
+    .modal-overlay.visible { opacity: 1; pointer-events: auto; }
+    .modal-card { background: white; width: 100%; border-radius: 24px 24px 0 0; padding: 24px; padding-bottom: calc(env(safe-area-inset-bottom) + 24px); transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); max-height: 85vh; display: flex; flex-direction: column; }
+    .modal-overlay.visible .modal-card { transform: translateY(0); }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    .modal-title { font-size: 20px; font-weight: 700; }
+    .sabores-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; overflow-y: auto; margin-bottom: 24px; padding: 4px; }
+    .sabor-btn { border: 2px solid #F2F2F7; background: #F2F2F7; border-radius: 12px; padding: 16px 8px; font-size: 13px; font-weight: 600; color: var(--text-main); cursor: pointer; transition: all 0.2s; text-align: center; }
+    .sabor-btn.active { border-color: var(--gold); background: rgba(255, 149, 0, 0.1); color: var(--gold); }
+    .sabor-lista-text { font-size: 13px; color: var(--gold); font-weight: 500; margin-top: 4px; line-height: 1.3; }
 
     /* ========== BOTONES Y NAVEGACIÓN ========== */
     .btn-primary { width: 100%; padding: 16px; background: var(--tint); color: white; border: none; border-radius: var(--radius-md); font-size: 17px; font-weight: 600; cursor: pointer; transition: transform 0.1s; }
@@ -229,9 +248,12 @@
             <div class="row-info"><div class="row-icon min"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/></svg></div><div><div class="row-title">Agua Light</div><div class="row-desc" id="p-min">Bs 8.50</div></div></div>
             <div class="stepper"><button class="stepper-btn" onclick="cambiarCant('min',-1)">−</button><div class="stepper-val" id="qty-min">1</div><button class="stepper-btn" onclick="cambiarCant('min',1)">+</button></div>
           </div>
-          <div class="list-row">
-            <div class="row-info"><div class="row-icon sab"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/></svg></div><div><div class="row-title"> Agua Saborizada</div><div class="row-desc" id="p-sab">Bs 10.00</div></div></div>
-            <div class="stepper"><button class="stepper-btn" onclick="cambiarCant('sab',-1)">−</button><div class="stepper-val" id="qty-sab">0</div><button class="stepper-btn" onclick="cambiarCant('sab',1)">+</button></div>
+          <div class="list-row" style="flex-direction: column; align-items: stretch;">
+            <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+              <div class="row-info"><div class="row-icon sab"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/></svg></div><div><div class="row-title"> Agua Saborizada</div><div class="row-desc" id="p-sab">Bs 10.00</div></div></div>
+              <div class="stepper"><button class="stepper-btn" onclick="cambiarCant('sab',-1)">−</button><div class="stepper-val" id="qty-sab">0</div><button class="stepper-btn" onclick="cambiarCant('sab',1)">+</button></div>
+            </div>
+            <div id="resumen-sabores" class="sabor-lista-text"></div>
           </div>
         </div>
 
@@ -241,6 +263,22 @@
           <button class="btn-primary btn-secondary" id="btn-gps" onclick="obtenerGPS()">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align: middle; margin-right: 6px;"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg> Compartir GPS exacto
           </button>
+        </div>
+
+        <div class="list-header">SÍGUENOS Y CONTACTO</div>
+        <div class="social-container">
+          <a href="https://wa.me/59168100743" target="_blank" class="social-btn">
+            <svg class="c-wa" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
+            WhatsApp
+          </a>
+          <a href="https://www.facebook.com/share/17hQrpHAyr/" target="_blank" class="social-btn">
+            <svg class="c-fb" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path></svg>
+            Facebook
+          </a>
+          <a href="https://www.agualight.com" target="_blank" class="social-btn">
+            <svg class="c-web" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+            Página Web
+          </a>
         </div>
 
         <div class="checkout-bar" id="checkout-bar">
@@ -278,6 +316,29 @@
       <div class="tab-item" onclick="switchTab('lealtad', 'Regalo')"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 12v10H4V12"/><path d="M2 7h20v5H2z"/><path d="M12 22V7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg> Club</div>
       <div class="tab-item" onclick="switchTab('perfil', 'Ajustes')"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> Perfil</div>
     </div>
+    
+    <div id="modal-sabores" class="modal-overlay">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h3 class="modal-title">Elige el Sabor</h3>
+          <button style="background:transparent; border:none; color:var(--text-muted); font-size:24px; cursor:pointer;" onclick="cerrarModalSabores()">&times;</button>
+        </div>
+        <div class="sabores-grid">
+          <button class="sabor-btn" onclick="marcarSabor(this, 'Sport Manzana')">Sport Manzana</button>
+          <button class="sabor-btn" onclick="marcarSabor(this, 'Pera')">Pera</button>
+          <button class="sabor-btn" onclick="marcarSabor(this, 'Durazno')">Durazno</button>
+          <button class="sabor-btn" onclick="marcarSabor(this, 'Piña')">Piña</button>
+          <button class="sabor-btn" onclick="marcarSabor(this, 'Limón')">Limón</button>
+          <button class="sabor-btn" onclick="marcarSabor(this, 'Maracuya')">Maracuya</button>
+          <button class="sabor-btn" onclick="marcarSabor(this, 'Mango')">Mango</button>
+          <button class="sabor-btn" onclick="marcarSabor(this, 'Coco')">Coco</button>
+          <button class="sabor-btn" onclick="marcarSabor(this, 'Banana')">Banana</button>
+          <button class="sabor-btn" onclick="marcarSabor(this, 'Frutilla')">Frutilla</button>
+          <button class="sabor-btn" onclick="marcarSabor(this, 'Naranja')">Naranja</button>
+        </div>
+        <button class="btn-primary" style="background:var(--gold);" onclick="confirmarSabor()">Añadir Sabor</button>
+      </div>
+    </div>
 
   </div>
 
@@ -289,6 +350,10 @@
     
     let usuarioActual = null, coordsGPS = null, pMin = 8.5, pSab = 10, esRegistro = false;
     let mapa = null, markRep = null, markCasa = null, rutaLayer = null, lineaGris = null, historialGPS = []; 
+    
+    // Lista para guardar qué sabores eligió el cliente
+    let listaSaboresSeleccionados = [];
+    let saborTemporalmenteSeleccionado = null;
 
     const dias = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
     document.getElementById('header-fecha').innerText = dias[new Date().getDay()].toUpperCase();
@@ -369,12 +434,10 @@
       cargarPrecios(); chequearPedidoActivo();
       db.channel('rastreo').on('postgres_changes', { event:'*', schema:'public', table:'pedidos', filter:`cliente_id=eq.${usuarioActual.id}` }, () => chequearPedidoActivo()).subscribe();
 
-      // Escucha de nuevas ventas para actualizar la tarjeta de lealtad en tiempo real
-db.channel('lealtad').on('postgres_changes', { event:'INSERT', schema:'public', table:'ventas', filter:`cliente_id=eq.${usuarioActual.id}` }, () => {
-  cargarLealtad();
-}).subscribe();
+      db.channel('lealtad').on('postgres_changes', { event:'INSERT', schema:'public', table:'ventas', filter:`cliente_id=eq.${usuarioActual.id}` }, () => {
+        cargarLealtad();
+      }).subscribe();
       
-      // 👇 AQUÍ ACTIVAMOS LA ANTENA DE NOTIFICACIONES AL INICIAR SESIÓN 👇
       registrarPushCliente();
     }
 
@@ -386,7 +449,6 @@ db.channel('lealtad').on('postgres_changes', { event:'INSERT', schema:'public', 
       calcularTotal();
     }
 
-    // === EL CORAZÓN DEL RASTREO Y DISEÑO ===
     async function chequearPedidoActivo() {
       if(!usuarioActual) return;
       const { data: p } = await db.from('pedidos').select('*').eq('cliente_id', usuarioActual.id).in('estado',['pendiente','en_camino']).order('created_at',{ascending:false}).limit(1).maybeSingle();
@@ -495,17 +557,68 @@ db.channel('lealtad').on('postgres_changes', { event:'INSERT', schema:'public', 
       if(id === 'lealtad') cargarLealtad();
     }
 
+    // === LÓGICA DE SABORES ===
     function cambiarCant(t, d) {
+      if (t === 'sab') {
+        if (d > 0) {
+          abrirModalSabores();
+          return; // Esperamos a que elija un sabor para sumar
+        } else if (d < 0 && listaSaboresSeleccionados.length > 0) {
+          listaSaboresSeleccionados.pop(); // Removemos el último sabor
+          actualizarListaSaboresUI();
+        }
+      }
+      
       const el = document.getElementById('qty-'+t);
       el.innerText = Math.max(0, parseInt(el.innerText) + d);
       calcularTotal();
+    }
+
+    function abrirModalSabores() {
+      document.getElementById('modal-sabores').classList.add('visible');
+      saborTemporalmenteSeleccionado = null;
+      document.querySelectorAll('.sabor-btn').forEach(b => b.classList.remove('active'));
+    }
+
+    function cerrarModalSabores() {
+      document.getElementById('modal-sabores').classList.remove('visible');
+    }
+
+    function marcarSabor(botonElemento, sabor) {
+      document.querySelectorAll('.sabor-btn').forEach(b => b.classList.remove('active'));
+      botonElemento.classList.add('active');
+      saborTemporalmenteSeleccionado = sabor;
+    }
+
+    function confirmarSabor() {
+      if (!saborTemporalmenteSeleccionado) {
+        showToast("Por favor, selecciona un sabor", true);
+        return;
+      }
+      listaSaboresSeleccionados.push(saborTemporalmenteSeleccionado);
+      
+      // Sumamos la cantidad al contador de UI
+      const el = document.getElementById('qty-sab');
+      el.innerText = parseInt(el.innerText) + 1;
+      
+      actualizarListaSaboresUI();
+      calcularTotal();
+      cerrarModalSabores();
+    }
+
+    function actualizarListaSaboresUI() {
+      const contenedor = document.getElementById('resumen-sabores');
+      if (listaSaboresSeleccionados.length > 0) {
+        contenedor.innerText = "Sabores: " + listaSaboresSeleccionados.join(', ');
+      } else {
+        contenedor.innerText = "";
+      }
     }
 
     function calcularTotal() {
       const t = (parseInt(document.getElementById('qty-min').innerText)*pMin) + (parseInt(document.getElementById('qty-sab').innerText)*pSab);
       document.getElementById('total-pago').innerText = `Bs ${t.toFixed(2)}`;
     }
-
 
     async function obtenerGPS() {
       if (!navigator.geolocation) {
@@ -516,11 +629,10 @@ db.channel('lealtad').on('postgres_changes', { event:'INSERT', schema:'public', 
       btn.innerHTML = "⏳ Conectando con satélites...";
       btn.style.pointerEvents = "none";
       
-      // === CONFIGURACIÓN ULTRA ESTRICTA DEL GPS ===
       const opcionesGPS = {
-        enableHighAccuracy: true, // Exige usar el chip GPS real
-        timeout: 15000,           // Le da 15 segundos para fijar los satélites
-        maximumAge: 0             // Prohíbe usar ubicaciones viejas guardadas en la memoria
+        enableHighAccuracy: true, 
+        timeout: 15000,           
+        maximumAge: 0             
       };
 
       navigator.geolocation.getCurrentPosition(async (pos) => {
@@ -529,7 +641,6 @@ db.channel('lealtad').on('postgres_changes', { event:'INSERT', schema:'public', 
         coordsGPS = `${lat.toFixed(5)},${lng.toFixed(5)}`;
         
         try {
-          // === MAGIA: FORZAR ZOOM A NIVEL DE CALLE (zoom=18) ===
           const urlAPI = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`;
           const res = await fetch(urlAPI);
           const data = await res.json();
@@ -537,25 +648,17 @@ db.channel('lealtad').on('postgres_changes', { event:'INSERT', schema:'public', 
           let direccionTraducida = "Ubicación exacta detectada";
           
           if (data && data.address) {
-            // Buscamos específicamente el nombre de la calle (road)
             const calle = data.address.road || data.address.pedestrian || '';
             const numero = data.address.house_number || '';
             const barrio = data.address.suburb || data.address.neighbourhood || '';
             
             let partes = [];
-            
-            // Si la base de datos conoce la calle, la ponemos primero
-            if (calle) {
-               partes.push(numero ? `${calle} #${numero}` : calle);
-            }
-            
-            // Luego agregamos el sector (ej. Lomas del Funval)
+            if (calle) partes.push(numero ? `${calle} #${numero}` : calle);
             if (barrio) partes.push(barrio);
             
             if (partes.length > 0) {
               direccionTraducida = partes.join(', ');
             } else if (data.display_name) {
-              // Plan B
               direccionTraducida = data.display_name.split(',').slice(0, 3).join(',');
             }
           }
@@ -597,19 +700,18 @@ db.channel('lealtad').on('postgres_changes', { event:'INSERT', schema:'public', 
       }, opcionesGPS);
     }
    
-
     async function enviarPedido() {
       const m = parseInt(document.getElementById('qty-min').innerText);
       const s = parseInt(document.getElementById('qty-sab').innerText);
       if (m+s === 0) return showToast("Añade productos al catálogo", true);
       
-      // Ya no necesitamos inyectar el GPS manualmente porque la función anterior ya lo guardó en el perfil
       let dir = usuarioActual.direccion || "Sin dirección";
       
+      // Enviamos el pedido e incluimos los sabores elegidos en el JSON "items"
       const { error } = await db.from('pedidos').insert({ 
         id: generarUUID(), 
         cliente_id: usuarioActual.id, 
-        items: { mineral: m, saborizada: s }, 
+        items: { mineral: m, saborizada: s, detalles_sabores: listaSaboresSeleccionados }, 
         monto_total: (m*pMin + s*pSab), 
         estado: 'pendiente' 
       });
@@ -618,22 +720,22 @@ db.channel('lealtad').on('postgres_changes', { event:'INSERT', schema:'public', 
         showToast("¡Pedido confirmado!"); 
         document.getElementById('qty-min').innerText="1"; 
         document.getElementById('qty-sab').innerText="0"; 
+        listaSaboresSeleccionados = [];
+        actualizarListaSaboresUI();
         calcularTotal(); 
         chequearPedidoActivo(); 
       }
     }
 
-        async function cargarLealtad() {
+    async function cargarLealtad() {
       const { data: v } = await db.from('ventas').select('mineral, saborizada').eq('cliente_id', usuarioActual.id);
       let tot = 0; v?.forEach(x => tot += (x.mineral+x.saborizada));
       
-      // EL NUEVO CEREBRO: El ciclo ahora es de 11 pasos
       let pts = tot % 11; 
       
       const faltan = 10 - pts;
       const lblStatus = document.getElementById('status-lealtad');
       
-      // Si tiene 10 puntos, la tarjeta de sellos está llena y su próxima compra será el premio
       if (pts === 10) {
         lblStatus.innerHTML = "¡Felicidades! Tu próxima recarga es GRATIS 🎁";
         lblStatus.style.background = "rgba(255, 149, 0, 0.2)";
@@ -647,10 +749,9 @@ db.channel('lealtad').on('postgres_changes', { event:'INSERT', schema:'public', 
       const cont = document.getElementById('stamps-container'); 
       cont.innerHTML = '';
       
-      // La interfaz siempre dibujará 10 espacios (los sellos pagados)
       for (let i = 1; i <= 10; i++) {
         const isFilled = i <= pts;
-        const isFree = i === 10; // Al llegar al espacio 10, brilla en dorado
+        const isFree = i === 10; 
         const delay = isFilled ? (i * 0.12) : 0; 
         
         let clases = 'stamp-spot';
@@ -666,7 +767,6 @@ db.channel('lealtad').on('postgres_changes', { event:'INSERT', schema:'public', 
       }
     }
 
-
     async function actualizarPerfil() {
       const n = document.getElementById('perfil-nombre').value; const d = document.getElementById('perfil-direccion').value;
       await db.from('clientes').update({ nombre: n, direccion: d }).eq('id', usuarioActual.id);
@@ -679,7 +779,6 @@ db.channel('lealtad').on('postgres_changes', { event:'INSERT', schema:'public', 
 
     // ========== REGISTRO DE NOTIFICACIONES PARA EL CLIENTE ==========
     async function registrarPushCliente() {
-      // 1. Verificamos que Capacitor esté inyectado en la app
       if (typeof Capacitor === 'undefined' || !Capacitor.Plugins.PushNotifications) {
         console.log("PushNotifications no está disponible en este entorno");
         return; 
@@ -687,7 +786,6 @@ db.channel('lealtad').on('postgres_changes', { event:'INSERT', schema:'public', 
       
       const PushNotifications = Capacitor.Plugins.PushNotifications;
 
-      // 2. Pedimos permiso al cliente
       let permStatus = await PushNotifications.checkPermissions();
       if (permStatus.receive === 'prompt') {
         permStatus = await PushNotifications.requestPermissions();
@@ -698,10 +796,8 @@ db.channel('lealtad').on('postgres_changes', { event:'INSERT', schema:'public', 
         return; 
       }
 
-      // 3. Registramos en Google Firebase
       await PushNotifications.register();
 
-      // 4. Guardamos el Token atado al ID del usuario
       PushNotifications.addListener('registration', async (token) => {
         if (usuarioActual && usuarioActual.id) {
           const { error } = await db.from('dispositivos').upsert({ 
@@ -715,7 +811,6 @@ db.channel('lealtad').on('postgres_changes', { event:'INSERT', schema:'public', 
         }
       });
 
-      // 5. Mostrar una alerta en pantalla si la notificación llega mientras tiene la app abierta
       PushNotifications.addListener('pushNotificationReceived', (notif) => { 
         showToast(notif.title || 'Nueva notificación'); 
         chequearPedidoActivo(); 
