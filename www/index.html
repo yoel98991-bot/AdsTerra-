@@ -9,7 +9,6 @@
   <title>Agualight Centro de Operaciones</title>
   
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
 
@@ -232,6 +231,7 @@
   
   <audio id="notificacion-sound" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg" preload="auto"></audio>
 
+  <!-- ===================== PANTALLA INICIO ===================== -->
   <div id="screen-inicio" class="screen active">
     <div class="nav-bar"><span class="nav-title">Inicio</span></div>
     
@@ -280,6 +280,7 @@
     </div>
   </div>
 
+  <!-- ===================== PANTALLA OPERACIONES ===================== -->
   <div id="screen-operaciones" class="screen">
     <div class="nav-bar"><span class="nav-title">Operaciones</span></div>
     
@@ -313,6 +314,7 @@
     </div>
   </div>
 
+  <!-- ===================== PANTALLA VENTAS ===================== -->
   <div id="screen-ventas" class="screen">
     <div class="nav-bar"><span class="nav-title">Venta Manual</span></div>
     
@@ -366,6 +368,7 @@
     </div>
   </div>
 
+  <!-- ===================== PANTALLA INVENTARIO ===================== -->
   <div id="screen-inventario" class="screen">
     <div class="nav-bar"><span class="nav-title">Inventario</span></div>
     
@@ -408,6 +411,7 @@
     </div>
   </div>
 
+  <!-- ===================== PANTALLA PERFIL ===================== -->
   <div id="screen-perfil" class="screen">
     <div class="nav-bar"><span class="nav-title">Mi Negocio</span></div>
     
@@ -450,6 +454,7 @@
     </div>
   </div>
 
+  <!-- ===================== PANTALLA MARKETING ===================== -->
   <div id="screen-marketing" class="screen">
     <div class="nav-bar"><span class="nav-title">Marketing</span></div>
     
@@ -488,10 +493,12 @@
     </div>
   </div>
 
+  <!-- ===================== BOTÓN FLOTANTE ===================== -->
   <button class="fab" id="fab-clientes" onclick="openClientModal()">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
   </button>
 
+  <!-- ===================== MODAL CLIENTE ===================== -->
   <div class="modal-overlay" id="modalClientOverlay">
     <div class="modal-sheet">
       <div class="modal-handle"></div>
@@ -506,6 +513,7 @@
       <div id="clientCampaignsSection" style="margin-top: 20px; border-top: 1px solid var(--separator); padding-top: 16px;">
         <h4 style="margin-bottom: 12px; font-size: 15px; font-weight: 700;">📢 Campañas automáticas</h4>
         <div id="clientCampaignsCheckboxes"></div>
+        <button id="btn-test-notif-cliente" class="btn-small" style="margin-top:12px; width:100%; display:none;" onclick="probarNotificacionClienteActual()">📱 Probar Notificación</button>
       </div>
       
       <div class="modal-actions">
@@ -518,6 +526,7 @@
     </div>
   </div>
 
+  <!-- ===================== MODAL GASTO ===================== -->
   <div class="modal-overlay" id="modalGastoOverlay">
     <div class="modal-sheet">
       <div class="modal-handle"></div>
@@ -534,6 +543,7 @@
     </div>
   </div>
 
+  <!-- ===================== MODAL PRECIOS ===================== -->
   <div class="modal-overlay" id="modalPreciosOverlay">
     <div class="modal-sheet">
       <div class="modal-handle"></div>
@@ -550,6 +560,7 @@
     </div>
   </div>
 
+  <!-- ===================== MODAL CHOFERES ===================== -->
   <div class="modal-overlay" id="modalChoferesOverlay">
     <div class="modal-sheet">
       <div class="modal-handle"></div>
@@ -560,6 +571,7 @@
     </div>
   </div>
 
+  <!-- ===================== OVERLAY RUTA INDIVIDUAL ===================== -->
   <div id="pantallaRutaOverlay">
     <button onclick="cerrarRuta()" style="position: absolute; top: calc(env(safe-area-inset-top) + 20px); left: 20px; z-index: 99999; width: 44px; height: 44px; border-radius: 22px; background: white; border: none; box-shadow: 0 4px 12px rgba(0,0,0,0.15); display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text-primary);">
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="15 18 9 12 15 6"/></svg>
@@ -620,6 +632,7 @@
     </div>
   </div>
 
+  <!-- ===================== OVERLAY MAPA GLOBAL ===================== -->
   <div id="pantallaMapaGlobalOverlay">
     <button onclick="cerrarMapaGlobal()" style="position: absolute; top: 30px; left: 20px; z-index: 999999; width: 48px; height: 48px; border-radius: 24px; background: white; border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.2); display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text-primary);">
       <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="15 18 9 12 15 6"/></svg>
@@ -636,6 +649,7 @@
     </div>
   </div>
 
+  <!-- ===================== BARRA DE PESTAÑAS ===================== -->
   <div class="tab-bar">
     <div class="tab-item active" data-screen="inicio" onclick="switchTab('inicio')">
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
@@ -663,6 +677,7 @@
     </div>
   </div>
 
+  <!-- ===================== SCRIPTS ===================== -->
   <script src="https://cdn.jsdelivr.net/npm/@capacitor/geolocation@6/dist/capacitor-geolocation.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@capacitor/local-notifications@6/dist/capacitor-local-notifications.js"></script>
   
@@ -1526,14 +1541,17 @@
       document.getElementById('total-envases-fisicos').textContent = stock.mineral + stock.saborizada + (stock.envasesVacios || 0);
     }
 
-    // ========== 11. CRUD CLIENTES ==========
+    // ========== 11. CRUD CLIENTES (con suscripciones y botón de prueba) ==========
     function openClientModal() {
-      editingClientId = null; document.getElementById('modalClientTitle').textContent = 'Nuevo cliente';
-      document.getElementById('clientName').value = ''; document.getElementById('clientPhone').value = '';
-      document.getElementById('clientAddress').value = ''; document.getElementById('clientFrequency').value = '';
+      editingClientId = null;
+      document.getElementById('modalClientTitle').textContent = 'Nuevo cliente';
+      document.getElementById('clientName').value = '';
+      document.getElementById('clientPhone').value = '';
+      document.getElementById('clientAddress').value = '';
+      document.getElementById('clientFrequency').value = '';
       document.getElementById('deleteClientContainer').style.display = 'none';
       document.getElementById('clientSalesHistory').style.display = 'none';
-      // Renderizar campañas automáticas activas para nuevo cliente
+      // Renderizar campañas activas para nuevo cliente (sin suscripciones)
       const checkboxesHtml = campanasAutomaticas
         .filter(c => c.activa)
         .map(c => `<label style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
@@ -1541,29 +1559,37 @@
                     <span style="font-size: 14px;">${escapeHtml(c.nombre_campana)} (cada ${c.frecuencia_dias} días)</span>
                   </label>`).join('');
       document.getElementById('clientCampaignsCheckboxes').innerHTML = checkboxesHtml || '<p style="color:var(--text-secondary); font-size:13px;">No hay campañas activas.</p>';
+      // Ocultar botón de prueba
+      document.getElementById('btn-test-notif-cliente').style.display = 'none';
       openModal('modalClientOverlay');
     }
+
     function openEditModal(id) {
-      const client = clients.find(c => c.id === id); if (!client) return; editingClientId = id;
+      const client = clients.find(c => c.id === id);
+      if (!client) return;
+      editingClientId = id;
       document.getElementById('modalClientTitle').textContent = 'Editar cliente';
-      document.getElementById('clientName').value = client.name; document.getElementById('clientPhone').value = client.phone;
-      document.getElementById('clientAddress').value = client.address || ''; document.getElementById('clientFrequency').value = client.frequency || '';
+      document.getElementById('clientName').value = client.name;
+      document.getElementById('clientPhone').value = client.phone;
+      document.getElementById('clientAddress').value = client.address || '';
+      document.getElementById('clientFrequency').value = client.frequency || '';
       document.getElementById('deleteClientContainer').style.display = 'block';
       const container = document.getElementById('clientSalesHistory');
       const clientSales = ventas.filter(v => v.clienteId === id).sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
       if (clientSales.length === 0) { container.style.display = 'none'; }
       else {
-        container.style.display = 'block'; let html = '<h3 style="margin-bottom:12px; font-size:16px;">Últimas ventas</h3>';
+        container.style.display = 'block';
+        let html = '<h3 style="margin-bottom:12px; font-size:16px;">Últimas ventas</h3>';
         clientSales.slice(0, 10).forEach(v => {
           const fecha = new Date(v.fecha + 'T12:00:00').toLocaleDateString('es-ES', { day:'2-digit', month:'2-digit', year:'numeric' });
           let detalle = [];
           if (v.mineral > 0) detalle.push(`${v.mineral} Min`);
           if (v.saborizada > 0) detalle.push(`${v.saborizada} Sab`);
-          html += `<div class="history-item"><span class="history-date">${fecha}</span><span class="history-detail">${detalle.join(', ') || 'Sin detalle'}</span><span class="history-amount">${formatearBs(v.total)}</span></div>`;
+          html += `<div class="history-item"><span>${fecha}</span><span>${detalle.join(', ') || 'Sin detalle'}</span><span>${formatearBs(v.total)}</span></div>`;
         });
         container.innerHTML = html;
       }
-      // Renderizar suscripciones a campañas
+      // Renderizar campañas activas con suscripciones actuales
       const subs = suscripcionesClientes[id] || new Set();
       const checkboxesHtml = campanasAutomaticas
         .filter(c => c.activa)
@@ -1572,18 +1598,47 @@
                     <span style="font-size: 14px;">${escapeHtml(c.nombre_campana)} (cada ${c.frecuencia_dias} días)</span>
                   </label>`).join('');
       document.getElementById('clientCampaignsCheckboxes').innerHTML = checkboxesHtml || '<p style="color:var(--text-secondary); font-size:13px;">No hay campañas activas.</p>';
+      // Mostrar botón de prueba
+      document.getElementById('btn-test-notif-cliente').style.display = 'block';
       openModal('modalClientOverlay');
     }
+
+    async function probarNotificacionClienteActual() {
+      if (!editingClientId) return;
+      const testTitulo = "🧪 Test de Agualight";
+      const testMensaje = "Esta es una prueba de notificación. Si la recibes, ¡todo funciona correctamente!";
+      showToast("Enviando test...", "info");
+      const { error } = await db.functions.invoke('enviar-masivo', {
+        body: {
+          titulo: testTitulo,
+          mensaje: testMensaje,
+          cliente_ids: [editingClientId]
+        }
+      });
+      if (error) showToast("Error al enviar test: " + error.message, "error");
+      else showToast("Notificación de prueba enviada al cliente 📲", "success");
+    }
+
     async function saveClient() {
-      const name = document.getElementById('clientName').value.trim(); const phone = document.getElementById('clientPhone').value.trim();
-      const address = document.getElementById('clientAddress').value.trim(); const frequency = document.getElementById('clientFrequency').value.trim();
+      const name = document.getElementById('clientName').value.trim();
+      const phone = document.getElementById('clientPhone').value.trim();
+      const address = document.getElementById('clientAddress').value.trim();
+      const frequency = document.getElementById('clientFrequency').value.trim();
       if (!name || !phone) return showToast('Nombre y teléfono son obligatorios', 'error');
-      const isNew = !editingClientId; const cId = isNew ? crypto.randomUUID() : editingClientId;
-      if (isNew) { clients.push({ id: cId, name, phone, address, frequency: frequency || '' }); } 
-      else { const client = clients.find(c => c.id === cId); if (client) Object.assign(client, { name, phone, address, frequency: frequency || '' }); }
+      const isNew = !editingClientId;
+      const cId = isNew ? crypto.randomUUID() : editingClientId;
+      if (isNew) {
+        clients.push({ id: cId, name, phone, address, frequency: frequency || '' });
+      } else {
+        const client = clients.find(c => c.id === cId);
+        if (client) Object.assign(client, { name, phone, address, frequency: frequency || '' });
+      }
       llenarSelectClientes(); renderClientList(); closeModal('modalClientOverlay');
-      const { error: upsertErr } = await db.from('clientes').upsert({ id: cId, nombre: name, telefono: phone, direccion: address || null, frecuencia_dias: frequency ? parseInt(frequency) : null });
+      const { error: upsertErr } = await db.from('clientes').upsert({
+        id: cId, nombre: name, telefono: phone, direccion: address || null, frecuencia_dias: frequency ? parseInt(frequency) : null
+      });
       if (upsertErr) return showToast('Error al guardar cliente', 'error');
+      
       // Guardar suscripciones a campañas
       const checkboxes = document.querySelectorAll('.campaign-sub-check:checked');
       const nuevasSubs = Array.from(checkboxes).map(cb => cb.dataset.campanaId);
@@ -1592,12 +1647,15 @@
         await db.from('clientes_campanas').insert(nuevasSubs.map(cid => ({ cliente_id: cId, campana_id: cid })));
       }
       suscripcionesClientes[cId] = new Set(nuevasSubs);
+      
       showToast(isNew ? 'Cliente guardado' : 'Cliente actualizado', 'success');
     }
+
     async function deleteClient() {
       if (!editingClientId) return;
       if (confirm('¿Eliminar este cliente de forma permanente?')) {
-        const cId = editingClientId; clients = clients.filter(c => c.id !== cId);
+        const cId = editingClientId;
+        clients = clients.filter(c => c.id !== cId);
         llenarSelectClientes(); renderClientList(); closeModal('modalClientOverlay');
         await db.from('clientes').delete().eq('id', cId);
         await db.from('clientes_campanas').delete().eq('cliente_id', cId);
@@ -1609,51 +1667,71 @@
     // ========== 12. GASTOS ==========
     function abrirModalGasto() {
       document.getElementById('fecha-gasto').value = new Date().toISOString().split('T')[0];
-      document.getElementById('desc-gasto').value = ''; document.getElementById('monto-gasto').value = '';
-      renderGastosList(); openModal('modalGastoOverlay');
+      document.getElementById('desc-gasto').value = '';
+      document.getElementById('monto-gasto').value = '';
+      renderGastosList();
+      openModal('modalGastoOverlay');
     }
     async function guardarGasto() {
-      const fecha = document.getElementById('fecha-gasto').value; const desc = document.getElementById('desc-gasto').value.trim();
+      const fecha = document.getElementById('fecha-gasto').value;
+      const desc = document.getElementById('desc-gasto').value.trim();
       const monto = parseFloat(document.getElementById('monto-gasto').value);
       if(!fecha || !desc || isNaN(monto) || monto <= 0) return showToast('Completa todos los campos', 'error');
-      const id = crypto.randomUUID(); gastos.push({ id, fecha, desc, monto });
-      cargarMovimiento(); renderGastosList(); document.getElementById('desc-gasto').value = ''; document.getElementById('monto-gasto').value = '';
+      const id = crypto.randomUUID();
+      gastos.push({ id, fecha, desc, monto });
+      cargarMovimiento();
+      renderGastosList();
+      document.getElementById('desc-gasto').value = '';
+      document.getElementById('monto-gasto').value = '';
       const { error } = await db.from('gastos').insert({ id, fecha, descripcion: desc, monto });
       if (!error) showToast('Gasto registrado', 'success');
     }
     async function eliminarGasto(gastoId) {
-      gastos = gastos.filter(g => g.id !== gastoId); cargarMovimiento(); renderGastosList();
-      await db.from('gastos').delete().eq('id', gastoId); showToast('Gasto eliminado', 'info');
+      gastos = gastos.filter(g => g.id !== gastoId);
+      cargarMovimiento();
+      renderGastosList();
+      await db.from('gastos').delete().eq('id', gastoId);
+      showToast('Gasto eliminado', 'info');
     }
     function renderGastosList() {
       const container = document.getElementById('gastosListContainer');
-      const mes = parseInt(document.getElementById('mes').value); const anio = parseInt(document.getElementById('anio').value);
-      const gastosMes = gastos.filter(g => { const d = new Date(g.fecha + 'T12:00:00'); return d.getMonth() === mes && d.getFullYear() === anio; }).sort((a,b) => new Date(b.fecha) - new Date(a.fecha));
-      if (gastosMes.length === 0) { container.innerHTML = '<p style="text-align:center; color:var(--text-secondary); padding:20px;">No hay gastos este mes</p>'; return; }
+      const mes = parseInt(document.getElementById('mes').value);
+      const anio = parseInt(document.getElementById('anio').value);
+      const gastosMes = gastos.filter(g => {
+        const d = new Date(g.fecha + 'T12:00:00');
+        return d.getMonth() === mes && d.getFullYear() === anio;
+      }).sort((a,b) => new Date(b.fecha) - new Date(a.fecha));
+      if (gastosMes.length === 0) {
+        container.innerHTML = '<p style="text-align:center; color:var(--text-secondary); padding:20px;">No hay gastos este mes</p>';
+        return;
+      }
       let html = '<h3 style="margin-bottom:12px; font-size:16px;">Gastos del mes</h3>';
       gastosMes.forEach(g => {
         const fecha = new Date(g.fecha + 'T12:00:00').toLocaleDateString('es-ES', { day:'2-digit', month:'2-digit' });
-        html += `<div class="gasto-item"><span class="gasto-date">${fecha}</span><span class="gasto-desc">${escapeHtml(g.desc)}</span><span class="gasto-monto">-${formatearBs(g.monto)}</span><button class="gasto-delete-btn" onclick="eliminarGasto('${g.id}')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button></div>`;
+        html += `<div class="gasto-item"><span>${fecha}</span><span>${escapeHtml(g.desc)}</span><span>-${formatearBs(g.monto)}</span><button class="gasto-delete-btn" onclick="eliminarGasto('${g.id}')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button></div>`;
       });
       container.innerHTML = html;
     }
 
     // ========== 13. PERFIL Y SETTINGS ==========
     function abrirModalPrecios() {
-      document.getElementById('precioMineralInput').value = precioMineral; document.getElementById('precioSaborizadaInput').value = precioSaborizada;
-      document.getElementById('costoMineralInput').value = costoProdMineral; document.getElementById('costoSaborizadaInput').value = costoProdSaborizada;
+      document.getElementById('precioMineralInput').value = precioMineral;
+      document.getElementById('precioSaborizadaInput').value = precioSaborizada;
+      document.getElementById('costoMineralInput').value = costoProdMineral;
+      document.getElementById('costoSaborizadaInput').value = costoProdSaborizada;
       openModal('modalPreciosOverlay');
     }
     async function guardarPrecios() {
-      const pm = parseFloat(document.getElementById('precioMineralInput').value); const ps = parseFloat(document.getElementById('precioSaborizadaInput').value);
-      const cm = parseFloat(document.getElementById('costoMineralInput').value); const cs = parseFloat(document.getElementById('costoSaborizadaInput').value);
+      const pm = parseFloat(document.getElementById('precioMineralInput').value);
+      const ps = parseFloat(document.getElementById('precioSaborizadaInput').value);
+      const cm = parseFloat(document.getElementById('costoMineralInput').value);
+      const cs = parseFloat(document.getElementById('costoSaborizadaInput').value);
       if (isNaN(pm) || isNaN(ps) || isNaN(cm) || isNaN(cs) || pm < 0 || ps < 0 || cm < 0 || cs < 0) return showToast('Valores inválidos', 'error');
       precioMineral = pm; precioSaborizada = ps; costoProdMineral = cm; costoProdSaborizada = cs;
       closeModal('modalPreciosOverlay');
       const { error } = await db.from('configuracion').upsert({ id: 1, precio_mineral: pm, precio_saborizada: ps, costo_mineral: cm, costo_saborizada: cs });
       if (!error) { showToast('Precios actualizados', 'success'); cargarMovimiento(); calcularTotalVenta(); }
     }
-
     async function subirLogoPerfil(event) {
       const file = event.target.files[0];
       if (!file) return;
@@ -1669,7 +1747,6 @@
       if (error) showToast('Error al subir imagen: ' + error.message, 'error');
       else showToast('Logo actualizado con éxito', 'success');
     }
-
     function cargarLogoActual() {
       const publicUrl = db.storage.from('assets').getPublicUrl('repartidor-icon.png').data.publicUrl;
       const preview = document.getElementById('profile-img');
@@ -1684,43 +1761,76 @@
       };
       img.src = publicUrl;
     }
-
     function copiarDirectLink() {
       let storeCode = localStorage.getItem('aguabol_store_code');
-      if (!storeCode) { storeCode = 'AGUA-' + Math.random().toString(36).substring(2, 6).toUpperCase(); localStorage.setItem('aguabol_store_code', storeCode); }
+      if (!storeCode) {
+        storeCode = 'AGUA-' + Math.random().toString(36).substring(2, 6).toUpperCase();
+        localStorage.setItem('aguabol_store_code', storeCode);
+      }
       const link = `https://agualight.com/Pedidos.html?store=${storeCode}`;
-      if (navigator.clipboard) { navigator.clipboard.writeText(link).then(() => showToast(`Link copiado`, 'success')); } 
-      else { const ti = document.createElement("input"); ti.value = link; document.body.appendChild(ti); ti.select(); document.execCommand("copy"); document.body.removeChild(ti); showToast(`Link copiado`, 'success'); }
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(link).then(() => showToast(`Link copiado`, 'success'));
+      } else {
+        const ti = document.createElement("input");
+        ti.value = link;
+        document.body.appendChild(ti);
+        ti.select();
+        document.execCommand("copy");
+        document.body.removeChild(ti);
+        showToast(`Link copiado`, 'success');
+      }
     }
 
     // ========== 14. FINANZAS ==========
     function cargarMovimiento() {
-      const mes = parseInt(document.getElementById('mes').value); const anio = parseInt(document.getElementById('anio').value);
-      const ventasMes = ventas.filter(v => { const d = new Date(v.fecha + 'T12:00:00'); return d.getMonth() === mes && d.getFullYear() === anio; });
-      const gastosMes = gastos.filter(g => { const d = new Date(g.fecha + 'T12:00:00'); return d.getMonth() === mes && d.getFullYear() === anio; });
+      const mes = parseInt(document.getElementById('mes').value);
+      const anio = parseInt(document.getElementById('anio').value);
+      const ventasMes = ventas.filter(v => {
+        const d = new Date(v.fecha + 'T12:00:00');
+        return d.getMonth() === mes && d.getFullYear() === anio;
+      });
+      const gastosMes = gastos.filter(g => {
+        const d = new Date(g.fecha + 'T12:00:00');
+        return d.getMonth() === mes && d.getFullYear() === anio;
+      });
       let totalIngresos = 0, costoProduccionTotal = 0, totalGastos = gastosMes.reduce((acc, g) => acc + g.monto, 0);
       let datosDiarios = {};
       ventasMes.forEach(v => {
         const dia = new Date(v.fecha + 'T12:00:00').getDate();
         if(!datosDiarios[dia]) datosDiarios[dia] = 0;
-        totalIngresos += v.total; costoProduccionTotal += (v.mineral * costoProdMineral) + (v.saborizada * costoProdSaborizada);
+        totalIngresos += v.total;
+        costoProduccionTotal += (v.mineral * costoProdMineral) + (v.saborizada * costoProdSaborizada);
         datosDiarios[dia] += v.total;
       });
       const utilidadNeta = totalIngresos - costoProduccionTotal - totalGastos;
       document.getElementById('utilidad-neta').style.color = utilidadNeta >= 0 ? 'var(--green)' : 'var(--destructive)';
-      animarNumero('total-mes', totalIngresos, 1200); animarNumero('utilidad-neta', utilidadNeta, 1200);
-      let barrasHTML = ''; const maxDiario = Math.max(...Object.values(datosDiarios), 1);
-      const diasEnMes = new Date(anio, mes + 1, 0).getDate(); const hoy = new Date();
-      const esMesActual = (mes === hoy.getMonth() && anio === hoy.getFullYear()); const diaActual = hoy.getDate();
+      animarNumero('total-mes', totalIngresos, 1200);
+      animarNumero('utilidad-neta', utilidadNeta, 1200);
+      let barrasHTML = '';
+      const maxDiario = Math.max(...Object.values(datosDiarios), 1);
+      const diasEnMes = new Date(anio, mes + 1, 0).getDate();
+      const hoy = new Date();
+      const esMesActual = (mes === hoy.getMonth() && anio === hoy.getFullYear());
+      const diaActual = hoy.getDate();
       for (let dia = 1; dia <= diasEnMes; dia++) {
-        const totalDia = datosDiarios[dia] || 0; const altura = Math.min((totalDia / maxDiario) * 100, 100);
+        const totalDia = datosDiarios[dia] || 0;
+        const altura = Math.min((totalDia / maxDiario) * 100, 100);
         const esHoy = esMesActual && dia === diaActual;
         barrasHTML += `<div class="bar-item" id="${esHoy ? 'bar-dia-actual' : ''}"><div class="bar" style="height:0px;" data-height="${altura}"></div><span class="${esHoy ? 'bar-label hoy' : 'bar-label'}">${dia}</span></div>`;
       }
-      const grafico = document.getElementById('grafico'); grafico.innerHTML = barrasHTML;
-      setTimeout(() => { grafico.querySelectorAll('.bar').forEach(bar => bar.style.height = bar.getAttribute('data-height') + 'px'); }, 50);
-      if (esMesActual) setTimeout(() => { const barActual = document.getElementById('bar-dia-actual'); if (barActual) barActual.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' }); }, 300);
-      else document.getElementById('chart-container-scroll').scrollLeft = 0;
+      const grafico = document.getElementById('grafico');
+      grafico.innerHTML = barrasHTML;
+      setTimeout(() => {
+        grafico.querySelectorAll('.bar').forEach(bar => bar.style.height = bar.getAttribute('data-height') + 'px');
+      }, 50);
+      if (esMesActual) {
+        setTimeout(() => {
+          const barActual = document.getElementById('bar-dia-actual');
+          if (barActual) barActual.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+        }, 300);
+      } else {
+        document.getElementById('chart-container-scroll').scrollLeft = 0;
+      }
     }
 
     // ========== 15. MARKETING ==========
@@ -1792,26 +1902,17 @@
           disparar = true;
         } else {
           const ultimoEnvio = new Date(camp.fecha_ultimo_envio + 'T12:00:00');
-          const diffTiempo = Math.abs(hoy - ultimoEnvio);
-          const diffDias = Math.ceil(diffTiempo / (1000 * 60 * 60 * 24));
-          if (diffDias >= camp.frecuencia_dias) {
-            disparar = true;
-          }
+          const diffDias = Math.ceil(Math.abs(hoy - ultimoEnvio) / (1000 * 60 * 60 * 24));
+          if (diffDias >= camp.frecuencia_dias) disparar = true;
         }
         if (disparar) {
           const fechaHoyStr = hoy.toISOString().split('T')[0];
-          // Obtener suscriptores de esta campaña
-          const { data: subsIds, error: subsErr } = await db
+          const { data: subsIds } = await db
             .from('clientes_campanas')
             .select('cliente_id')
             .eq('campana_id', camp.id);
-          if (subsErr) {
-            console.error('Error obteniendo suscriptores:', subsErr);
-            continue;
-          }
           const suscriptores = subsIds ? subsIds.map(s => s.cliente_id) : [];
           if (suscriptores.length === 0) {
-            // Sin suscriptores, marcar como enviado para no reintentar
             await db.from('campanas_automaticas').update({ fecha_ultimo_envio: fechaHoyStr }).eq('id', camp.id);
             camp.fecha_ultimo_envio = fechaHoyStr;
             continue;
@@ -1880,7 +1981,7 @@
       const textoOriginal = btn.innerHTML;
       btn.innerHTML = `<span class="spin">⏳</span> Enviando a todos...`;
       try {
-        const { data, error } = await db.functions.invoke('enviar-masivo', {
+        const { error } = await db.functions.invoke('enviar-masivo', {
           body: { titulo: titulo, mensaje: mensaje }
         });
         if (error) throw error;
@@ -1899,21 +2000,20 @@
 
     // ========== 16. REALTIME Y PUSH ==========
     async function recargarPedidosActivos() {
-      const { data, error } = await db.from('pedidos')
+      const { data } = await db.from('pedidos')
         .select('*, clientes(*)')
         .in('estado', ['pendiente', 'en_camino'])
         .order('created_at', { ascending: false });
-      if (!error && data) {
-        pedidosActivos = data;
-        renderPedidos();
-      }
+      if (data) pedidosActivos = data;
+      renderPedidos();
     }
 
     async function escucharRealtime() {
       db.channel('public:pedidos')
         .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'pedidos' }, async (payload) => {
           const { data: cliInfo } = await db.from('clientes').select('*').eq('id', payload.new.cliente_id).single();
-          payload.new.clientes = cliInfo; pedidosActivos.unshift(payload.new);
+          payload.new.clientes = cliInfo;
+          pedidosActivos.unshift(payload.new);
           try {
             await LocalNotifications.schedule({
               notifications: [{ id: new Date().getTime(), title: '¡Nuevo pedido!', body: cliInfo ? `${cliInfo.nombre} ha solicitado un pedido` : 'Nuevo pedido entrante', sound: 'default', smallIcon: 'ic_launcher', iconColor: '#0ea5e9' }]
@@ -1966,14 +2066,17 @@
 
       db.channel('public:clientes')
         .on('postgres_changes', { event: '*', schema: 'public', table: 'clientes' }, (payload) => {
-            if (payload.eventType === 'INSERT') {
-              const nCli = { id: payload.new.id, name: payload.new.nombre, phone: payload.new.telefono, address: payload.new.direccion, frequency: payload.new.frecuencia_dias ? payload.new.frecuencia_dias.toString() : '' };
-              if(!clients.some(c => c.id === nCli.id)) clients.push(nCli);
-            } else if (payload.eventType === 'UPDATE') {
-              const idx = clients.findIndex(c => c.id === payload.new.id);
-              if (idx !== -1) clients[idx] = { id: payload.new.id, name: payload.new.nombre, phone: payload.new.telefono, address: payload.new.direccion, frequency: payload.new.frecuencia_dias ? payload.new.frecuencia_dias.toString() : '' };
-            } else if (payload.eventType === 'DELETE') { clients = clients.filter(c => c.id !== payload.old.id); }
-            renderClientList(); llenarSelectClientes();
+          if (payload.eventType === 'INSERT') {
+            const nCli = { id: payload.new.id, name: payload.new.nombre, phone: payload.new.telefono, address: payload.new.direccion, frequency: payload.new.frecuencia_dias ? payload.new.frecuencia_dias.toString() : '' };
+            if(!clients.some(c => c.id === nCli.id)) clients.push(nCli);
+          } else if (payload.eventType === 'UPDATE') {
+            const idx = clients.findIndex(c => c.id === payload.new.id);
+            if (idx !== -1) clients[idx] = { id: payload.new.id, name: payload.new.nombre, phone: payload.new.telefono, address: payload.new.direccion, frequency: payload.new.frecuencia_dias ? payload.new.frecuencia_dias.toString() : '' };
+          } else if (payload.eventType === 'DELETE') {
+            clients = clients.filter(c => c.id !== payload.old.id);
+          }
+          renderClientList();
+          llenarSelectClientes();
         }).subscribe();
 
       db.channel('operaciones_central')
@@ -1993,7 +2096,7 @@
         await PushNotifications.createChannel({
           id: 'pedidos_urgentes',
           name: 'Pedidos Urgentes',
-          description: 'Notificaciones de alta prioridad para nuevos pedidos',
+          description: 'Notificaciones de alta prioridad',
           importance: 5,
           visibility: 1,
           vibration: true,
@@ -2001,9 +2104,7 @@
         });
       } catch (e) { console.log('Canal push no inicializado en entorno web.', e); }
       let permStatus = await PushNotifications.checkPermissions();
-      if (permStatus.receive === 'prompt') {
-        permStatus = await PushNotifications.requestPermissions();
-      }
+      if (permStatus.receive === 'prompt') permStatus = await PushNotifications.requestPermissions();
       if (permStatus.receive !== 'granted') return;
       await PushNotifications.register();
       PushNotifications.addListener('registration', async (token) => {
@@ -2035,10 +2136,12 @@
       });
     }
 
-    // ========== INICIAR APP ==========
+    // ========== INICIO ==========
     document.addEventListener('DOMContentLoaded', async () => {
       document.getElementById('fecha-venta').value = new Date().toISOString().split('T')[0];
-      const today = new Date(); document.getElementById('mes').value = today.getMonth(); document.getElementById('anio').value = today.getFullYear();
+      const today = new Date();
+      document.getElementById('mes').value = today.getMonth();
+      document.getElementById('anio').value = today.getFullYear();
       try { const geoPlugin = Capacitor.Plugins.Geolocation; if (geoPlugin) await geoPlugin.requestPermissions(); } catch(e) {}
       try { const notifPlugin = Capacitor.Plugins.LocalNotifications; if (notifPlugin) await notifPlugin.requestPermissions(); } catch(e) {}
       const savedAvatar = localStorage.getItem('agua_avatar');
