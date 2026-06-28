@@ -33,11 +33,9 @@
     
     html, body { width: 100%; height: 100dvh; overflow: hidden; background: var(--bg); color: var(--text-main); overscroll-behavior-y: none; }
     
-    /* ========== ANIMACIONES ========== */
     @keyframes fadeSlideUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-    /* ========== ONBOARDING ========== */
     #auth-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 1000; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 24px; transition: opacity 0.4s ease, transform 0.4s ease; }
     #auth-screen.hidden { opacity: 0; transform: scale(1.02); pointer-events: none; }
     .auth-card { width: 100%; max-width: 360px; text-align: center; }
@@ -49,7 +47,6 @@
     #registro-campos { max-height: 0; opacity: 0; overflow: hidden; transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1); }
     #registro-campos.visible { max-height: 200px; opacity: 1; margin-top: 8px; }
 
-    /* ========== APP PRINCIPAL ========== */
     #main-app { display: none; width: 100%; height: 100%; position: relative; }
     #main-app.visible { display: block; animation: fadeIn 0.4s; }
     
@@ -61,7 +58,6 @@
     .screen { display: none; position: absolute; top: 0; left: 0; right: 0; bottom: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: calc(env(safe-area-inset-top) + 100px) 20px calc(env(safe-area-inset-bottom) + 220px) 20px; }
     .screen.active { display: block; animation: fadeSlideUp 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) forwards; }
 
-    /* ========== LISTAS iOS ========== */
     .ios-list { background: var(--card); border-radius: var(--radius-md); overflow: hidden; margin-bottom: 24px; }
     .list-header { font-size: 13px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; margin: 0 0 8px 12px; letter-spacing: 0.5px; }
     .list-row { display: flex; align-items: center; justify-content: space-between; padding: 16px; position: relative; }
@@ -75,14 +71,12 @@
     .stepper-btn { width: 32px; height: 32px; border: none; background: transparent; font-size: 20px; color: var(--tint); font-weight: 400; cursor: pointer; display: flex; align-items: center; justify-content: center; }
     .stepper-val { font-size: 16px; font-weight: 600; width: 30px; text-align: center; }
 
-    /* ========== RASTREO LIVE ========== */
     #tracking-card { display: none; background: var(--card); border-radius: var(--radius-lg); overflow: hidden; margin-bottom: 24px; box-shadow: 0 10px 40px -10px rgba(0,0,0,0.1); }
     #mapa-cliente { width: 100%; height: 320px; background: #E5E5EA; z-index: 1;}
     .live-status { padding: 16px; background: rgba(255,255,255,0.9); backdrop-filter: blur(10px); position: absolute; top: 16px; left: 16px; right: 16px; border-radius: 100px; z-index: 10; display: flex; align-items: center; gap: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
     .live-dot { width: 10px; height: 10px; background: var(--green); border-radius: 50%; animation: pulseLive 1.5s infinite; }
     @keyframes pulseLive { 0% { box-shadow: 0 0 0 0 rgba(52, 199, 89, 0.6); } 70% { box-shadow: 0 0 0 8px rgba(52, 199, 89, 0); } 100% { box-shadow: 0 0 0 0 rgba(52, 199, 89, 0); } }
 
-    /* ========== TARJETA LEALTAD ========== */
     .wallet-card { 
       background: linear-gradient(135deg, #1C1C1E, #3A3A3C); 
       border-radius: 20px; padding: 24px; color: white; position: relative; overflow: hidden; 
@@ -133,14 +127,21 @@
       100% { opacity: 1; transform: scale(1); }
     }
 
-    /* ========== REDES SOCIALES ========== */
+    /* Mensaje de cumpleaños */
+    .birthday-msg {
+      background: var(--card); border-radius: var(--radius-md); padding: 20px; margin-top: 16px;
+      display: flex; align-items: center; gap: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+    .birthday-msg svg { width: 30px; height: 30px; color: var(--gold); }
+    .birthday-text { font-size: 15px; font-weight: 600; color: var(--text-main); }
+    .birthday-days { font-size: 13px; color: var(--text-muted); margin-top: 2px; }
+
     .social-container { display: flex; gap: 12px; margin-top: 10px; margin-bottom: 40px; }
     .social-btn { flex: 1; background: var(--card); border-radius: var(--radius-md); padding: 16px 8px; text-align: center; text-decoration: none; color: var(--text-main); font-size: 12px; font-weight: 600; box-shadow: 0 2px 8px rgba(0,0,0,0.04); display: flex; flex-direction: column; align-items: center; gap: 8px; transition: transform 0.1s; }
     .social-btn:active { transform: scale(0.95); }
     .social-btn svg { width: 24px; height: 24px; }
     .c-wa { color: #25D366; } .c-fb { color: #1877F2; } .c-web { color: var(--tint); }
 
-    /* ========== MODAL SABORES ========== */
     .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); z-index: 9999; display: flex; justify-content: center; align-items: flex-end; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
     .modal-overlay.visible { opacity: 1; pointer-events: auto; }
     .modal-card { background: white; width: 100%; border-radius: 24px 24px 0 0; padding: 24px; padding-bottom: calc(env(safe-area-inset-bottom) + 24px); transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); max-height: 85vh; display: flex; flex-direction: column; }
@@ -152,7 +153,6 @@
     .sabor-btn.active { border-color: var(--gold); background: rgba(255, 149, 0, 0.1); color: var(--gold); }
     .sabor-lista-text { font-size: 13px; color: var(--gold); font-weight: 500; margin-top: 4px; line-height: 1.3; }
 
-    /* ========== BOTONES Y NAVEGACIÓN ========== */
     .btn-primary { width: 100%; padding: 16px; background: var(--tint); color: white; border: none; border-radius: var(--radius-md); font-size: 17px; font-weight: 600; cursor: pointer; transition: transform 0.1s; }
     .btn-primary:active { transform: scale(0.96); opacity: 0.9; }
     .btn-secondary { background: #E5E5EA; color: var(--tint); margin-top: 10px; }
@@ -297,6 +297,20 @@
         <div class="stamps-grid" id="stamps-container"></div>
         <div id="status-lealtad" style="margin-top: 24px; text-align: center; font-size: 15px; font-weight: 500; background: rgba(255,255,255,0.1); padding: 12px; border-radius: 12px; position: relative; z-index: 2; transition: all 0.3s ease;">Cargando...</div>
       </div>
+      <!-- Mensaje de cumpleaños -->
+      <div id="birthday-msg" class="birthday-msg" style="display: none;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20 12v10H4V12"/>
+          <path d="M2 7h20v5H2z"/>
+          <path d="M12 22V7"/>
+          <path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/>
+          <path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/>
+        </svg>
+        <div>
+          <div class="birthday-text" id="birthday-text"></div>
+          <div class="birthday-days" id="birthday-days"></div>
+        </div>
+      </div>
       <p style="text-align: center; font-size: 13px; color: var(--text-muted); margin-top: 16px;">Realiza 10 compras y la próxima botella será gratuita o puedes disfrutar de un 50% de descuento en el agua saborizada.</p>
     </div>
 
@@ -305,6 +319,10 @@
       <div class="ios-list" style="margin-bottom: 12px;">
         <div class="list-row"><input type="text" id="perfil-nombre" class="auth-input" style="margin:0; padding:0; background:transparent; box-shadow:none; font-size:17px;"></div>
         <div class="list-row"><input type="text" id="perfil-direccion" class="auth-input" style="margin:0; padding:0; background:transparent; box-shadow:none; font-size:17px;"></div>
+        <div class="list-row">
+          <label style="font-size: 17px; color: var(--text-main);">Cumpleaños</label>
+          <input type="date" id="perfil-cumpleanos" class="auth-input" style="margin:0; padding:0; background:transparent; box-shadow:none; font-size:17px; width: auto; text-align: right;">
+        </div>
       </div>
       <button class="btn-primary btn-secondary" onclick="actualizarPerfil()">Guardar Cambios</button>
       <button class="btn-primary btn-destructive" onclick="cerrarSesion()">Cerrar Sesión</button>
@@ -352,18 +370,14 @@
     let usuarioActual = null, coordsGPS = null, pMin = 8.5, pSab = 10, esRegistro = false;
     let mapa = null, markRep = null, markCasa = null, rutaLayer = null, lineaGris = null, historialGPS = []; 
     
-    // Lista para guardar qué sabores eligió el cliente
     let listaSaboresSeleccionados = [];
     let saborTemporalmenteSeleccionado = null;
 
     const dias = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
     document.getElementById('header-fecha').innerText = dias[new Date().getDay()].toUpperCase();
 
-    // === GENERADOR DE IDs ===
     function generarUUID() {
-      if (typeof crypto !== 'undefined' && crypto.randomUUID) {
-        return crypto.randomUUID();
-      }
+      if (typeof crypto !== 'undefined' && crypto.randomUUID) return crypto.randomUUID();
       return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
         var r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
         return v.toString(16);
@@ -378,7 +392,6 @@
       }
     }
 
-    // === LOGIN PROTEGIDO ===
     async function procesarAcceso() {
       const tel = document.getElementById('auth-phone').value.replace(/\D/g, ''); 
       if (tel.length < 10) return showToast("Número inválido", true);
@@ -420,6 +433,7 @@
 
     function guardarLocal(u) {
       localStorage.setItem('aguabol_id', u.id); localStorage.setItem('aguabol_nombre', u.nombre); localStorage.setItem('aguabol_telefono', u.telefono); localStorage.setItem('aguabol_direccion', u.direccion || '');
+      if (u.cumpleanos) localStorage.setItem('aguabol_cumple', u.cumpleanos);
     }
 
     function iniciarApp() {
@@ -428,6 +442,7 @@
       document.getElementById('resumen-direccion').innerText = usuarioActual.direccion || "Sin dirección asignada.";
       document.getElementById('perfil-nombre').value = usuarioActual.nombre || '';
       document.getElementById('perfil-direccion').value = usuarioActual.direccion || '';
+      document.getElementById('perfil-cumpleanos').value = usuarioActual.cumpleanos || '';
       
       document.getElementById('auth-screen').classList.add('hidden');
       setTimeout(() => { document.getElementById('auth-screen').style.display='none'; document.getElementById('main-app').classList.add('visible'); }, 400);
@@ -558,14 +573,13 @@
       if(id === 'lealtad') cargarLealtad();
     }
 
-    // === LÓGICA DE SABORES ===
     function cambiarCant(t, d) {
       if (t === 'sab') {
         if (d > 0) {
           abrirModalSabores();
-          return; // Esperamos a que elija un sabor para sumar
+          return;
         } else if (d < 0 && listaSaboresSeleccionados.length > 0) {
-          listaSaboresSeleccionados.pop(); // Removemos el último sabor
+          listaSaboresSeleccionados.pop();
           actualizarListaSaboresUI();
         }
       }
@@ -598,7 +612,6 @@
       }
       listaSaboresSeleccionados.push(saborTemporalmenteSeleccionado);
       
-      // Sumamos la cantidad al contador de UI
       const el = document.getElementById('qty-sab');
       el.innerText = parseInt(el.innerText) + 1;
       
@@ -622,23 +635,16 @@
     }
 
     async function obtenerGPS() {
-      if (!navigator.geolocation) {
-        return showToast("Tu dispositivo no soporta GPS", true);
-      }
+      if (!navigator.geolocation) return showToast("Tu dispositivo no soporta GPS", true);
       
       const btn = document.getElementById('btn-gps'); 
       btn.innerHTML = "⏳ Conectando con satélites...";
       btn.style.pointerEvents = "none";
       
-      const opcionesGPS = {
-        enableHighAccuracy: true, 
-        timeout: 15000,           
-        maximumAge: 0             
-      };
+      const opcionesGPS = { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 };
 
       navigator.geolocation.getCurrentPosition(async (pos) => {
-        const lat = pos.coords.latitude;
-        const lng = pos.coords.longitude;
+        const lat = pos.coords.latitude, lng = pos.coords.longitude;
         coordsGPS = `${lat.toFixed(5)},${lng.toFixed(5)}`;
         
         try {
@@ -647,44 +653,27 @@
           const data = await res.json();
           
           let direccionTraducida = "Ubicación exacta detectada";
-          
           if (data && data.address) {
             const calle = data.address.road || data.address.pedestrian || '';
             const numero = data.address.house_number || '';
             const barrio = data.address.suburb || data.address.neighbourhood || '';
-            
             let partes = [];
             if (calle) partes.push(numero ? `${calle} #${numero}` : calle);
             if (barrio) partes.push(barrio);
-            
-            if (partes.length > 0) {
-              direccionTraducida = partes.join(', ');
-            } else if (data.display_name) {
-              direccionTraducida = data.display_name.split(',').slice(0, 3).join(',');
-            }
+            if (partes.length > 0) direccionTraducida = partes.join(', ');
+            else if (data.display_name) direccionTraducida = data.display_name.split(',').slice(0, 3).join(',');
           }
           
           const direccionFinal = `${direccionTraducida} | GPS: ${coordsGPS}`;
-          
-          const { error } = await db.from('clientes')
-            .update({ direccion: direccionFinal })
-            .eq('id', usuarioActual.id);
-            
-          if (error) throw error;
-          
+          await db.from('clientes').update({ direccion: direccionFinal }).eq('id', usuarioActual.id);
           usuarioActual.direccion = direccionFinal;
           guardarLocal(usuarioActual);
-          
           document.getElementById('resumen-direccion').innerText = direccionFinal;
           document.getElementById('perfil-direccion').value = direccionFinal;
-          
           btn.innerHTML = "✅ Ubicación Exacta Guardada"; 
-          btn.style.background = "#DCFCE7"; 
-          btn.style.color = "#16A34A";
+          btn.style.background = "#DCFCE7"; btn.style.color = "#16A34A";
           showToast("Ubicación con precisión de calle guardada");
-          
         } catch (error) {
-          console.error("Error GPS:", error);
           const fallbackDir = `Mi Ubicación | GPS: ${coordsGPS}`;
           await db.from('clientes').update({ direccion: fallbackDir }).eq('id', usuarioActual.id);
           usuarioActual.direccion = fallbackDir; guardarLocal(usuarioActual);
@@ -693,7 +682,6 @@
         } finally {
           btn.style.pointerEvents = "auto";
         }
-        
       }, (err) => { 
         btn.innerHTML = "⚠️ Fallo al leer GPS"; 
         btn.style.pointerEvents = "auto";
@@ -708,7 +696,6 @@
       
       let dir = usuarioActual.direccion || "Sin dirección";
       
-      // Enviamos el pedido e incluimos los sabores elegidos en el JSON "items"
       const { error } = await db.from('pedidos').insert({ 
         id: generarUUID(), 
         cliente_id: usuarioActual.id, 
@@ -731,9 +718,7 @@
     async function cargarLealtad() {
       const { data: v } = await db.from('ventas').select('mineral, saborizada').eq('cliente_id', usuarioActual.id);
       let tot = 0; v?.forEach(x => tot += (x.mineral+x.saborizada));
-      
       let pts = tot % 11; 
-      
       const faltan = 10 - pts;
       const lblStatus = document.getElementById('status-lealtad');
       
@@ -749,69 +734,67 @@
       
       const cont = document.getElementById('stamps-container'); 
       cont.innerHTML = '';
-      
       for (let i = 1; i <= 10; i++) {
         const isFilled = i <= pts;
         const isFree = i === 10; 
         const delay = isFilled ? (i * 0.12) : 0; 
-        
         let clases = 'stamp-spot';
         if (isFree) clases += ' free';
         if (isFilled) clases += ' filled';
+        cont.innerHTML += `<div class="${clases}" style="animation-delay: ${delay}s"><svg viewBox="0 0 24 24" width="22" height="22" fill="white" style="animation-delay: ${delay}s"><path d="M12 21.5c-3.3 0-6-2.6-6-5.8 0-3.3 3.8-9.1 5.2-11.2.3-.5 1.1-.5 1.5 0 1.4 2 5.3 7.9 5.3 11.2 0 3.2-2.7 5.8-6 5.8z"/></svg></div>`;
+      }
 
-        cont.innerHTML += `
-          <div class="${clases}" style="animation-delay: ${delay}s">
-            <svg viewBox="0 0 24 24" width="22" height="22" fill="white" style="animation-delay: ${delay}s">
-              <path d="M12 21.5c-3.3 0-6-2.6-6-5.8 0-3.3 3.8-9.1 5.2-11.2.3-.5 1.1-.5 1.5 0 1.4 2 5.3 7.9 5.3 11.2 0 3.2-2.7 5.8-6 5.8z"/>
-            </svg>
-          </div>`;
+      // Mostrar mensaje de cumpleaños si existe fecha
+      const cumple = usuarioActual.cumpleanos;
+      const bdayMsg = document.getElementById('birthday-msg');
+      if (cumple) {
+        const hoy = new Date();
+        const fechaCumple = new Date(cumple + 'T00:00:00');
+        // Ajustar al año actual para el cálculo
+        const proximoCumple = new Date(hoy.getFullYear(), fechaCumple.getMonth(), fechaCumple.getDate());
+        if (proximoCumple < hoy) proximoCumple.setFullYear(hoy.getFullYear() + 1);
+        const diffTime = proximoCumple - hoy;
+        const diasFaltan = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        bdayMsg.style.display = 'flex';
+        document.getElementById('birthday-text').innerText = `🎂 Tu cumpleaños es el ${fechaCumple.toLocaleDateString('es-ES', { day: 'numeric', month: 'long' })}`;
+        if (diasFaltan <= 0) {
+          document.getElementById('birthday-days').innerText = '¡Feliz cumpleaños! Disfruta tu recarga gratis 🎁';
+        } else {
+          document.getElementById('birthday-days').innerText = `Faltan ${diasFaltan} días. ¡Te regalamos una recarga gratis!`;
+        }
+      } else {
+        bdayMsg.style.display = 'none';
       }
     }
 
     async function actualizarPerfil() {
-      const n = document.getElementById('perfil-nombre').value; const d = document.getElementById('perfil-direccion').value;
-      await db.from('clientes').update({ nombre: n, direccion: d }).eq('id', usuarioActual.id);
-      usuarioActual.nombre = n; usuarioActual.direccion = d; guardarLocal(usuarioActual);
-      document.getElementById('resumen-direccion').innerText = d; showToast("Datos guardados con éxito");
+      const n = document.getElementById('perfil-nombre').value;
+      const d = document.getElementById('perfil-direccion').value;
+      const cumple = document.getElementById('perfil-cumpleanos').value;
+      await db.from('clientes').update({ nombre: n, direccion: d, cumpleanos: cumple || null }).eq('id', usuarioActual.id);
+      usuarioActual.nombre = n; usuarioActual.direccion = d; usuarioActual.cumpleanos = cumple;
+      guardarLocal(usuarioActual);
+      document.getElementById('resumen-direccion').innerText = d;
+      showToast("Datos guardados con éxito");
     }
 
     function cerrarSesion() { localStorage.clear(); window.location.reload(); }
     function showToast(m, err=false) { const t = document.getElementById('toast'); document.getElementById('toast-msg').innerText = m; t.style.display='flex'; setTimeout(()=>t.style.display='none', 3000); }
 
-    // ========== REGISTRO DE NOTIFICACIONES PARA EL CLIENTE ==========
     async function registrarPushCliente() {
-      if (typeof Capacitor === 'undefined' || !Capacitor.Plugins.PushNotifications) {
-        console.log("PushNotifications no está disponible en este entorno");
-        return; 
-      }
-      
+      if (typeof Capacitor === 'undefined' || !Capacitor.Plugins.PushNotifications) return; 
       const PushNotifications = Capacitor.Plugins.PushNotifications;
-
       let permStatus = await PushNotifications.checkPermissions();
-      if (permStatus.receive === 'prompt') {
-        permStatus = await PushNotifications.requestPermissions();
-      }
-      
-      if (permStatus.receive !== 'granted') {
-        console.log("El usuario denegó los permisos de notificaciones.");
-        return; 
-      }
-
+      if (permStatus.receive === 'prompt') permStatus = await PushNotifications.requestPermissions();
+      if (permStatus.receive !== 'granted') return; 
       await PushNotifications.register();
-
       PushNotifications.addListener('registration', async (token) => {
         if (usuarioActual && usuarioActual.id) {
-          const { error } = await db.from('dispositivos').upsert({ 
-            user_id: usuarioActual.id, 
-            fcm_token: token.value, 
-            plataforma: 'android', 
-            updated_at: new Date().toISOString() 
+          await db.from('dispositivos').upsert({ 
+            user_id: usuarioActual.id, fcm_token: token.value, plataforma: 'android', updated_at: new Date().toISOString() 
           }, { onConflict: 'user_id' });
-          
-          if(!error) console.log("Token de cliente guardado exitosamente");
         }
       });
-
       PushNotifications.addListener('pushNotificationReceived', (notif) => { 
         showToast(notif.title || 'Nueva notificación'); 
         chequearPedidoActivo(); 
