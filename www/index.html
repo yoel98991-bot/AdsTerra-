@@ -1604,20 +1604,54 @@
     }
 
     async function probarNotificacionClienteActual() {
-      if (!editingClientId) return;
-      const testTitulo = "🧪 Test de Agualight";
-      const testMensaje = "Esta es una prueba de notificación. Si la recibes, ¡todo funciona correctamente!";
-      showToast("Enviando test...", "info");
-      const { error } = await db.functions.invoke('enviar-masivo', {
-        body: {
-          titulo: testTitulo,
-          mensaje: testMensaje,
-          cliente_ids: [editingClientId]
-        }
-      });
-      if (error) showToast("Error al enviar test: " + error.message, "error");
-      else showToast("Notificación de prueba enviada al cliente 📲", "success");
+  if (!editingClientId) return;
+  
+  // 1. Leer las campañas que están marcadas en el modal en este momento
+  const checkboxes = document.querySelectorAll('.campaign-sub-check:checked');
+  const campanasSeleccionadasIds = Array.from(checkboxes).map(cb => cb.dataset.campanaId);
+
+  // 2. Buscar los nombres reales de esas campañas en tu arreglo global
+  let nombresCampanas = [];
+  campanasSeleccionadasIds.forEach(id => {
+    const camp = campanasAutomaticas.find(c => c.id === id);
+    if (camp) nombresCampanas.push(camp.nombre_campana);
+  });
+
+  // 3. Construir el mensaje dinámico para la notificación
+  const testTitulo = "🧪 Test de Campañas - Agualight";
+  let testMensaje = "Prueba de conexión exitosa. ";
+  
+  if (nombresCampanas.length > 0) {
+    // Si tiene campañas, las listamos en el mensaje
+    testMensaje += `El CRM indica que estás suscrito a: ${nombresCampanas.join(', ')}.`;
+  } else {
+    // Si no marcó ninguna
+    testMensaje += `Actualmente NO tienes ninguna campaña asignada en el CRM.`;
+  }
+
+  showToast("Enviando test...", "info");
+  
+  // 4. Disparar la Edge Function con el texto adaptado
+  try {
+    const { error } = await db.functions.invoke('enviar-masivo', {
+      body: {
+        titulo: testTitulo,
+        mensaje: testMensaje,
+        cliente_ids: [editingClientId]
+      }
+    });
+    
+    if (error) {
+      showToast("Error al enviar test: " + error.message, "error");
+    } else {
+      showToast("Notificación de prueba enviada al cliente 📲", "success");
     }
+  } catch (err) {
+    console.error(err);
+    showToast("Error de conexión al enviar test", "error");
+  }
+}
+
 
     async function saveClient() {
       const name = document.getElementById('clientName').value.trim();
