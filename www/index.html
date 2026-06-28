@@ -9,6 +9,7 @@
   <title>Agualight Centro de Operaciones</title>
   
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
 
@@ -54,6 +55,8 @@
     .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .3s; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
     input:checked + .slider { background-color: var(--green); }
     input:checked + .slider:before { transform: translateX(20px); }
+
+
 
     /* ========== ANIMACIONES GLOBALES ========== */
     .screen { display: none; padding-bottom: 20px; animation: fadeSlideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
@@ -125,6 +128,7 @@
     .segment-btn { flex: 1; text-align: center; padding: 10px; font-size: 14px; font-weight: 700; color: var(--text-secondary); border-radius: 8px; cursor: pointer; transition: all 0.2s; }
     .segment-btn.active { background: white; color: var(--text-primary); box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
     
+    /* Tarjetas de Pedidos en Vivo */
     .pedido-card { background: white; border-radius: 16px; padding: 16px; margin-bottom: 16px; border-left: 4px solid var(--warning); box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
     .pedido-card.en_camino { border-left-color: var(--tint); }
     .pedido-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
@@ -136,6 +140,7 @@
     .btn-aceptar { background: var(--tint); color: white; }
     .btn-rechazar { background: #fee2e2; color: var(--destructive); }
 
+    /* Directorio CRM */
     .search-box { background: var(--card-bg); border-radius: var(--radius-sm); padding: 12px 16px; margin-bottom: 20px; display: flex; align-items: center; gap: 12px; box-shadow: var(--shadow-sm); }
     .search-input { border: none; padding: 0; background: transparent; margin: 0; }
     .client-list { background: var(--card-bg); border-radius: var(--radius-md); box-shadow: var(--shadow-sm); overflow: hidden; }
@@ -189,11 +194,12 @@
     .gasto-item, .history-item { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--separator); font-size: 13px; }
     .gasto-delete-btn { width: 30px; height: 30px; border-radius: 8px; border: none; background: #fee2e2; color: var(--destructive); display: flex; align-items: center; justify-content: center; cursor: pointer; }
 
+    /* ========== NUEVO: LISTA DE CHOFERES ========== */
     .chofer-list { max-height: 50vh; overflow-y: auto; margin-top: 16px; }
     .chofer-item { display: flex; justify-content: space-between; align-items: center; padding: 16px; border-bottom: 1px solid #f1f5f9; cursor: pointer; border-radius: 12px; margin-bottom: 8px; border: 1px solid transparent;}
     .chofer-item:hover { background: #f8fafc; border-color: #e2e8f0; }
 
-    /* ========== MAPA NATIVO Y PANEL INFERIOR ========== */
+    /* ========== MAPA NATIVO Y PANEL INFERIOR (UBER STYLE) ========== */
     #pantallaRutaOverlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: var(--system-bg); z-index: 9999; display: none; flex-direction: column; opacity: 0; transition: opacity 0.3s ease; }
     #pantallaRutaOverlay.active { opacity: 1; }
     #mapa-repartidor { flex: 1; width: 100%; z-index: 1; }
@@ -206,55 +212,99 @@
     .lealtad-badge { background: #fef3c7; color: #d97706; padding: 6px 12px; border-radius: 100px; font-size: 12px; font-weight: 800; display: flex; align-items: center; gap: 4px; }
     .panel-acciones { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 16px; margin-bottom: 16px;}
 
+    /* ========== MAPA GLOBAL MULTI-PARADAS ========== */
     #pantallaMapaGlobalOverlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: var(--system-bg); z-index: 99999; display: none; flex-direction: column; opacity: 0; transition: opacity 0.3s ease; }
     #pantallaMapaGlobalOverlay.active { opacity: 1; }
     
+    /* ========== BARRA DE PESTAÑAS ========== */
     .tab-bar { position: fixed; bottom: 0; left: 0; right: 0; background: var(--tab-bg); backdrop-filter: blur(20px); border-top: 1px solid rgba(0,0,0,0.05); display: flex; justify-content: space-around; align-items: center; height: calc(env(safe-area-inset-bottom) + 70px); padding-bottom: env(safe-area-inset-bottom); z-index: 150; }
     .tab-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #94a3b8; font-size: 11px; font-weight: 700; gap: 6px; padding: 10px 0; cursor: pointer; transition: color 0.2s;}
     .tab-item.active { color: var(--tint); }
     
+    /* Botón Flotante */
     .fab { display: none; position: fixed; bottom: calc(env(safe-area-inset-bottom) + 90px); right: 24px; width: 60px; height: 60px; border-radius: 30px; background: linear-gradient(135deg, var(--tint), #0284c7); color: white; align-items: center; justify-content: center; box-shadow: var(--shadow-float); cursor: pointer; border: none; z-index: 100; }
     .fab.active-fab { display: flex; animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
   </style>
 </head>
 <body>
+  
   <div id="toast-container" class="toast-container"></div>
+  
   <audio id="notificacion-sound" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg" preload="auto"></audio>
 
-  <!-- PANTALLAS (igual estructura que antes) -->
   <div id="screen-inicio" class="screen active">
     <div class="nav-bar"><span class="nav-title">Inicio</span></div>
+    
     <div class="card">
       <div class="date-picker-row">
-        <div class="picker-group"><label>Mes</label>
-          <select id="mes" onchange="cargarMovimiento()"><option value="0">Enero</option><option value="1">Febrero</option><option value="2">Marzo</option><option value="3">Abril</option><option value="4" selected>Mayo</option><option value="5">Junio</option><option value="6">Julio</option><option value="7">Agosto</option><option value="8">Septiembre</option><option value="9">Octubre</option><option value="10">Noviembre</option><option value="11">Diciembre</option></select>
+        <div class="picker-group">
+          <label>Mes</label>
+          <select id="mes" onchange="cargarMovimiento()">
+            <option value="0">Enero</option><option value="1">Febrero</option><option value="2">Marzo</option>
+            <option value="3">Abril</option><option value="4" selected>Mayo</option><option value="5">Junio</option>
+            <option value="6">Julio</option><option value="7">Agosto</option><option value="8">Septiembre</option>
+            <option value="9">Octubre</option><option value="10">Noviembre</option><option value="11">Diciembre</option>
+          </select>
         </div>
-        <div class="picker-group"><label>Año</label><input type="number" id="anio" value="2026" min="2020" max="2030" onchange="cargarMovimiento()"></div>
+        <div class="picker-group">
+          <label>Año</label>
+          <input type="number" id="anio" value="2026" min="2020" max="2030" onchange="cargarMovimiento()">
+        </div>
       </div>
     </div>
+
     <div class="total-card">
-      <div class="financial-row"><div class="total-info"><span class="total-label">Ingresos del mes</span><span class="total-amount" id="total-mes">Bs 0.00</span></div></div>
+      <div class="financial-row">
+        <div class="total-info">
+          <span class="total-label">Ingresos del mes</span>
+          <span class="total-amount" id="total-mes">Bs 0.00</span>
+        </div>
+      </div>
       <div class="financial-row" style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: 12px;">
-        <div class="total-info"><span class="total-label" style="color:#d1d5db;">Utilidad Neta Estimada</span><span class="utilidad-amount" id="utilidad-neta">Bs 0.00</span></div>
+        <div class="total-info">
+          <span class="total-label" style="color:#d1d5db;">Utilidad Neta Estimada</span>
+          <span class="utilidad-amount" id="utilidad-neta">Bs 0.00</span>
+        </div>
         <button class="btn-small" onclick="abrirModalGasto()" style="background: rgba(255,255,255,0.2); color:white;">+ Gasto</button>
       </div>
     </div>
-    <div class="section-title"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="1" y="6" width="22" height="12" rx="2"/><rect x="5" y="2" width="2" height="6"/><rect x="17" y="2" width="2" height="6"/></svg>Ventas diarias</div>
-    <div class="card chart-container" id="chart-container-scroll"><div class="bar-chart" id="grafico"></div></div>
+
+    <div class="section-title">
+      <div class="title-left">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="1" y="6" width="22" height="12" rx="2"/><rect x="5" y="2" width="2" height="6"/><rect x="17" y="2" width="2" height="6"/></svg>
+        Ventas diarias
+      </div>
+    </div>
+    <div class="card chart-container" id="chart-container-scroll">
+      <div class="bar-chart" id="grafico"></div>
+    </div>
   </div>
 
   <div id="screen-operaciones" class="screen">
     <div class="nav-bar"><span class="nav-title">Operaciones</span></div>
+    
     <div class="segmented-control">
-      <div class="segment-btn active" id="btn-seg-pedidos" onclick="switchSubTab('pedidos')">En Vivo <span id="badge-pedidos" style="background:var(--destructive); color:white; border-radius:10px; padding:2px 6px; font-size:11px; margin-left:4px; display:none;">0</span></div>
+      <div class="segment-btn active" id="btn-seg-pedidos" onclick="switchSubTab('pedidos')">
+        En Vivo 
+        <span id="badge-pedidos" style="background:var(--destructive); color:white; border-radius:10px; padding:2px 6px; font-size:11px; margin-left:4px; display:none;">0</span>
+      </div>
       <div class="segment-btn" id="btn-seg-directorio" onclick="switchSubTab('directorio')">Directorio CRM</div>
     </div>
+
     <div id="sub-pedidos">
-      <button class="btn-primary" style="margin-bottom:16px; background: linear-gradient(135deg, #10b981, #059669);" onclick="abrirMapaGlobal()">🗺️ Ver Mapa General de Reparto</button>
-      <div id="lista-pedidos-vacia" style="text-align:center; padding:40px 20px; color:var(--text-secondary);"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="margin-bottom:16px; opacity:0.5;"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg><p>No hay pedidos pendientes.</p><p style="font-size:12px; margin-top:8px;">Escuchando portal de clientes...</p></div>
+      <button class="btn-primary" style="margin-bottom: 16px; background: linear-gradient(135deg, #10b981, #059669); box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);" onclick="abrirMapaGlobal()">
+        🗺️ Ver Mapa General de Reparto
+      </button>
+
+      <div id="lista-pedidos-vacia" style="text-align: center; padding: 40px 20px; color: var(--text-secondary);">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="margin-bottom:16px; opacity:0.5;"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+        <p>No hay pedidos pendientes.</p>
+        <p style="font-size: 12px; margin-top:8px;">Escuchando portal de clientes...</p>
+      </div>
       <div id="lista-pedidos-container"></div>
     </div>
-    <div id="sub-directorio" style="display:none;">
+
+    <div id="sub-directorio" style="display: none;">
       <div class="search-box">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--text-secondary)" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
         <input type="text" class="search-input" placeholder="Buscar cliente..." id="searchInput" oninput="renderClientList()">
@@ -265,91 +315,205 @@
 
   <div id="screen-ventas" class="screen">
     <div class="nav-bar"><span class="nav-title">Venta Manual</span></div>
+    
     <div class="card venta-form">
-      <div class="picker-group"><label>Fecha</label><input type="date" id="fecha-venta"></div>
-      <div class="picker-group"><label>Cliente (opcional)</label><select id="cliente-venta" onchange="mostrarDeudaEnvases()"><option value="">Sin cliente</option></select><div id="deuda-envases-hint" style="font-size:12px; color:var(--text-secondary); margin-top:6px; display:none;"></div></div>
-      <div class="input-row">
-        <div class="picker-group"><label>Agua Mineral</label><div class="qty-group"><button class="btn-circle" onclick="cambiarCantidad('mineral', -1)">−</button><input type="number" id="cant-mineral" value="0" min="0" onchange="calcularTotalVenta()" readonly><button class="btn-circle" onclick="cambiarCantidad('mineral', 1)">+</button></div></div>
-        <div class="picker-group"><label>Saborizada</label><div class="qty-group"><button class="btn-circle" onclick="cambiarCantidad('saborizada', -1)">−</button><input type="number" id="cant-saborizada" value="0" min="0" onchange="calcularTotalVenta()" readonly><button class="btn-circle" onclick="cambiarCantidad('saborizada', 1)">+</button></div></div>
+      <div class="picker-group">
+        <label>Fecha</label>
+        <input type="date" id="fecha-venta">
       </div>
-      <div class="picker-group"><label>Envases Devueltos (Vacíos)</label><div class="qty-group" style="width:50%;"><button class="btn-circle" onclick="cambiarCantidad('devueltos', -1)">−</button><input type="number" id="cant-devueltos" value="0" min="0" readonly><button class="btn-circle" onclick="cambiarCantidad('devueltos', 1)">+</button></div></div>
+      <div class="picker-group">
+        <label>Cliente (opcional)</label>
+        <select id="cliente-venta" onchange="mostrarDeudaEnvases()">
+          <option value="">Sin cliente</option>
+        </select>
+        <div id="deuda-envases-hint" style="font-size: 12px; color: var(--text-secondary); margin-top: 6px; display: none;"></div>
+      </div>
+      
+      <div class="input-row">
+        <div class="picker-group">
+          <label>Agua Mineral</label>
+          <div class="qty-group">
+            <button class="btn-circle" onclick="cambiarCantidad('mineral', -1)">−</button>
+            <input type="number" id="cant-mineral" value="0" min="0" onchange="calcularTotalVenta()" readonly>
+            <button class="btn-circle" onclick="cambiarCantidad('mineral', 1)">+</button>
+          </div>
+        </div>
+        <div class="picker-group">
+          <label>Saborizada</label>
+          <div class="qty-group">
+            <button class="btn-circle" onclick="cambiarCantidad('saborizada', -1)">−</button>
+            <input type="number" id="cant-saborizada" value="0" min="0" onchange="calcularTotalVenta()" readonly>
+            <button class="btn-circle" onclick="cambiarCantidad('saborizada', 1)">+</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="picker-group">
+        <label>Envases Devueltos (Vacíos)</label>
+        <div class="qty-group" style="width: 50%;">
+          <button class="btn-circle" onclick="cambiarCantidad('devueltos', -1)">−</button>
+          <input type="number" id="cant-devueltos" value="0" min="0" readonly>
+          <button class="btn-circle" onclick="cambiarCantidad('devueltos', 1)">+</button>
+        </div>
+      </div>
+
       <div class="total-venta" id="total-venta">Total: Bs 0.00</div>
-      <button class="btn-primary" onclick="registrarVentaManual()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Registrar Venta</button>
+      
+      <button class="btn-primary" style="justify-content: center; padding: 16px; margin-top: 8px;" onclick="registrarVentaManual()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+        Registrar Venta
+      </button>
     </div>
   </div>
 
   <div id="screen-inventario" class="screen">
     <div class="nav-bar"><span class="nav-title">Inventario</span></div>
+    
     <div class="card">
       <div class="stock-item">
-        <div class="stock-info"><div class="stock-icon mineral"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/></svg></div><div class="stock-name truncate">Agua Mineral</div></div>
-        <div class="stock-counter"><button class="btn-circle" onclick="cambiarStock('mineral', -1)">−</button><span class="stock-qty" id="stock-mineral">0</span><button class="btn-circle" onclick="cambiarStock('mineral', 1)">+</button></div>
+        <div class="stock-info">
+          <div class="stock-icon mineral"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/></svg></div>
+          <div class="stock-text-container">
+            <div class="stock-name truncate">Agua Mineral</div>
+            <div class="stock-desc truncate">Botellón 20 Litros</div>
+          </div>
+        </div>
+        <div class="stock-counter">
+          <button class="btn-circle" onclick="cambiarStock('mineral', -1)">−</button>
+          <span class="stock-qty" id="stock-mineral">0</span>
+          <button class="btn-circle" onclick="cambiarStock('mineral', 1)">+</button>
+        </div>
       </div>
       <div class="stock-item">
-        <div class="stock-info"><div class="stock-icon saborizada"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/></svg></div><div class="stock-name truncate">Agua Saborizada</div></div>
-        <div class="stock-counter"><button class="btn-circle" onclick="cambiarStock('saborizada', -1)">−</button><span class="stock-qty" id="stock-saborizada">0</span><button class="btn-circle" onclick="cambiarStock('saborizada', 1)">+</button></div>
+        <div class="stock-info">
+          <div class="stock-icon saborizada"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/></svg></div>
+          <div class="stock-text-container">
+            <div class="stock-name truncate">Agua Saborizada</div>
+            <div class="stock-desc truncate">Botellón 20 Litros</div>
+          </div>
+        </div>
+        <div class="stock-counter">
+          <button class="btn-circle" onclick="cambiarStock('saborizada', -1)">−</button>
+          <span class="stock-qty" id="stock-saborizada">0</span>
+          <button class="btn-circle" onclick="cambiarStock('saborizada', 1)">+</button>
+        </div>
       </div>
     </div>
-    <div class="card"><div class="section-title" style="font-size:16px;"><span>Envases Físicos Totales</span><span id="total-envases-fisicos" style="font-size:20px; font-weight:800;">0</span></div></div>
+    
+    <div class="card">
+       <div class="section-title" style="font-size: 16px; margin-bottom: 0;">
+          <div class="title-left">Envases Físicos Totales</div>
+          <span id="total-envases-fisicos" style="font-size: 20px; font-weight: 800;">0</span>
+       </div>
+    </div>
   </div>
 
   <div id="screen-perfil" class="screen">
     <div class="nav-bar"><span class="nav-title">Mi Negocio</span></div>
+    
     <div class="card profile-header">
       <div class="avatar-wrapper">
-        <input type="file" id="upload-avatar" accept="image/*" style="display:none;" onchange="subirLogoPerfil(event)">
+        <input type="file" id="upload-avatar" accept="image/*" style="display: none;" onchange="subirLogoPerfil(event)">
         <img id="profile-img" class="avatar-img" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2394a3b8'><path d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/></svg>">
-        <div class="avatar-edit-btn" onclick="document.getElementById('upload-avatar').click()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></div>
+        <div class="avatar-edit-btn" onclick="document.getElementById('upload-avatar').click()">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+        </div>
       </div>
       <div class="profile-name">Agualight Admin</div>
       <div class="profile-role">Propietario</div>
-      <span class="badge" style="background:#dcfce7; color:#16a34a; padding:6px 12px; font-size:12px;">Licencia Activa PRO</span>
+      <span class="badge" style="background: #dcfce7; color: #16a34a; padding: 6px 12px; font-size: 12px;">Licencia Activa PRO</span>
     </div>
+
     <div class="section-title">Administración</div>
     <div class="card settings-list">
-      <div class="setting-row" onclick="abrirModalPrecios()"><div class="setting-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div><div class="setting-text">Gestión de Precios y Costos</div></div>
-      <div class="setting-row" onclick="copiarDirectLink()"><div class="setting-icon" style="background:#e0f2fe; color:#0284c7;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></div><div class="setting-text">DirectLink (Portal Cliente)</div></div>
+      <div class="setting-row" onclick="abrirModalPrecios()">
+        <div class="setting-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
+        <div class="setting-text">Gestión de Precios y Costos</div>
+        <div class="setting-arrow"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg></div>
+      </div>
+      <div class="setting-row" onclick="copiarDirectLink()">
+        <div class="setting-icon" style="background: #e0f2fe; color: #0284c7;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+        </div>
+        <div class="setting-text">DirectLink (Portal Cliente)</div>
+        <div class="setting-arrow"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg></div>
+      </div>
     </div>
+
     <div class="section-title">Sistema</div>
-    <div class="card settings-list"><div class="setting-row" onclick="cargarDatosCompletos()"><div class="setting-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21.5 12H16c-.7 2-2 3-4 3s-3.3-1-4-3H2.5"/><path d="M5.5 5.1L2 12v6c0 1.1.9 2 2 2h16a2 2 0 0 0 2-2v-6l-3.5-6.9A2 2 0 0 0 16.7 4H7.3a2 2 0 0 0-1.8 1.1z"/></svg></div><div class="setting-text">Forzar Sincronización</div></div></div>
+    <div class="card settings-list">
+      <div class="setting-row" onclick="cargarDatosCompletos()">
+        <div class="setting-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21.5 12H16c-.7 2-2 3-4 3s-3.3-1-4-3H2.5"/><path d="M5.5 5.1L2 12v6c0 1.1.9 2 2 2h16a2 2 0 0 0 2-2v-6l-3.5-6.9A2 2 0 0 0 16.7 4H7.3a2 2 0 0 0-1.8 1.1z"/></svg></div>
+        <div class="setting-text">Forzar Sincronización</div>
+        <div class="setting-arrow"><span style="font-size: 12px; color: var(--text-secondary); margin-right: 8px;">Online</span></div>
+      </div>
+    </div>
   </div>
 
   <div id="screen-marketing" class="screen">
     <div class="nav-bar"><span class="nav-title">Marketing</span></div>
+    
     <div class="card">
-      <div class="section-title"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>Nueva Campaña Masiva</div>
-      <div class="input-group"><label>Título</label><input type="text" id="marketing-titulo" placeholder="Ej: ¡Promo de Fin de Semana! 🚀"></div>
-      <div class="input-group"><label>Mensaje</label><textarea id="marketing-mensaje" rows="3" style="width:100%; appearance:none; background:#f8fafc; border:1px solid #e2e8f0; border-radius:var(--radius-sm); padding:12px 14px; font-size:16px; font-family:inherit; color:var(--text-primary); font-weight:600; outline:none; resize:none; margin-bottom:16px;" placeholder="Ej: Compra 2 botellones hoy..."></textarea></div>
-      <button id="btn-enviar-marketing" class="btn-primary" onclick="dispararCampañaMasiva()">📢 Enviar a Todos los Clientes</button>
+      <div class="section-title" style="margin-bottom:16px;">
+         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+         Nueva Campaña Masiva
+      </div>
+      
+      <div class="input-group" style="width: 100%;">
+        <label>Título de la Notificación 🔥</label>
+        <input type="text" id="marketing-titulo" placeholder="Ej: ¡Promo de Fin de Semana! 🚀">
+      </div>
+      
+      <div class="input-group" style="width: 100%;">
+        <label>Mensaje de la Oferta</label>
+        <textarea id="marketing-mensaje" rows="3" style="width: 100%; appearance: none; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: var(--radius-sm); padding: 12px 14px; font-size: 16px; font-family: inherit; color: var(--text-primary); font-weight: 600; outline: none; resize: none; margin-bottom: 16px;" placeholder="Ej: Compra 2 botellones hoy y el tercero a mitad de precio. Toca para pedir."></textarea>
+      </div>
+
+      <button id="btn-enviar-marketing" class="btn-primary" onclick="dispararCampañaMasiva()">
+        📢 Enviar a Todos los Clientes
+      </button>
     </div>
-    <div class="section-title" style="margin-top:24px;">Campañas Automáticas</div>
+    
+    <div class="section-title" style="margin-top: 24px;">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--tint)" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      Campañas Automáticas
+    </div>
     <div id="campanas-automaticas-container"></div>
-    <div class="section-title" style="margin-top:10px;">Historial de Envíos</div>
-    <div class="card" style="padding:0; overflow:hidden;"><div id="historial-marketing-tabla"><div style="padding:20px; text-align:center; color:var(--text-secondary);">No has enviado ninguna campaña todavía.</div></div></div>
+
+    <div class="section-title" style="margin-top: 10px;">Historial de Envíos</div>
+    <div class="card" style="padding: 0; overflow: hidden;">
+      <div id="historial-marketing-tabla">
+         <div style="padding: 20px; text-align: center; color: var(--text-secondary); font-size: 14px;">No has enviado ninguna campaña todavía.</div>
+      </div>
+    </div>
   </div>
 
-  <button class="fab" id="fab-clientes" onclick="openClientModal()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
+  <button class="fab" id="fab-clientes" onclick="openClientModal()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+  </button>
 
-  <!-- Modales (estructura completa) -->
   <div class="modal-overlay" id="modalClientOverlay">
     <div class="modal-sheet">
       <div class="modal-handle"></div>
-      <div class="modal-title" id="modalClientTitle" style="font-size:20px; font-weight:800; margin-bottom:16px;">Nuevo cliente</div>
+      <div class="modal-title" id="modalClientTitle" style="font-size: 20px; font-weight: 800; margin-bottom: 16px;">Nuevo cliente</div>
       <div class="input-group"><label>Nombre completo</label><input type="text" id="clientName" placeholder="Ej. Juan Pérez"></div>
       <div class="input-group"><label>Teléfono (WhatsApp)</label><input type="tel" id="clientPhone" placeholder="+58 412 1234567"></div>
       <div class="input-group"><label>Dirección</label><input type="text" id="clientAddress" placeholder="Calle, zona, ciudad"></div>
       <div class="input-group"><label>Frecuencia de pedido (días)</label><input type="number" id="clientFrequency" placeholder="Opcional" min="1" step="1"></div>
-      <div class="client-history" id="clientSalesHistory" style="display:none;"></div>
-      <div id="clientCampaignsSection" style="margin-top:20px; border-top:1px solid var(--separator); padding-top:16px;">
-        <h4 style="margin-bottom:12px; font-size:15px; font-weight:700;">📢 Campañas automáticas</h4>
+      
+      <div class="client-history" id="clientSalesHistory" style="display: none;"></div>
+      <!-- Sección de suscripción a campañas automáticas -->
+      <div id="clientCampaignsSection" style="margin-top: 20px; border-top: 1px solid var(--separator); padding-top: 16px;">
+        <h4 style="margin-bottom: 12px; font-size: 15px; font-weight: 700;">📢 Campañas automáticas</h4>
         <div id="clientCampaignsCheckboxes"></div>
       </div>
+      
       <div class="modal-actions">
         <button class="btn-cancel" onclick="closeModal('modalClientOverlay')">Cancelar</button>
-        <button class="btn-primary" style="margin:0; width:auto; flex:1;" onclick="saveClient()">Guardar</button>
+        <button class="btn-primary" style="margin: 0; width: auto; flex: 1;" onclick="saveClient()">Guardar</button>
       </div>
-      <div style="margin-top:16px; display:none;" id="deleteClientContainer">
-        <button class="btn-outline" style="border-color:#fee2e2; background:#fef2f2; color:var(--destructive);" onclick="deleteClient()">Eliminar cliente</button>
+      <div style="margin-top: 16px; display: none;" id="deleteClientContainer">
+        <button class="btn-outline" style="border-color: #fee2e2; background: #fef2f2; color: var(--destructive);" onclick="deleteClient()">Eliminar cliente</button>
       </div>
     </div>
   </div>
@@ -357,13 +521,14 @@
   <div class="modal-overlay" id="modalGastoOverlay">
     <div class="modal-sheet">
       <div class="modal-handle"></div>
-      <div class="modal-title" style="font-size:20px; font-weight:800; margin-bottom:16px;">Registrar Gasto</div>
+      <div class="modal-title" style="font-size: 20px; font-weight: 800; margin-bottom: 16px;">Registrar Gasto</div>
       <div class="input-group"><label>Fecha</label><input type="date" id="fecha-gasto"></div>
       <div class="input-group"><label>Descripción</label><input type="text" id="desc-gasto" placeholder="Ej. Combustible, Etiquetas..."></div>
       <div class="input-group"><label>Monto (Bs)</label><input type="number" id="monto-gasto" placeholder="0.00" step="0.01"></div>
+      
       <div class="modal-actions">
         <button class="btn-cancel" onclick="closeModal('modalGastoOverlay')">Cancelar</button>
-        <button class="btn-primary" style="margin:0; width:auto; flex:1;" onclick="guardarGasto()">Registrar</button>
+        <button class="btn-primary" style="margin: 0; width: auto; flex: 1;" onclick="guardarGasto()">Registrar</button>
       </div>
       <div class="gastos-list" id="gastosListContainer"></div>
     </div>
@@ -372,474 +537,1512 @@
   <div class="modal-overlay" id="modalPreciosOverlay">
     <div class="modal-sheet">
       <div class="modal-handle"></div>
-      <div class="modal-title" style="font-size:20px; font-weight:800; margin-bottom:16px;">Gestión de Precios</div>
+      <div class="modal-title" style="font-size: 20px; font-weight: 800; margin-bottom: 16px;">Gestión de Precios</div>
       <div class="input-group"><label>Precio Mineral (Bs)</label><input type="number" id="precioMineralInput" step="0.01" min="0"></div>
       <div class="input-group"><label>Precio Saborizada (Bs)</label><input type="number" id="precioSaborizadaInput" step="0.01" min="0"></div>
       <div class="input-group"><label>Costo Prod. Mineral (Bs)</label><input type="number" id="costoMineralInput" step="0.01" min="0"></div>
       <div class="input-group"><label>Costo Prod. Saborizada (Bs)</label><input type="number" id="costoSaborizadaInput" step="0.01" min="0"></div>
-      <div class="modal-actions"><button class="btn-cancel" onclick="closeModal('modalPreciosOverlay')">Cancelar</button><button class="btn-primary" style="margin:0; width:auto; flex:1;" onclick="guardarPrecios()">Guardar</button></div>
+      
+      <div class="modal-actions">
+        <button class="btn-cancel" onclick="closeModal('modalPreciosOverlay')">Cancelar</button>
+        <button class="btn-primary" style="margin: 0; width: auto; flex: 1;" onclick="guardarPrecios()">Guardar</button>
+      </div>
     </div>
   </div>
 
   <div class="modal-overlay" id="modalChoferesOverlay">
     <div class="modal-sheet">
       <div class="modal-handle"></div>
-      <h3 style="font-size:20px; font-weight:800; margin-bottom:8px;">Asignar a Chofer</h3>
-      <p style="color:var(--text-secondary); font-size:14px;">Selecciona quién entregará este pedido.</p>
+      <h3 style="font-size: 20px; font-weight: 800; margin-bottom: 8px;">Asignar a Chofer</h3>
+      <p style="color: var(--text-secondary); font-size: 14px;">Selecciona quién entregará este pedido.</p>
       <div class="chofer-list" id="lista-choferes-container"></div>
-      <button class="btn-cancel" style="margin-top:16px; width:100%;" onclick="closeModal('modalChoferesOverlay')">Cancelar</button>
+      <button class="btn-cancel" style="margin-top: 16px; width: 100%;" onclick="closeModal('modalChoferesOverlay')">Cancelar</button>
     </div>
   </div>
 
   <div id="pantallaRutaOverlay">
-    <button onclick="cerrarRuta()" style="position:absolute; top:calc(env(safe-area-inset-top) + 20px); left:20px; z-index:99999; width:44px; height:44px; border-radius:22px; background:white; border:none; box-shadow:0 4px 12px rgba(0,0,0,0.15); display:flex; align-items:center; justify-content:center; cursor:pointer; color:var(--text-primary);"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="15 18 9 12 15 6"/></svg></button>
+    <button onclick="cerrarRuta()" style="position: absolute; top: calc(env(safe-area-inset-top) + 20px); left: 20px; z-index: 99999; width: 44px; height: 44px; border-radius: 22px; background: white; border: none; box-shadow: 0 4px 12px rgba(0,0,0,0.15); display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text-primary);">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+
     <div id="mapa-repartidor"></div>
+    
     <div class="ruta-panel">
-      <div class="modal-handle" style="margin-top:-10px;" onclick="cerrarRuta()"></div>
+      <div class="modal-handle" style="margin-top: -10px;" onclick="cerrarRuta()"></div>
+      
       <div class="cliente-info-panel">
         <div>
-          <div style="display:flex; align-items:center; gap:12px; margin-bottom:4px;">
-            <h3 id="ruta-cliente-nombre" style="margin:0; font-size:22px; font-weight:800;">Cargando...</h3>
-            <button id="btn-contacto-ruta" style="display:none; width:36px; height:36px; border-radius:10px; border:none; background:#dcfce7; color:#16a34a; cursor:pointer;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg></button>
+          <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 4px;">
+            <h3 id="ruta-cliente-nombre" style="margin: 0; font-size: 22px; font-weight: 800;">Cargando...</h3>
+            <button id="btn-contacto-ruta" style="display: none; width: 36px; height: 36px; border-radius: 10px; border: none; background: #dcfce7; color: #16a34a; cursor: pointer; align-items: center; justify-content: center;">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+            </button>
           </div>
-          <div id="ruta-chofer-asignado" style="font-size:13px; color:var(--tint); font-weight:700;">Sin chofer asignado</div>
+          <div id="ruta-chofer-asignado" style="font-size: 13px; color: var(--tint); font-weight: 700;">Sin chofer asignado</div>
         </div>
-        <div class="lealtad-badge" id="ruta-lealtad-badge"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.4 7.4h7.6l-6.2 4.6 2.4 7.4-6.2-4.6-6.2 4.6 2.4-7.4-6.2-4.6h7.6z"/></svg><span id="ruta-lealtad-texto">0/10</span></div>
+        <div class="lealtad-badge" id="ruta-lealtad-badge">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.4 7.4h7.6l-6.2 4.6 2.4 7.4-6.2-4.6-6.2 4.6 2.4-7.4-6.2-4.6h7.6z"/></svg>
+          <span id="ruta-lealtad-texto">0/10</span>
+        </div>
       </div>
-      <p id="ruta-cliente-dir" style="color:var(--text-secondary); font-size:15px; margin:0 0 16px 0; line-height:1.4; background:#f8fafc; padding:12px; border-radius:12px;">Dirección...</p>
-      <div style="display:flex; gap:12px; margin-bottom:16px;">
-        <div style="flex:1; border:1px solid #e2e8f0; border-radius:12px; padding:12px; text-align:center;"><div style="font-size:11px; color:var(--text-secondary); font-weight:700; text-transform:uppercase;">Distancia</div><div id="ruta-distancia" style="font-size:18px; font-weight:800;">-- km</div></div>
-        <div style="flex:1; border:1px solid #e2e8f0; border-radius:12px; padding:12px; text-align:center;"><div style="font-size:11px; color:var(--text-secondary); font-weight:700; text-transform:uppercase;">Tiempo Est.</div><div id="ruta-tiempo" style="font-size:18px; font-weight:800;">-- min</div></div>
+      
+      <p id="ruta-cliente-dir" style="color: var(--text-secondary); font-size: 15px; margin: 0 0 16px 0; line-height: 1.4; background: #f8fafc; padding: 12px; border-radius: 12px;">Dirección...</p>
+      
+      <div style="display: flex; gap: 12px; margin-bottom: 16px;">
+        <div style="flex: 1; border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px; text-align: center;">
+           <div style="font-size: 11px; color: var(--text-secondary); font-weight: 700; text-transform: uppercase;">Distancia</div>
+           <div id="ruta-distancia" style="font-size: 18px; font-weight: 800; color: var(--text-primary);">-- km</div>
+        </div>
+        <div style="flex: 1; border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px; text-align: center;">
+           <div style="font-size: 11px; color: var(--text-secondary); font-weight: 700; text-transform: uppercase;">Tiempo Est.</div>
+           <div id="ruta-tiempo" style="font-size: 18px; font-weight: 800; color: var(--text-primary);">-- min</div>
+        </div>
       </div>
-      <div class="panel-acciones" id="panel-acciones-normales">
-        <button class="btn-outline" style="color:var(--destructive); border-color:#fecaca; background:#fef2f2; margin:0;" id="btn-cancelar-ruta">Cancelar Pedido</button>
-        <button class="btn-primary" style="background:#10b981; margin:0;" id="btn-completar-ruta">Marcar Entregado</button>
+      
+            <div class="panel-acciones" id="panel-acciones-normales">
+        <button class="btn-outline" style="color: var(--destructive); border-color: #fecaca; background: #fef2f2; margin: 0;" id="btn-cancelar-ruta">Cancelar Pedido</button>
+        <button class="btn-primary" style="background: #10b981; margin: 0;" id="btn-completar-ruta">Marcar Entregado</button>
       </div>
-      <div class="panel-acciones" id="panel-acciones-premio" style="display:none; grid-template-columns:1fr 1fr; gap:12px; margin-top:16px; margin-bottom:16px;">
-        <button class="btn-primary" style="background:#0ea5e9; margin:0; font-size:13px; padding:12px;" id="btn-premio-mineral">🎁 Regalar Mineral</button>
-        <button class="btn-primary" style="background:#d97706; margin:0; font-size:13px; padding:12px;" id="btn-premio-saborizada">🎁 Saborizada 50%</button>
+      <!-- BOTONES DE PREMIO OCULTOS POR DEFECTO -->
+      <div class="panel-acciones" id="panel-acciones-premio" style="display: none; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 16px; margin-bottom: 16px;">
+        <button class="btn-primary" style="background: #0ea5e9; margin: 0; font-size: 13px; padding: 12px;" id="btn-premio-mineral">🎁 Regalar Mineral</button>
+        <button class="btn-primary" style="background: #d97706; margin: 0; font-size: 13px; padding: 12px;" id="btn-premio-saborizada">🎁 Saborizada 50%</button>
       </div>
-      <div style="margin-top:-8px; margin-bottom:16px; display:none;" id="panel-cancelar-premio"><button class="btn-outline" style="color:var(--destructive); border-color:#fecaca; background:#fef2f2; width:100%;" id="btn-cancelar-ruta-premio">Cancelar Pedido</button></div>
-      <button id="btn-iniciar-viaje" class="btn-primary" style="background: linear-gradient(135deg, #10b981, #059669); width:100%; margin-top:12px;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>Iniciar Navegación (En App)</button>
+      <div style="margin-top: -8px; margin-bottom: 16px; display: none;" id="panel-cancelar-premio">
+        <button class="btn-outline" style="color: var(--destructive); border-color: #fecaca; background: #fef2f2; width: 100%;" id="btn-cancelar-ruta-premio">Cancelar Pedido</button>
+      </div>
+
+
+      <button id="btn-iniciar-viaje" class="btn-primary" style="background: linear-gradient(135deg, #10b981, #059669); width: 100%; margin-top: 12px;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
+        Iniciar Navegación (En App)
+      </button>
     </div>
   </div>
 
   <div id="pantallaMapaGlobalOverlay">
-    <button onclick="cerrarMapaGlobal()" style="position:absolute; top:30px; left:20px; z-index:999999; width:48px; height:48px; border-radius:24px; background:white; border:none; box-shadow:0 4px 15px rgba(0,0,0,0.2); display:flex; align-items:center; justify-content:center; cursor:pointer; color:var(--text-primary);"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="15 18 9 12 15 6"/></svg></button>
-    <div id="mapa-global-reparto" style="flex:1; width:100%; z-index:1;"></div>
-    <div style="position:absolute; bottom:30px; left:20px; right:20px; background:white; z-index:100000; border-radius:20px; padding:16px 20px; box-shadow:0 10px 30px rgba(0,0,0,0.15); display:flex; justify-content:space-between; align-items:center;">
-      <div><h3 style="margin:0; font-size:18px; font-weight:800; letter-spacing:-0.5px;">Ruta de Entrega</h3><p style="color:var(--text-secondary); font-size:13px; margin-top:2px;" id="lbl-total-paradas">0 paradas</p></div>
-      <span style="background:rgba(14,165,233,0.1); color:var(--tint); padding:6px 12px; border-radius:100px; font-size:13px; font-weight:800;" id="badge-total-botellones">0 Cargas</span>
+    <button onclick="cerrarMapaGlobal()" style="position: absolute; top: 30px; left: 20px; z-index: 999999; width: 48px; height: 48px; border-radius: 24px; background: white; border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.2); display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text-primary);">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+    
+    <div id="mapa-global-reparto" style="flex: 1; width: 100%; z-index: 1;"></div>
+    
+    <div style="position: absolute; bottom: 30px; left: 20px; right: 20px; background: white; z-index: 100000; border-radius: 20px; padding: 16px 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); display: flex; justify-content: space-between; align-items: center;">
+      <div>
+        <h3 style="margin: 0; font-size: 18px; font-weight: 800; letter-spacing: -0.5px;">Ruta de Entrega</h3>
+        <p style="color: var(--text-secondary); font-size: 13px; margin-top: 2px;" id="lbl-total-paradas">0 paradas</p>
+      </div>
+      <span style="background: rgba(14, 165, 233, 0.1); color: var(--tint); padding: 6px 12px; border-radius: 100px; font-size: 13px; font-weight: 800;" id="badge-total-botellones">0 Cargas</span>
     </div>
   </div>
 
   <div class="tab-bar">
-    <div class="tab-item active" data-screen="inicio" onclick="switchTab('inicio')"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span>Inicio</span></div>
-    <div class="tab-item" data-screen="operaciones" onclick="switchTab('operaciones')"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/><line x1="16" y1="11" x2="22" y2="11"/><line x1="19" y1="8" x2="19" y2="14"/></svg><span>Operaciones</span></div>
-    <div class="tab-item" data-screen="ventas" onclick="switchTab('ventas')"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg><span>Ventas</span></div>
-    <div class="tab-item" data-screen="inventario" onclick="switchTab('inventario')"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg><span>Inventario</span></div>
-    <div class="tab-item" data-screen="perfil" onclick="switchTab('perfil')"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span>Ajustes</span></div>
-    <div class="tab-item" data-screen="marketing" onclick="switchTab('marketing')"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="M7 15v4a2 2 0 0 0 2 2h2"/></svg><span>Marketing</span></div>
+    <div class="tab-item active" data-screen="inicio" onclick="switchTab('inicio')">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      <span>Inicio</span>
+    </div>
+    <div class="tab-item" data-screen="operaciones" onclick="switchTab('operaciones')">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/><line x1="16" y1="11" x2="22" y2="11"/><line x1="19" y1="8" x2="19" y2="14"/></svg>
+      <span>Operaciones</span>
+    </div>
+    <div class="tab-item" data-screen="ventas" onclick="switchTab('ventas')">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+      <span>Ventas</span>
+    </div>
+    <div class="tab-item" data-screen="inventario" onclick="switchTab('inventario')">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
+      <span>Inventario</span>
+    </div>
+    <div class="tab-item" data-screen="perfil" onclick="switchTab('perfil')">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      <span>Ajustes</span>
+    </div>
+    <div class="tab-item" data-screen="marketing" onclick="switchTab('marketing')">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path><path d="M7 15v4a2 2 0 0 0 2 2h2"></path></svg>
+      <span>Marketing</span>
+    </div>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@capacitor/geolocation@6/dist/capacitor-geolocation.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@capacitor/local-notifications@6/dist/capacitor-local-notifications.js"></script>
   
   <script>
-    // ========== CONFIGURACIÓN ==========
+    // ========== 1. CONFIGURACIÓN DE SUPABASE ==========
     const SUPABASE_URL = 'https://aiipxfssbnpfpefbbnwm.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFpaXB4ZnNzYm5wZnBlZmJibndtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3MDM2MzIsImV4cCI6MjA5NDI3OTYzMn0.CS_e43iE4ClLgqQULrm4mNm3ji71WQZQcdBNfg6lTHg';
     const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
     const LocalNotifications = Capacitor.Plugins.LocalNotifications;
 
-    // ========== ESTADO ==========
+    // ========== 2. VARIABLES DE ESTADO ==========
     let ventas = [];
     let pedidosActivos = [];
     let stock = { mineral: 0, saborizada: 0, envasesVacios: 0 };
     let clients = [];
     let gastos = [];
-    let choferes = [];
+    let choferes = []; 
     let campanasAutomaticas = [];
-    let suscripcionesClientes = {};
-    let precioMineral = 8.5, precioSaborizada = 10.0, costoProdMineral = 4.0, costoProdSaborizada = 5.0;
-    let editingClientId = null, pedidoSeleccionadoId = null, watchGpsId = null;
-    let mapaRepartidor = null, capaRuta = null, marcadorA = null, marcadorB = null;
-    let mapaGlobal = null, listaMarcadoresGlobales = [];
+    let suscripcionesClientes = {}; // { clienteId: Set<campanaId> }
+    
+    let precioMineral = 8.5;
+    let precioSaborizada = 10.0;
+    let costoProdMineral = 4.0;
+    let costoProdSaborizada = 5.0;
+    
+    let editingClientId = null;
+    let pedidoSeleccionadoId = null; 
+    let watchGpsId = null;
+
+    let mapaRepartidor = null;
+    let capaRuta = null;
+    let marcadorA = null;
+    let marcadorB = null;
+
+    let mapaGlobal = null;
+    let listaMarcadoresGlobales = [];
+
+    // 🔒 Bandera para evitar reentrada en completarPedido
     let procesandoPedido = null;
 
-    // ========== UTILIDADES ==========
+    // ========== 3. FUNCIONES DE UTILIDAD ==========
+    
     function calcularDistancia(lat1, lon1, lat2, lon2) {
-      const R = 6371;
-      const dLat = (lat2-lat1)*Math.PI/180, dLon = (lon2-lon1)*Math.PI/180;
-      const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
-      return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-    }
-    function showToast(msg, type='success') {
-      const c = document.getElementById('toast-container'), t = document.createElement('div'); t.className=`toast ${type}`;
-      let icon = type==='success'?`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>`:type==='error'?`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>`:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>`;
-      t.innerHTML=icon+`<span>${escapeHtml(msg)}</span>`; c.appendChild(t); setTimeout(()=>t.remove(),3400);
-    }
-    function escapeHtml(t){return String(t).replace(/[&<>"]/g,m=>({'&':'&','<':'<','>':'>','"':'&quot;'}[m]));}
-    function formatearBs(m){return'Bs '+m.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,',');}
-    function animarNumero(id,endVal,dur){
-      const obj=document.getElementById(id); let start=null; const step=ts=>{
-        if(!start)start=ts; const prog=Math.min((ts-start)/dur,1), ease=1-Math.pow(1-prog,3), val=ease*Math.abs(endVal);
-        obj.textContent=endVal<0?'-'+formatearBs(val):formatearBs(val); if(prog<1)requestAnimationFrame(step); else obj.textContent=formatearBs(endVal);
-      }; requestAnimationFrame(step);
+      const R = 6371; // Radio de la Tierra en kilómetros
+      const dLat = (lat2 - lat1) * Math.PI / 180;
+      const dLon = (lon2 - lon1) * Math.PI / 180;
+      const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                Math.sin(dLon/2) * Math.sin(dLon/2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+      return R * c; // Devuelve la distancia en km
     }
 
-    // ========== NAVEGACIÓN ==========
-    function switchTab(screenId){
-      document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
-      document.getElementById('screen-'+screenId).classList.add('active');
-      document.querySelectorAll('.tab-item').forEach(t=>t.classList.toggle('active',t.dataset.screen===screenId));
-      const fab=document.getElementById('fab-clientes');
-      if(screenId==='operaciones'&&document.getElementById('btn-seg-directorio').classList.contains('active')){fab.classList.add('active-fab');renderClientList();}
-      else{fab.classList.remove('active-fab');}
-      if(screenId==='inicio')cargarMovimiento(); if(screenId==='inventario')actualizarStockUI(); if(screenId==='marketing'){cargarHistorialMarketing();renderCampanasAutomaticas();}
+    function showToast(message, type = 'success') {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      toast.className = `toast ${type}`;
+      let iconSvg = '';
+      if(type === 'success') iconSvg = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>`;
+      else if (type === 'error') iconSvg = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>`;
+      else iconSvg = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>`;
+      toast.innerHTML = `${iconSvg} <span>${escapeHtml(message)}</span>`;
+      container.appendChild(toast);
+      setTimeout(() => { toast.remove(); }, 3400);
     }
-    function switchSubTab(sub){
-      document.getElementById('btn-seg-pedidos').classList.toggle('active',sub==='pedidos');
-      document.getElementById('btn-seg-directorio').classList.toggle('active',sub==='directorio');
-      document.getElementById('sub-pedidos').style.display=sub==='pedidos'?'block':'none';
-      document.getElementById('sub-directorio').style.display=sub==='directorio'?'block':'none';
-      const fab=document.getElementById('fab-clientes');
-      if(sub==='directorio'){fab.classList.add('active-fab');renderClientList();}else{fab.classList.remove('active-fab');}
-    }
-    function openModal(id){document.getElementById(id).classList.add('active');}
-    function closeModal(id){document.getElementById(id).classList.remove('active');}
-    document.querySelectorAll('.modal-overlay').forEach(o=>o.addEventListener('click',function(e){if(e.target===this)closeModal(this.id);}));
 
-    // ========== CARGA DE DATOS ==========
-    let cargandoDatos=false;
-    async function cargarDatosCompletos(){
-      if(cargandoDatos)return; cargandoDatos=true; showToast('Sincronizando...','info');
-      try{
-        const res=await Promise.allSettled([
-          db.from('configuracion').select('*').eq('id',1).single(),
-          db.from('stock').select('*').eq('id',1).single(),
+    function escapeHtml(text) { return String(text).replace(/[&<>"]/g, m => ({'&':'&','<':'<','>':'>','"':'&quot;'}[m])); }
+    function formatearBs(monto) { return 'Bs ' + monto.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
+
+    function animarNumero(id, endValue, duration) {
+      const obj = document.getElementById(id);
+      const isNegative = endValue < 0;
+      const absEnd = Math.abs(endValue);
+      let startTimestamp = null;
+      const step = (timestamp) => {
+        if (!startTimestamp) startTimestamp = timestamp;
+        const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+        const easeOut = 1 - Math.pow(1 - progress, 3);
+        const currentVal = easeOut * absEnd;
+        const displayVal = isNegative ? -currentVal : currentVal;
+        obj.textContent = formatearBs(displayVal);
+        if (progress < 1) window.requestAnimationFrame(step);
+        else obj.textContent = formatearBs(endValue);
+      };
+      window.requestAnimationFrame(step);
+    }
+
+    // ========== 4. NAVEGACIÓN Y TABS ==========
+    function switchTab(screenId) {
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      document.getElementById('screen-' + screenId).classList.add('active');
+      document.querySelectorAll('.tab-item').forEach(t => t.classList.toggle('active', t.dataset.screen === screenId));
+      const fabBtn = document.getElementById('fab-clientes');
+      if(screenId === 'operaciones' && document.getElementById('btn-seg-directorio').classList.contains('active')) {
+        fabBtn.classList.add('active-fab');
+        renderClientList();
+      } else {
+        fabBtn.classList.remove('active-fab');
+      }
+      if(screenId === 'inicio') cargarMovimiento();
+      if(screenId === 'inventario') actualizarStockUI();
+      if(screenId === 'marketing') {
+        cargarHistorialMarketing();
+        renderCampanasAutomaticas();
+      }
+    }
+
+    function switchSubTab(sub) {
+      document.getElementById('btn-seg-pedidos').classList.toggle('active', sub === 'pedidos');
+      document.getElementById('btn-seg-directorio').classList.toggle('active', sub === 'directorio');
+      document.getElementById('sub-pedidos').style.display = sub === 'pedidos' ? 'block' : 'none';
+      document.getElementById('sub-directorio').style.display = sub === 'directorio' ? 'block' : 'none';
+      const fabBtn = document.getElementById('fab-clientes');
+      if (sub === 'directorio') {
+          fabBtn.classList.add('active-fab');
+          renderClientList();
+      } else {
+          fabBtn.classList.remove('active-fab');
+      }
+    }
+
+    function openModal(id) { document.getElementById(id).classList.add('active'); }
+    function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+
+    document.querySelectorAll('.modal-overlay').forEach(overlay => {
+      overlay.addEventListener('click', function(e) { if (e.target === this) closeModal(this.id); });
+    });
+
+    // ========== 5. SINCRONIZACIÓN DE DATOS ==========
+    let cargandoDatos = false;
+    async function cargarDatosCompletos() {
+      if (cargandoDatos) return;
+      cargandoDatos = true;
+      showToast('Sincronizando datos...', 'info');
+      try {
+        const resultados = await Promise.allSettled([
+          db.from('configuracion').select('*').eq('id', 1).single(),
+          db.from('stock').select('*').eq('id', 1).single(),
           db.from('clientes').select('*'),
           db.from('gastos').select('*'),
           db.from('ventas').select('*'),
-          db.from('pedidos').select('*, clientes(*)').in('estado',['pendiente','en_camino']).order('created_at',{ascending:false}),
-          db.from('choferes').select('*').eq('activo',true),
+          db.from('pedidos').select('*, clientes(*)').in('estado', ['pendiente', 'en_camino']).order('created_at', { ascending: false }),
+          db.from('choferes').select('*').eq('activo', true),
           db.from('campanas_automaticas').select('*'),
           db.from('clientes_campanas').select('*')
         ]);
-        const nombres=['configuración','stock','clientes','gastos','ventas','pedidos','choferes','campañas automáticas','suscripciones'];
-        let huboError=false;
-        res.forEach((r,i)=>{if(r.status==='rejected'){console.error(`Error al cargar ${nombres[i]}:`,r.reason);showToast(`Error al cargar ${nombres[i]}`, 'error');huboError=true;}});
-        if(huboError){cargandoDatos=false;return;}
-        const [confR,stockR,clientsR,gastosR,ventasR,pedidosR,choferesR,campanasR,subsR]=res.map(r=>r.value);
-        if(confR?.data){precioMineral=parseFloat(confR.data.precio_mineral);precioSaborizada=parseFloat(confR.data.precio_saborizada);costoProdMineral=parseFloat(confR.data.costo_mineral);costoProdSaborizada=parseFloat(confR.data.costo_saborizada);}
-        if(stockR?.data)stock={mineral:stockR.data.mineral,saborizada:stockR.data.saborizada,envasesVacios:stockR.data.envases_vacios};
-        if(clientsR?.data)clients=clientsR.data.map(c=>({id:c.id,name:c.nombre,phone:c.telefono,address:c.direccion,frequency:c.frecuencia_dias?c.frecuencia_dias.toString():''}));
-        if(gastosR?.data)gastos=gastosR.data.map(g=>({id:g.id,fecha:g.fecha,desc:g.descripcion,monto:parseFloat(g.monto)}));
-        if(ventasR?.data)ventas=ventasR.data.map(v=>({id:v.id,fecha:v.fecha,clienteId:v.cliente_id,mineral:v.mineral,saborizada:v.saborizada,envasesDevueltos:v.envases_devueltos,total:parseFloat(v.total)}));
-        if(pedidosR?.data)pedidosActivos=pedidosR.data;
-        if(choferesR?.data)choferes=choferesR.data;
-        if(campanasR?.data&&campanasR.data.length>0)campanasAutomaticas=campanasR.data;
-        else{await inicializarCampanasAutomaticas();const{data:nc}=await db.from('campanas_automaticas').select('*');if(nc)campanasAutomaticas=nc;}
-        if(subsR?.data){suscripcionesClientes={};subsR.data.forEach(s=>{if(!suscripcionesClientes[s.cliente_id])suscripcionesClientes[s.cliente_id]=new Set();suscripcionesClientes[s.cliente_id].add(s.campana_id);});}
-        cargarMovimiento();actualizarStockUI();llenarSelectClientes();renderClientList();renderPedidos();verificarDisparoAutomatico();
-        showToast('Datos sincronizados','success');
-      }catch(e){showToast(`Error: ${e.message}`,'error');}finally{cargandoDatos=false;}
+
+        const nombresConsultas = [
+          'configuración', 'stock', 'clientes', 'gastos', 
+          'ventas', 'pedidos', 'choferes', 'campañas automáticas', 'suscripciones'
+        ];
+
+        let huboError = false;
+        resultados.forEach((resultado, index) => {
+          if (resultado.status === 'rejected') {
+            console.error(`Error al cargar ${nombresConsultas[index]}:`, resultado.reason);
+            showToast(`Error al cargar ${nombresConsultas[index]}: ${resultado.reason?.message || 'Error desconocido'}`, 'error');
+            huboError = true;
+          }
+        });
+
+        if (huboError) {
+          showToast('No se pudieron cargar todos los datos. Verifica tu conexión a internet.', 'error');
+          cargandoDatos = false;
+          return;
+        }
+
+        const [confResult, stockResult, clientsResult, gastosResult, ventasResult, pedidosResult, choferesResult, campanasResult, subsResult] = resultados.map(r => r.value);
+
+        if (confResult?.data) {
+          precioMineral = parseFloat(confResult.data.precio_mineral); 
+          precioSaborizada = parseFloat(confResult.data.precio_saborizada);
+          costoProdMineral = parseFloat(confResult.data.costo_mineral); 
+          costoProdSaborizada = parseFloat(confResult.data.costo_saborizada);
+        }
+
+        if (stockResult?.data) {
+          stock = { mineral: stockResult.data.mineral, saborizada: stockResult.data.saborizada, envasesVacios: stockResult.data.envases_vacios };
+        }
+
+        if (clientsResult?.data) {
+          clients = clientsResult.data.map(c => ({ id: c.id, name: c.nombre, phone: c.telefono, address: c.direccion, frequency: c.frecuencia_dias ? c.frecuencia_dias.toString() : '' }));
+        }
+
+        if (gastosResult?.data) gastos = gastosResult.data.map(g => ({ id: g.id, fecha: g.fecha, desc: g.descripcion, monto: parseFloat(g.monto) }));
+        if (ventasResult?.data) ventas = ventasResult.data.map(v => ({ id: v.id, fecha: v.fecha, clienteId: v.cliente_id, mineral: v.mineral, saborizada: v.saborizada, envasesDevueltos: v.envases_devueltos, total: parseFloat(v.total) }));
+        if (pedidosResult?.data) pedidosActivos = pedidosResult.data;
+        if (choferesResult?.data) choferes = choferesResult.data;
+        if (campanasResult?.data && campanasResult.data.length > 0) {
+          campanasAutomaticas = campanasResult.data;
+        } else {
+          await inicializarCampanasAutomaticas();
+          const { data: nuevasCampanas } = await db.from('campanas_automaticas').select('*');
+          if (nuevasCampanas) campanasAutomaticas = nuevasCampanas;
+        }
+        
+        if (subsResult?.data) {
+          suscripcionesClientes = {};
+          subsResult.data.forEach(s => {
+            if (!suscripcionesClientes[s.cliente_id]) suscripcionesClientes[s.cliente_id] = new Set();
+            suscripcionesClientes[s.cliente_id].add(s.campana_id);
+          });
+        }
+
+        cargarMovimiento(); actualizarStockUI(); llenarSelectClientes(); renderClientList(); renderPedidos();
+        verificarDisparoAutomatico();
+        showToast('Datos sincronizados correctamente', 'success');
+      } catch (err) {
+        console.error("Error al sincronizar:", err);
+        showToast(`Error al sincronizar: ${err.message || 'Error desconocido'}`, 'error');
+      } finally {
+        cargandoDatos = false;
+      }
     }
-    async function inicializarCampanasAutomaticas(){
-      const def=[
-        {nombre_campana:'Campaña Rápida',frecuencia_dias:10,titulo:'¡Oferta Flash!',mensaje:'Aprovecha nuestra promo rápida de cada 10 días. Pide ahora.',activa:true,fecha_ultimo_envio:null},
-        {nombre_campana:'Campaña Quincenal',frecuencia_dias:15,titulo:'¡Mitad de mes!',mensaje:'Ya estamos a mitad de mes, recibe tu botellón con descuento.',activa:true,fecha_ultimo_envio:null},
-        {nombre_campana:'Campaña Mensual',frecuencia_dias:30,titulo:'¡Promo Mensual!',mensaje:'Cada mes una sorpresa para ti. Pide tu botellón favorito.',activa:false,fecha_ultimo_envio:null}
+
+    async function inicializarCampanasAutomaticas() {
+      const campanasDefault = [
+        { nombre_campana: 'Campaña Rápida', frecuencia_dias: 10, titulo: '¡Oferta Flash!', mensaje: 'Aprovecha nuestra promo rápida de cada 10 días. Pide ahora.', activa: true, fecha_ultimo_envio: null },
+        { nombre_campana: 'Campaña Quincenal', frecuencia_dias: 15, titulo: '¡Mitad de mes!', mensaje: 'Ya estamos a mitad de mes, recibe tu botellón con descuento.', activa: true, fecha_ultimo_envio: null },
+        { nombre_campana: 'Campaña Mensual', frecuencia_dias: 30, titulo: '¡Promo Mensual!', mensaje: 'Cada mes una sorpresa para ti. Pide tu botellón favorito.', activa: false, fecha_ultimo_envio: null }
       ];
-      for(const c of def)await db.from('campanas_automaticas').insert(c);
-    }
-
-    // ========== FINANZAS ==========
-    function cargarMovimiento(){
-      const mes=parseInt(document.getElementById('mes').value), anio=parseInt(document.getElementById('anio').value);
-      const ventasMes=ventas.filter(v=>{const d=new Date(v.fecha+'T12:00:00');return d.getMonth()===mes&&d.getFullYear()===anio;});
-      const gastosMes=gastos.filter(g=>{const d=new Date(g.fecha+'T12:00:00');return d.getMonth()===mes&&d.getFullYear()===anio;});
-      let totalIngresos=0,costoProduccionTotal=0,totalGastos=gastosMes.reduce((acc,g)=>acc+g.monto,0);
-      let datosDiarios={};
-      ventasMes.forEach(v=>{
-        const dia=new Date(v.fecha+'T12:00:00').getDate(); if(!datosDiarios[dia])datosDiarios[dia]=0;
-        totalIngresos+=v.total; costoProduccionTotal+=(v.mineral*costoProdMineral)+(v.saborizada*costoProdSaborizada);
-        datosDiarios[dia]+=v.total;
-      });
-      const utilidadNeta=totalIngresos-costoProduccionTotal-totalGastos;
-      document.getElementById('utilidad-neta').style.color=utilidadNeta>=0?'var(--green)':'var(--destructive)';
-      animarNumero('total-mes',totalIngresos,1200); animarNumero('utilidad-neta',utilidadNeta,1200);
-      let barrasHTML=''; const maxDiario=Math.max(...Object.values(datosDiarios),1);
-      const diasEnMes=new Date(anio,mes+1,0).getDate(), hoy=new Date(), esMesActual=(mes===hoy.getMonth()&&anio===hoy.getFullYear()), diaActual=hoy.getDate();
-      for(let dia=1;dia<=diasEnMes;dia++){
-        const totalDia=datosDiarios[dia]||0, altura=Math.min((totalDia/maxDiario)*100,100), esHoy=esMesActual&&dia===diaActual;
-        barrasHTML+=`<div class="bar-item" id="${esHoy?'bar-dia-actual':''}"><div class="bar" style="height:0px;" data-height="${altura}"></div><span class="${esHoy?'bar-label hoy':'bar-label'}">${dia}</span></div>`;
+      for (const c of campanasDefault) {
+        const { error } = await db.from('campanas_automaticas').insert(c);
+        if (error) console.error('Error insertando campaña por defecto:', error);
       }
-      const grafico=document.getElementById('grafico'); grafico.innerHTML=barrasHTML;
-      setTimeout(()=>{grafico.querySelectorAll('.bar').forEach(b=>b.style.height=b.getAttribute('data-height')+'px');},50);
-      if(esMesActual)setTimeout(()=>{const barActual=document.getElementById('bar-dia-actual');if(barActual)barActual.scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'});},300);
-      else document.getElementById('chart-container-scroll').scrollLeft=0;
     }
 
-    // ========== INVENTARIO ==========
-    function actualizarStockUI(){
-      document.getElementById('stock-mineral').textContent=stock.mineral;
-      document.getElementById('stock-saborizada').textContent=stock.saborizada;
-      document.getElementById('total-envases-fisicos').textContent=stock.mineral+stock.saborizada+(stock.envasesVacios||0);
-    }
-    async function cambiarStock(tipo,delta){
-      stock[tipo]=Math.max(0,stock[tipo]+delta); actualizarStockUI();
-      await db.from('stock').upsert({id:1,mineral:stock.mineral,saborizada:stock.saborizada,envases_vacios:stock.envasesVacios||0});
+    // ========== 6. OPERACIONES: PEDIDOS ==========
+    function calcularLealtadCliente(clienteId) {
+      const compras = ventas.filter(v => v.clienteId === clienteId);
+      let total = 0; compras.forEach(c => { total += (c.mineral || 0) + (c.saborizada || 0); });
+      return total % 11;
     }
 
-    // ========== VENTAS MANUALES ==========
-    function llenarSelectClientes(){
-      const sel=document.getElementById('cliente-venta'); sel.innerHTML='<option value="">Sin cliente</option>';
-      clients.forEach(c=>sel.innerHTML+=`<option value="${c.id}">${escapeHtml(c.name)}</option>`);
-    }
-    function mostrarDeudaEnvases(){
-      const clienteId=document.getElementById('cliente-venta').value, hint=document.getElementById('deuda-envases-hint');
-      if(clienteId){const stats=getClientStats(clienteId); hint.style.display='block'; hint.textContent=`Debe ${stats.deudaEnvases} envase(s).`; hint.style.color=stats.deudaEnvases>2?'var(--destructive)':'var(--text-secondary)';}
-      else{hint.style.display='none';}
-    }
-    function calcularTotalVenta(){
-      const min=parseInt(document.getElementById('cant-mineral').value)||0, sab=parseInt(document.getElementById('cant-saborizada').value)||0;
-      document.getElementById('total-venta').textContent=`Total: ${formatearBs(min*precioMineral+sab*precioSaborizada)}`;
-    }
-    function cambiarCantidad(tipo,delta){
-      const inp=document.getElementById('cant-'+tipo); inp.value=Math.max(0,(parseInt(inp.value)||0)+delta); calcularTotalVenta();
-    }
-    async function registrarVentaManual(){
-      const fecha=document.getElementById('fecha-venta').value, clienteId=document.getElementById('cliente-venta').value;
-      const cantMineral=parseInt(document.getElementById('cant-mineral').value)||0, cantSaborizada=parseInt(document.getElementById('cant-saborizada').value)||0, devueltos=parseInt(document.getElementById('cant-devueltos').value)||0;
-      if(!fecha)return showToast('Selecciona fecha','error'); if(cantMineral===0&&cantSaborizada===0)return showToast('Ingresa al menos un botellón','error');
-      if(cantMineral>stock.mineral)return showToast('Stock insuficiente Mineral','error'); if(cantSaborizada>stock.saborizada)return showToast('Stock insuficiente Saborizada','error');
-      const idVenta=crypto.randomUUID(), total=cantMineral*precioMineral+cantSaborizada*precioSaborizada;
-      stock.mineral-=cantMineral; stock.saborizada-=cantSaborizada; stock.envasesVacios=(stock.envasesVacios||0)+devueltos; actualizarStockUI();
-      document.getElementById('cant-mineral').value=0; document.getElementById('cant-saborizada').value=0; document.getElementById('cant-devueltos').value=0; calcularTotalVenta(); mostrarDeudaEnvases();
-      const{error:errVenta}=await db.from('ventas').insert({id:idVenta,fecha,cliente_id:clienteId||null,mineral:cantMineral,saborizada:cantSaborizada,envases_devueltos:devueltos,total});
-      if(errVenta)return showToast('Error al registrar','error');
-      await db.from('stock').upsert({id:1,mineral:stock.mineral,saborizada:stock.saborizada,envases_vacios:stock.envasesVacios});
-      showToast('Venta registrada','success'); cargarMovimiento(); if(clienteId)renderClientList();
-    }
+    function renderPedidos() {
+      const container = document.getElementById('lista-pedidos-container');
+      const vacia = document.getElementById('lista-pedidos-vacia');
+      const badge = document.getElementById('badge-pedidos');
+      container.innerHTML = '';
+      
+      const pendientes = pedidosActivos.filter(p => p.estado === 'pendiente' || p.estado === 'en_camino');
+      
+      if (badge) {
+        badge.innerText = pendientes.length;
+        badge.style.display = pendientes.length > 0 ? 'flex' : 'none';
+      }
 
-    // ========== CLIENTES Y CRM ==========
-    function getClientStats(clienteId){
-      const clientSales=ventas.filter(v=>v.clienteId===clienteId).sort((a,b)=>new Date(b.fecha)-new Date(a.fecha));
-      let totMin=0,totSab=0,totDev=0; clientSales.forEach(v=>{totMin+=v.mineral;totSab+=v.saborizada;totDev+=(v.envasesDevueltos||0);});
-      const deudaEnvases=(totMin+totSab)-totDev; const client=clients.find(c=>c.id===clienteId);
-      let pedidoPendiente=false;
-      if(clientSales.length>0){
-        const diasDesdeUltima=Math.floor((new Date()-new Date(clientSales[0].fecha))/(1000*60*60*24));
-        if(client&&client.frequency&&!isNaN(parseInt(client.frequency))) pedidoPendiente=diasDesdeUltima>parseInt(client.frequency)*1.3;
-        else if(clientSales.length>=2){
-          let diasDiff=[]; for(let i=0;i<Math.min(clientSales.length,3)-1;i++) diasDiff.push(Math.abs(new Date(clientSales[i].fecha)-new Date(clientSales[i+1].fecha))/(1000*60*60*24));
-          const avg=diasDiff.reduce((a,b)=>a+b,0)/diasDiff.length; pedidoPendiente=diasDesdeUltima>avg+1;
+      if (pendientes.length === 0) {
+        if(vacia) vacia.style.display = 'block';
+        return;
+      }
+      if(vacia) vacia.style.display = 'none';
+
+      pendientes.forEach(p => {
+        const cliente = p.clientes || {};
+        const items = p.items || {};
+        const hora = new Date(p.created_at).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+        
+        let detalleItems = []; 
+        if (items.mineral > 0) detalleItems.push(`🧊 ${items.mineral} Min`); 
+        if (items.saborizada > 0) {
+          let textoSabor = `🍹 ${items.saborizada} Sab`;
+          if (items.detalles_sabores && items.detalles_sabores.length > 0) textoSabor += ` (${items.detalles_sabores.join(', ')})`;
+          detalleItems.push(textoSabor); 
         }
-      }
-      return{totMin,totSab,deudaEnvases,pedidoPendiente};
-    }
-    function renderClientList(){
-      const search=document.getElementById('searchInput').value.toLowerCase().trim();
-      const filtered=clients.filter(c=>c.name.toLowerCase().includes(search)||(c.phone&&c.phone.includes(search)));
-      const container=document.getElementById('clientListContainer');
-      if(filtered.length===0){container.innerHTML='<div style="padding:40px 20px; text-align:center; color:var(--text-secondary);">No se encontraron clientes.</div>';return;}
-      let html='';
-      filtered.forEach(client=>{
-        const stats=getClientStats(client.id); const inicial=client.name.charAt(0).toUpperCase();
-        let direccionVisual=client.address||'Sin dirección'; let destLat=null,destLng=null;
-        if(client.address&&client.address.includes('| GPS:')){const partes=client.address.split('| GPS:');direccionVisual=partes[0].trim();const coords=partes[1].trim().split(',');if(coords.length===2){destLat=parseFloat(coords[0]);destLng=parseFloat(coords[1]);}}
-        let btnMapaHtml=''; if(destLat!==null)btnMapaHtml=`<div class="action-btn map" onclick="event.stopPropagation();abrirControlRuta(null,${destLat},${destLng},'${escapeHtml(client.name)}','${escapeHtml(direccionVisual)}')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg></div>`;
-        else btnMapaHtml=`<div class="action-btn map" onclick="event.stopPropagation();window.open('https://waze.com/ul?q=${encodeURIComponent(direccionVisual)}','_blank')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div>`;
-        const urlWa=`https://wa.me/${client.phone.replace(/[^0-9]/g,'')}?text=Hola%20${encodeURIComponent(client.name)},%20te%20escribimos%20de%20Agualight.`;
-        let badgeDeuda=stats.deudaEnvases>0?`<span class="badge ${stats.deudaEnvases>3?'alert':''}">Debe ${stats.deudaEnvases}</span>`:'';
-        html+=`<div class="client-row" onclick="openEditModal('${client.id}')">
-          <div class="client-header"><div class="client-avatar">${inicial}</div><div class="client-info-main"><div class="client-name"><span class="truncate">${escapeHtml(client.name)}</span>${stats.pedidoPendiente?'<span class="badge pending">Pedido Pendiente</span>':''}</div><div class="client-stats"><span class="badge mineral">${stats.totMin} Min</span><span class="badge saborizada">${stats.totSab} Sab</span>${badgeDeuda}</div></div></div>
-          <div class="client-actions-bar"><div class="truncate" style="font-size:13px; color:var(--text-secondary); max-width:60%;">${escapeHtml(direccionVisual)}</div><div class="action-icons">${btnMapaHtml}<div class="action-btn whatsapp" onclick="event.stopPropagation();window.open('${urlWa}','_blank')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg></div></div></div></div>`;
-      });
-      container.innerHTML=html;
-    }
-    function openClientModal(){
-      editingClientId=null; document.getElementById('modalClientTitle').textContent='Nuevo cliente';
-      document.getElementById('clientName').value=''; document.getElementById('clientPhone').value=''; document.getElementById('clientAddress').value=''; document.getElementById('clientFrequency').value='';
-      document.getElementById('deleteClientContainer').style.display='none'; document.getElementById('clientSalesHistory').style.display='none';
-      const checkboxesHtml=campanasAutomaticas.filter(c=>c.activa).map(c=>`<label style="display:flex;align-items:center;gap:10px;margin-bottom:8px;"><input type="checkbox" class="campaign-sub-check" data-campana-id="${c.id}"><span style="font-size:14px;">${escapeHtml(c.nombre_campana)} (cada ${c.frecuencia_dias} días)</span></label>`).join('');
-      document.getElementById('clientCampaignsCheckboxes').innerHTML=checkboxesHtml||'<p style="color:var(--text-secondary); font-size:13px;">No hay campañas activas.</p>';
-      openModal('modalClientOverlay');
-    }
-    function openEditModal(id){
-      const client=clients.find(c=>c.id===id); if(!client)return; editingClientId=id;
-      document.getElementById('modalClientTitle').textContent='Editar cliente';
-      document.getElementById('clientName').value=client.name; document.getElementById('clientPhone').value=client.phone; document.getElementById('clientAddress').value=client.address||''; document.getElementById('clientFrequency').value=client.frequency||'';
-      document.getElementById('deleteClientContainer').style.display='block';
-      const container=document.getElementById('clientSalesHistory');
-      const clientSales=ventas.filter(v=>v.clienteId===id).sort((a,b)=>new Date(b.fecha)-new Date(a.fecha));
-      if(clientSales.length===0){container.style.display='none';}
-      else{
-        container.style.display='block'; let html='<h3 style="margin-bottom:12px; font-size:16px;">Últimas ventas</h3>';
-        clientSales.slice(0,10).forEach(v=>{const fecha=new Date(v.fecha+'T12:00:00').toLocaleDateString('es-ES',{day:'2-digit',month:'2-digit',year:'numeric'});let detalle=[];if(v.mineral>0)detalle.push(`${v.mineral} Min`);if(v.saborizada>0)detalle.push(`${v.saborizada} Sab`);html+=`<div class="history-item"><span>${fecha}</span><span>${detalle.join(', ')||'Sin detalle'}</span><span>${formatearBs(v.total)}</span></div>`;});
-        container.innerHTML=html;
-      }
-      const subs=suscripcionesClientes[id]||new Set();
-      const checkboxesHtml=campanasAutomaticas.filter(c=>c.activa).map(c=>`<label style="display:flex;align-items:center;gap:10px;margin-bottom:8px;"><input type="checkbox" class="campaign-sub-check" data-campana-id="${c.id}" ${subs.has(c.id)?'checked':''}><span style="font-size:14px;">${escapeHtml(c.nombre_campana)} (cada ${c.frecuencia_dias} días)</span></label>`).join('');
-      document.getElementById('clientCampaignsCheckboxes').innerHTML=checkboxesHtml||'<p style="color:var(--text-secondary); font-size:13px;">No hay campañas activas.</p>';
-      openModal('modalClientOverlay');
-    }
-    async function saveClient(){
-      const name=document.getElementById('clientName').value.trim(), phone=document.getElementById('clientPhone').value.trim(), address=document.getElementById('clientAddress').value.trim(), frequency=document.getElementById('clientFrequency').value.trim();
-      if(!name||!phone)return showToast('Nombre y teléfono son obligatorios','error');
-      const isNew=!editingClientId, cId=isNew?crypto.randomUUID():editingClientId;
-      if(isNew)clients.push({id:cId,name,phone,address,frequency:frequency||''});
-      else{const client=clients.find(c=>c.id===cId);if(client)Object.assign(client,{name,phone,address,frequency:frequency||''});}
-      llenarSelectClientes(); renderClientList(); closeModal('modalClientOverlay');
-      const{error:upsertErr}=await db.from('clientes').upsert({id:cId,nombre:name,telefono:phone,direccion:address||null,frecuencia_dias:frequency?parseInt(frequency):null});
-      if(upsertErr)return showToast('Error al guardar cliente','error');
-      const checkboxes=document.querySelectorAll('.campaign-sub-check:checked'), nuevasSubs=Array.from(checkboxes).map(cb=>cb.dataset.campanaId);
-      await db.from('clientes_campanas').delete().eq('cliente_id',cId);
-      if(nuevasSubs.length>0)await db.from('clientes_campanas').insert(nuevasSubs.map(cid=>({cliente_id:cId,campana_id:cid})));
-      suscripcionesClientes[cId]=new Set(nuevasSubs);
-      showToast(isNew?'Cliente guardado':'Cliente actualizado','success');
-    }
-    async function deleteClient(){
-      if(!editingClientId)return;
-      if(confirm('¿Eliminar este cliente de forma permanente?')){
-        const cId=editingClientId; clients=clients.filter(c=>c.id!==cId); llenarSelectClientes(); renderClientList(); closeModal('modalClientOverlay');
-        await db.from('clientes').delete().eq('id',cId); await db.from('clientes_campanas').delete().eq('cliente_id',cId); delete suscripcionesClientes[cId];
-        showToast('Cliente eliminado','info');
-      }
-    }
+        
+        let dirLimpia = "Dirección no especificada";
+        let coordTexto = "";
+        let destLat = null;
+        let destLng = null;
+        
+        if (cliente.direccion) {
+          if (cliente.direccion.includes('| GPS:')) {
+             const partes = cliente.direccion.split('| GPS:');
+             dirLimpia = partes[0].trim(); 
+             const coords = partes[1].split(',');
+             destLat = parseFloat(coords[0]);
+             destLng = parseFloat(coords[1]);
+             coordTexto = `${destLat.toFixed(4)}, ${destLng.toFixed(4)}`; 
+          } else {
+             dirLimpia = cliente.direccion;
+          }
+        }
+        
+        let htmlDireccion = `
+          <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px; margin-bottom: 16px; display: flex; gap: 12px; align-items: flex-start;">
+            <div style="background: white; width: 32px; height: 32px; border-radius: 8px; display: flex; justify-content: center; align-items: center; box-shadow: 0 2px 8px rgba(0,0,0,0.06); flex-shrink: 0;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--tint)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                <circle cx="12" cy="10" r="3"></circle>
+              </svg>
+            </div>
+            <div style="flex: 1;">
+              <div style="font-size: 10px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 2px;">Destino</div>
+              <div style="font-size: 14px; font-weight: 600; color: var(--text-primary); line-height: 1.3; margin-bottom: ${coordTexto ? '6px' : '0'}; word-break: break-word;">
+                ${dirLimpia}
+              </div>
+              ${coordTexto ? `
+              <div style="display: inline-flex; align-items: center; gap: 4px; background: #e2e8f0; color: #475569; font-size: 11px; font-weight: 700; padding: 4px 8px; border-radius: 6px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="2"/></svg>
+                ${coordTexto}
+              </div>` : ''}
+            </div>
+          </div>
+        `;
 
-    // ========== PEDIDOS ==========
-    function calcularLealtadCliente(clienteId){
-      const compras=ventas.filter(v=>v.clienteId===clienteId); let total=0; compras.forEach(c=>{total+=(c.mineral||0)+(c.saborizada||0);}); return total%11;
-    }
-    function renderPedidos(){
-      const container=document.getElementById('lista-pedidos-container'), vacia=document.getElementById('lista-pedidos-vacia'), badge=document.getElementById('badge-pedidos');
-      container.innerHTML=''; const pendientes=pedidosActivos.filter(p=>p.estado==='pendiente'||p.estado==='en_camino');
-      if(badge){badge.innerText=pendientes.length; badge.style.display=pendientes.length>0?'flex':'none';}
-      if(pendientes.length===0){if(vacia)vacia.style.display='block';return;} if(vacia)vacia.style.display='none';
-      pendientes.forEach(p=>{
-        const cliente=p.clientes||{}, items=p.items||{}, hora=new Date(p.created_at).toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'});
-        let detalleItems=[]; if(items.mineral>0)detalleItems.push(`🧊 ${items.mineral} Min`); if(items.saborizada>0){let textoSabor=`🍹 ${items.saborizada} Sab`; if(items.detalles_sabores&&items.detalles_sabores.length>0)textoSabor+=` (${items.detalles_sabores.join(', ')})`; detalleItems.push(textoSabor);}
-        let dirLimpia="Dirección no especificada", coordTexto="", destLat=null, destLng=null;
-        if(cliente.direccion){
-          if(cliente.direccion.includes('| GPS:')){const partes=cliente.direccion.split('| GPS:'); dirLimpia=partes[0].trim(); const coords=partes[1].split(','); destLat=parseFloat(coords[0]); destLng=parseFloat(coords[1]); coordTexto=`${destLat.toFixed(4)}, ${destLng.toFixed(4)}`;}
-          else dirLimpia=cliente.direccion;
+        const estadoBadge = p.estado === 'pendiente' 
+          ? `<span style="background: #fef3c7; color: #d97706; padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 800; letter-spacing: 0.5px;">PENDIENTE</span>`
+          : `<span style="background: #e0f2fe; color: #0284c7; padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 800; letter-spacing: 0.5px;">EN RUTA</span>`;
+
+        let cardHtml = `
+          <div class="pedido-card ${p.estado}">
+            <div class="pedido-header">
+              <div>
+                <div class="pedido-nombre">${cliente.nombre || 'Nuevo Cliente'}</div>
+                <div class="pedido-hora">⏱ ${hora} • Cobrar: <strong>Bs ${p.monto_total}</strong></div>
+              </div>
+              ${estadoBadge}
+            </div>
+            
+            <div class="pedido-items">
+              📦 ${detalleItems.join(' + ')}
+            </div>
+            
+            ${htmlDireccion}
+            
+            <div class="pedido-acciones">
+        `;
+
+        if (p.estado === 'pendiente') {
+          cardHtml += `
+            <div style="display:flex; gap:10px; width:100%; margin-bottom:10px;">
+              <button class="btn-action btn-aceptar" style="flex:1;" onclick="abrirModalChoferes('${p.id}')">👨‍✈️ Asignar Chofer</button>
+              <button class="btn-action btn-aceptar" style="background: #10b981; flex:1;" onclick="abrirControlRuta('${p.id}', ${destLat}, ${destLng}, '${escapeHtml(cliente.nombre || 'Cliente')}', '${escapeHtml(dirLimpia)}')">🛵 Atender Yo</button>
+            </div>
+            <button class="btn-action btn-rechazar" style="width:100%;" onclick="cancelarPedido('${p.id}')" title="Cancelar Pedido">❌ Cancelar Pedido</button>
+          `;
+        } else {
+          cardHtml += `
+            <div style="display:flex; gap:10px; width:100%;">
+              <button class="btn-action btn-aceptar" style="background: #0ea5e9; flex:1;" onclick="abrirControlRuta('${p.id}', ${destLat}, ${destLng}, '${escapeHtml(cliente.nombre || 'Cliente')}', '${escapeHtml(dirLimpia)}')">🗺️ Ver Ruta</button>
+              <button class="btn-action btn-aceptar" style="background: var(--green); flex:1;" onclick="completarPedido('${p.id}')">✅ Entregado</button>
+            </div>
+          `;
         }
-        let htmlDireccion=`<div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:12px; margin-bottom:16px; display:flex; gap:12px; align-items:flex-start;"><div style="background:white; width:32px; height:32px; border-radius:8px; display:flex; justify-content:center; align-items:center; box-shadow:0 2px 8px rgba(0,0,0,0.06); flex-shrink:0;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--tint)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></div><div style="flex:1;"><div style="font-size:10px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.8px; margin-bottom:2px;">Destino</div><div style="font-size:14px; font-weight:600; color:var(--text-primary); line-height:1.3; margin-bottom:${coordTexto?'6px':'0'}; word-break:break-word;">${dirLimpia}</div>${coordTexto?`<div style="display:inline-flex; align-items:center; gap:4px; background:#e2e8f0; color:#475569; font-size:11px; font-weight:700; padding:4px 8px; border-radius:6px; font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="2"/></svg>${coordTexto}</div>`:''}</div></div>`;
-        const estadoBadge=p.estado==='pendiente'?`<span style="background:#fef3c7; color:#d97706; padding:4px 8px; border-radius:6px; font-size:11px; font-weight:800; letter-spacing:0.5px;">PENDIENTE</span>`:`<span style="background:#e0f2fe; color:#0284c7; padding:4px 8px; border-radius:6px; font-size:11px; font-weight:800; letter-spacing:0.5px;">EN RUTA</span>`;
-        let cardHtml=`<div class="pedido-card ${p.estado}"><div class="pedido-header"><div><div class="pedido-nombre">${cliente.nombre||'Nuevo Cliente'}</div><div class="pedido-hora">⏱ ${hora} • Cobrar: <strong>Bs ${p.monto_total}</strong></div></div>${estadoBadge}</div><div class="pedido-items">📦 ${detalleItems.join(' + ')}</div>${htmlDireccion}<div class="pedido-acciones">`;
-        if(p.estado==='pendiente'){
-          cardHtml+=`<div style="display:flex; gap:10px; width:100%; margin-bottom:10px;"><button class="btn-action btn-aceptar" style="flex:1;" onclick="abrirModalChoferes('${p.id}')">👨‍✈️ Asignar Chofer</button><button class="btn-action btn-aceptar" style="background:#10b981; flex:1;" onclick="abrirControlRuta('${p.id}', ${destLat}, ${destLng}, '${escapeHtml(cliente.nombre||'Cliente')}', '${escapeHtml(dirLimpia)}')">🛵 Atender Yo</button></div><button class="btn-action btn-rechazar" style="width:100%;" onclick="cancelarPedido('${p.id}')">❌ Cancelar Pedido</button>`;
-        }else{
-          cardHtml+=`<div style="display:flex; gap:10px; width:100%;"><button class="btn-action btn-aceptar" style="background:#0ea5e9; flex:1;" onclick="abrirControlRuta('${p.id}', ${destLat}, ${destLng}, '${escapeHtml(cliente.nombre||'Cliente')}', '${escapeHtml(dirLimpia)}')">🗺️ Ver Ruta</button><button class="btn-action btn-aceptar" style="background:var(--green); flex:1;" onclick="completarPedido('${p.id}')">✅ Entregado</button></div>`;
-        }
-        cardHtml+=`</div></div>`; container.innerHTML+=cardHtml;
+
+        cardHtml += `</div></div>`;
+        container.innerHTML += cardHtml;
       });
     }
-    function abrirModalChoferes(pedidoId){
-      pedidoSeleccionadoId=pedidoId; const container=document.getElementById('lista-choferes-container'); container.innerHTML='';
-      choferes.forEach(c=>container.innerHTML+=`<div class="chofer-item" onclick="asignarChofer('${c.id}','${escapeHtml(c.nombre)}','${c.telefono}')"><div style="font-weight:700; font-size:16px;">${escapeHtml(c.nombre)}</div><div style="color:var(--tint); font-size:14px; font-weight:700; background:#f0f9ff; padding:6px 12px; border-radius:8px;">Asignar →</div></div>`);
+
+    function abrirModalChoferes(pedidoId) {
+      pedidoSeleccionadoId = pedidoId;
+      const container = document.getElementById('lista-choferes-container');
+      container.innerHTML = '';
+      choferes.forEach(c => {
+        container.innerHTML += `
+          <div class="chofer-item" onclick="asignarChofer('${c.id}', '${escapeHtml(c.nombre)}', '${c.telefono}')">
+            <div style="font-weight:700; font-size:16px; color: var(--text-primary);">${escapeHtml(c.nombre)}</div>
+            <div style="color:var(--tint); font-size:14px; font-weight:700; background: #f0f9ff; padding: 6px 12px; border-radius: 8px;">Asignar →</div>
+          </div>`;
+      });
       openModal('modalChoferesOverlay');
     }
-    async function asignarChofer(choferId,choferNombre,choferTel){
-      closeModal('modalChoferesOverlay'); const pedido=pedidosActivos.find(p=>p.id===pedidoSeleccionadoId); if(!pedido)return;
-      await db.from('pedidos').update({estado:'en_camino',chofer_id:choferId}).eq('id',pedidoSeleccionadoId);
-      pedido.estado='en_camino'; pedido.chofer_id=choferId; renderPedidos();
-      const linkMagico=`https://agualight.com/chofer.html?id=${pedidoSeleccionadoId}`;
-      const textoWa=`🚚 *Nuevo Pedido: ${pedido.clientes?.nombre||'Cliente'}*\nDetalle: ${pedido.items.mineral||0} Min / ${pedido.items.saborizada||0} Sab\nCobrar: Bs ${pedido.monto_total}\n\n👉 *ABRE ESTE ENLACE PARA ENTREGAR:*\n${linkMagico}`;
-      const linkWa=`https://wa.me/${choferTel.replace(/\D/g,'')}?text=${encodeURIComponent(textoWa)}`; const ventana=window.open(linkWa,'_blank');
-      try{if(navigator.clipboard)await navigator.clipboard.writeText(linkMagico);else{const inp=document.createElement('input');inp.value=linkMagico;document.body.appendChild(inp);inp.select();document.execCommand('copy');document.body.removeChild(inp);}showToast('Enlace copiado 📋','success');}catch(e){showToast('Enlace generado para el chofer','info');}
-      if(!ventana||ventana.closed)showToast(`Enlace para chofer:\n${linkMagico}`,'info');
-    }
-    async function completarPedido(id,tipoPremio=null){
-      if(procesandoPedido===id)return; procesandoPedido=id;
-      const pedido=pedidosActivos.find(p=>p.id===id); if(!pedido){procesandoPedido=null;return;}
-      pedidosActivos=pedidosActivos.filter(p=>p.id!==id); renderPedidos(); await db.from('pedidos').update({estado:'entregado'}).eq('id',id); cerrarRuta();
-      const idVenta=crypto.randomUUID(), fechaHoy=new Date().toISOString().split('T')[0], m=pedido.items?.mineral||0, s=pedido.items?.saborizada||0;
-      let totalCobrado=parseFloat(pedido.monto_total);
-      if(tipoPremio==='mineral'&&m>0)totalCobrado-=precioMineral; else if(tipoPremio==='saborizada'&&s>0)totalCobrado-=(precioSaborizada/2);
-      if(totalCobrado<0)totalCobrado=0;
-      ventas.push({id:idVenta,fecha:fechaHoy,clienteId:pedido.cliente_id,mineral:m,saborizada:s,envasesDevueltos:0,total:totalCobrado});
-      stock.mineral-=m; stock.saborizada-=s;
-      await Promise.all([db.from('stock').upsert({id:1,mineral:stock.mineral,saborizada:stock.saborizada,envases_vacios:stock.envasesVacios}),db.from('ventas').insert({id:idVenta,pedido_id:id,fecha:fechaHoy,cliente_id:pedido.cliente_id,mineral:m,saborizada:s,envases_devueltos:0,total:totalCobrado})]);
-      cargarMovimiento(); actualizarStockUI(); showToast(tipoPremio?'¡Premio Entregado! ✅':'Pedido Entregado con Éxito'); procesandoPedido=null;
-    }
-    async function cancelarPedido(id){
-      if(confirm('¿Seguro que deseas cancelar este pedido?')){await db.from('pedidos').update({estado:'cancelado'}).eq('id',id); cerrarRuta(); pedidosActivos=pedidosActivos.filter(p=>p.id!==id); renderPedidos(); showToast('Pedido cancelado ❌','info');}
+
+    async function asignarChofer(choferId, choferNombre, choferTel) {
+      closeModal('modalChoferesOverlay');
+      const pedido = pedidosActivos.find(p => p.id === pedidoSeleccionadoId);
+      if (!pedido) { showToast('Pedido no encontrado', 'error'); return; }
+
+      await db.from('pedidos').update({ estado: 'en_camino', chofer_id: choferId }).eq('id', pedidoSeleccionadoId);
+      pedido.estado = 'en_camino';
+      pedido.chofer_id = choferId;
+      renderPedidos();
+
+      const urlBase = "https://agualight.com";
+      const linkMagico = `${urlBase}/chofer.html?id=${pedidoSeleccionadoId}`;
+      const nombreCliente = pedido.clientes?.nombre || 'Cliente';
+
+      const textoWa = `🚚 *Nuevo Pedido: ${nombreCliente}*\n` +
+        `Detalle: ${pedido.items.mineral || 0} Min / ${pedido.items.saborizada || 0} Sab\n` +
+        `Cobrar: Bs ${pedido.monto_total}\n\n` +
+        `👉 *ABRE ESTE ENLACE PARA ENTREGAR:*\n${linkMagico}`;
+
+      const linkWa = `https://wa.me/${choferTel.replace(/\D/g, '')}?text=${encodeURIComponent(textoWa)}`;
+      const ventana = window.open(linkWa, '_blank');
+
+      try {
+        if (navigator.clipboard) {
+          await navigator.clipboard.writeText(linkMagico);
+          showToast('Enlace copiado al portapapeles 📋', 'success');
+        } else {
+          const input = document.createElement('input');
+          input.value = linkMagico; document.body.appendChild(input);
+          input.select(); document.execCommand('copy'); document.body.removeChild(input);
+          showToast('Enlace copiado 📋', 'success');
+        }
+      } catch (e) {
+        showToast('Enlace generado para el chofer', 'info');
+      }
+
+      if (!ventana || ventana.closed) {
+        showToast(`Enlace para chofer:\n${linkMagico}`, 'info');
+      }
     }
 
-    // ========== MAPAS ==========
-    function abrirControlRuta(pedidoId,destLat,destLng,nombreCliente,direccionCliente){
-      const modal=document.getElementById('pantallaRutaOverlay'); modal.style.display='flex'; setTimeout(()=>modal.classList.add('active'),10);
-      document.getElementById('ruta-cliente-nombre').textContent=nombreCliente; document.getElementById('ruta-cliente-dir').textContent=direccionCliente;
-      document.getElementById('ruta-distancia').innerHTML='<span class="spin">⏳</span>'; document.getElementById('ruta-tiempo').innerHTML='--';
-      const btnViaje=document.getElementById('btn-iniciar-viaje');
-      if(pedidoId){
-        const pedido=pedidosActivos.find(p=>p.id===pedidoId); const puntos=calcularLealtadCliente(pedido.cliente_id);
-        document.getElementById('ruta-lealtad-texto').textContent=`${puntos}/10 Compras`;
-        const chofer=choferes.find(c=>c.id===pedido.chofer_id); document.getElementById('ruta-chofer-asignado').textContent=chofer?`Repartidor: ${chofer.nombre}`:'Reparto Propio (Administrador)';
-        const panelNormales=document.getElementById('panel-acciones-normales'), panelPremio=document.getElementById('panel-acciones-premio'), panelCancelarPremio=document.getElementById('panel-cancelar-premio');
-        if(puntos===10){document.getElementById('ruta-lealtad-texto').textContent='🎁 ¡RECARGA GRATIS!'; panelNormales.style.display='none'; panelPremio.style.display='grid'; panelCancelarPremio.style.display='block'; document.getElementById('btn-premio-mineral').onclick=()=>completarPedido(pedidoId,'mineral'); document.getElementById('btn-premio-saborizada').onclick=()=>completarPedido(pedidoId,'saborizada'); document.getElementById('btn-cancelar-ruta-premio').onclick=()=>cancelarPedido(pedidoId);}
-        else{panelNormales.style.display='grid'; panelPremio.style.display='none'; panelCancelarPremio.style.display='none'; document.getElementById('btn-cancelar-ruta').onclick=()=>cancelarPedido(pedidoId); document.getElementById('btn-completar-ruta').onclick=()=>completarPedido(pedidoId);}
-        btnViaje.style.display='flex'; if(pedido.estado==='pendiente'){db.from('pedidos').update({estado:'en_camino',chofer_id:null}).eq('id',pedidoId).then(()=>{pedido.estado='en_camino'; renderPedidos();});}
-      }else{document.getElementById('ruta-chofer-asignado').textContent='Visualización GPS Libre'; document.getElementById('ruta-lealtad-texto').textContent='-'; document.getElementById('btn-cancelar-ruta').style.display='none'; document.getElementById('btn-completar-ruta').style.display='none'; btnViaje.style.display='none';}
-      let tlf=''; if(pedidoId){const pedido=pedidosActivos.find(p=>p.id===pedidoId); if(pedido&&pedido.clientes)tlf=pedido.clientes.telefono;}else{const c=clients.find(c=>c.name===nombreCliente); if(c)tlf=c.phone;}
-      const btnWa=document.getElementById('btn-contacto-ruta'); if(tlf){btnWa.style.display='flex'; btnWa.onclick=()=>window.open(`https://wa.me/${tlf.replace(/\D/g,'')}`,'_blank');}else btnWa.style.display='none';
-      if(!mapaRepartidor){mapaRepartidor=L.map('mapa-repartidor',{zoomControl:false}).setView([10.1620,-67.9996],13); L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png').addTo(mapaRepartidor);}
-      setTimeout(()=>{mapaRepartidor.invalidateSize(); if(navigator.geolocation&&destLat){navigator.geolocation.getCurrentPosition(async(pos)=>{const[oLat,oLng]=[pos.coords.latitude,pos.coords.longitude]; if(marcadorA)mapaRepartidor.removeLayer(marcadorA); if(marcadorB)mapaRepartidor.removeLayer(marcadorB); if(capaRuta)mapaRepartidor.removeLayer(capaRuta); marcadorA=L.marker([oLat,oLng]).addTo(mapaRepartidor); marcadorB=L.marker([destLat,destLng]).addTo(mapaRepartidor); mapaRepartidor.fitBounds(L.latLngBounds([oLat,oLng],[destLat,destLng]),{padding:[50,50]}); try{const res=await fetch(`https://router.project-osrm.org/route/v1/driving/${oLng},${oLat};${destLng},${destLat}?geometries=geojson`); const data=await res.json(); if(data.routes&&data.routes[0]){capaRuta=L.geoJSON(data.routes[0].geometry,{style:{color:'#0ea5e9',weight:6,opacity:0.8}}).addTo(mapaRepartidor); document.getElementById('ruta-distancia').textContent=`${(data.routes[0].distance/1000).toFixed(1)} km`; document.getElementById('ruta-tiempo').textContent=`${Math.round(data.routes[0].duration/60)} min`;}else document.getElementById('ruta-distancia').textContent='Error';}catch(e){document.getElementById('ruta-distancia').textContent='Error';}},err=>{showToast('Activa el GPS','error'); document.getElementById('ruta-distancia').textContent='Sin GPS';},{enableHighAccuracy:true});}},400);
-      btnViaje.innerHTML='📍 Iniciar Navegación (En App)'; btnViaje.style.background='linear-gradient(135deg, #10b981, #059669)';
-      btnViaje.onclick=()=>{if(watchGpsId){navigator.geolocation.clearWatch(watchGpsId); watchGpsId=null; btnViaje.innerHTML='📍 Iniciar Navegación (En App)'; btnViaje.style.background='linear-gradient(135deg, #10b981, #059669)'; showToast('Navegación pausada'); return;} btnViaje.innerHTML='🛑 Detener Transmisión GPS'; btnViaje.style.background='var(--destructive)'; showToast('Iniciando ruta...','success'); watchGpsId=navigator.geolocation.watchPosition(async pos=>{const latAct=pos.coords.latitude,lngAct=pos.coords.longitude; if(marcadorA)marcadorA.setLatLng([latAct,lngAct]); else marcadorA=L.marker([latAct,lngAct]).addTo(mapaRepartidor); if(pedidoId)await db.from('pedidos').update({ubicacion_chofer:`${latAct},${lngAct}`}).eq('id',pedidoId); try{const res=await fetch(`https://router.project-osrm.org/route/v1/driving/${lngAct},${latAct};${destLng},${destLat}?geometries=geojson`); const data=await res.json(); if(data.routes&&data.routes[0]){if(capaRuta)mapaRepartidor.removeLayer(capaRuta); capaRuta=L.geoJSON(data.routes[0].geometry,{style:{color:'#0ea5e9',weight:6,opacity:0.8}}).addTo(mapaRepartidor); document.getElementById('ruta-distancia').textContent=`${(data.routes[0].distance/1000).toFixed(1)} km`; document.getElementById('ruta-tiempo').textContent=`${Math.round(data.routes[0].duration/60)} min`;}}catch(e){}},err=>console.log('Buscando señal GPS...'),{enableHighAccuracy:true});};
+    async function completarPedido(id, tipoPremio = null) {
+      if (procesandoPedido === id) return;
+      procesandoPedido = id;
+
+      const pedido = pedidosActivos.find(p => p.id === id);
+      if (!pedido) { procesandoPedido = null; return; }
+
+      pedidosActivos = pedidosActivos.filter(p => p.id !== id);
+      renderPedidos();
+
+      await db.from('pedidos').update({ estado: 'entregado' }).eq('id', id);
+      cerrarRuta();
+
+      const idVenta = crypto.randomUUID();
+      const fechaHoy = new Date().toISOString().split('T')[0];
+      const m = pedido.items?.mineral || 0;
+      const s = pedido.items?.saborizada || 0;
+      
+      let totalCobrado = parseFloat(pedido.monto_total);
+
+      if (tipoPremio === 'mineral' && m > 0) {
+        totalCobrado -= precioMineral; 
+      } else if (tipoPremio === 'saborizada' && s > 0) {
+        totalCobrado -= (precioSaborizada / 2);
+      }
+      if(totalCobrado < 0) totalCobrado = 0;
+
+      ventas.push({
+        id: idVenta, fecha: fechaHoy, clienteId: pedido.cliente_id,
+        mineral: m, saborizada: s, envasesDevueltos: 0, total: totalCobrado
+      });
+      stock.mineral -= m; stock.saborizada -= s;
+
+      await Promise.all([
+        db.from('stock').upsert({ id: 1, mineral: stock.mineral, saborizada: stock.saborizada, envases_vacios: stock.envasesVacios }),
+        db.from('ventas').insert({
+          id: idVenta, pedido_id: id, fecha: fechaHoy, cliente_id: pedido.cliente_id,
+          mineral: m, saborizada: s, envases_devueltos: 0, total: totalCobrado
+        })
+      ]);
+
+      cargarMovimiento(); actualizarStockUI();
+      showToast(tipoPremio ? '¡Premio Entregado! ✅' : 'Pedido Entregado con Éxito');
+      procesandoPedido = null;
     }
-    function cerrarRuta(){if(watchGpsId){navigator.geolocation.clearWatch(watchGpsId); watchGpsId=null;} const modal=document.getElementById('pantallaRutaOverlay'); modal.classList.remove('active'); setTimeout(()=>modal.style.display='none',300);}
-    window.abrirMapaGlobal=function(){const modal=document.getElementById('pantallaMapaGlobalOverlay'); modal.style.display='flex'; setTimeout(()=>{modal.classList.add('active');},10); if(!mapaGlobal){mapaGlobal=L.map('mapa-global-reparto',{zoomControl:false}).setView([10.1620,-67.9996],13); L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png').addTo(mapaGlobal);} if(listaMarcadoresGlobales.length){listaMarcadoresGlobales.forEach(m=>{if(mapaGlobal.hasLayer(m))mapaGlobal.removeLayer(m);});} listaMarcadoresGlobales=[]; navigator.geolocation.getCurrentPosition(pos=>{const adminLat=pos.coords.latitude,adminLng=pos.coords.longitude; const adminIcon=L.divIcon({html:'📍',className:'',iconSize:[24,24]}); const mAdmin=L.marker([adminLat,adminLng],{icon:adminIcon}).addTo(mapaGlobal).bindPopup("Tu Ubicación"); listaMarcadoresGlobales.push(mAdmin); let clientesActivos=[],totalBotellones=0; clients.forEach(cliente=>{let destLat=null,destLng=null; if(cliente.address&&cliente.address.includes('| GPS:')){const coords=cliente.address.split('| GPS:')[1].trim().split(','); if(coords.length>=2){destLat=parseFloat(coords[0]);destLng=parseFloat(coords[1]);}} if(destLat===null||destLng===null)return; const pedidoEnVivo=pedidosActivos.find(p=>p.cliente_id===cliente.id&&(p.estado==='pendiente'||p.estado==='en_camino')); const stats=getClientStats(cliente.id); if(pedidoEnVivo||stats.pedidoPendiente){clientesActivos.push({cliente,lat:destLat,lng:destLng,pedido:pedidoEnVivo}); if(pedidoEnVivo&&pedidoEnVivo.items)totalBotellones+=(parseInt(pedidoEnVivo.items.mineral)||0)+(parseInt(pedidoEnVivo.items.saborizada)||0);}else{const pinGris=L.circleMarker([destLat,destLng],{radius:6,color:'#94a3b8',fillOpacity:0.6,stroke:false}).addTo(mapaGlobal); listaMarcadoresGlobales.push(pinGris);}}); let rutaOrdenada=[],currentLat=adminLat,currentLng=adminLng,noVisitados=[...clientesActivos]; while(noVisitados.length>0){let nearestIdx=0,minDist=Infinity; for(let i=0;i<noVisitados.length;i++){const d=calcularDistancia(currentLat,currentLng,noVisitados[i].lat,noVisitados[i].lng); if(d<minDist){minDist=d;nearestIdx=i;}} const nearest=noVisitados.splice(nearestIdx,1)[0]; rutaOrdenada.push(nearest); currentLat=nearest.lat;currentLng=nearest.lng;} let puntosRuta=[[adminLat,adminLng]]; rutaOrdenada.forEach((nodo,index)=>{puntosRuta.push([nodo.lat,nodo.lng]); let colorBurbuja=nodo.pedido?(nodo.pedido.estado==='en_camino'?'#0ea5e9':'#10b981'):'#f59e0b'; const pinNumerado=L.divIcon({html:`<div style="width:34px; height:34px; border-radius:50%; background:${colorBurbuja}; color:white; border:2.5px solid white; box-shadow:0 4px 10px rgba(0,0,0,0.3); display:flex; justify-content:center; align-items:center; font-weight:800; font-size:14px;">${index+1}</div>`,className:'',iconSize:[34,34],iconAnchor:[17,17]}); let infoPopup=`<div style="font-family:inherit; padding:2px;"><strong style="font-size:14px;">${index+1}. ${nodo.cliente.name}</strong>${nodo.pedido?`<br><span style="font-size:12px; color:var(--green);">Bs ${nodo.pedido.monto_total}</span>`:`<br><span style="font-size:12px; color:#d97706;">CRM: Toca Comprar</span>`}</div>`; const marcador=L.marker([nodo.lat,nodo.lng],{icon:pinNumerado}).addTo(mapaGlobal).bindPopup(infoPopup); listaMarcadoresGlobales.push(marcador);}); if(puntosRuta.length>1){const linea=L.polyline(puntosRuta,{color:'#10b981',weight:4,dashArray:'8,8',opacity:0.8}).addTo(mapaGlobal); listaMarcadoresGlobales.push(linea); mapaGlobal.fitBounds(linea.getBounds(),{padding:[60,60]});}else mapaGlobal.setView([adminLat,adminLng],14); document.getElementById('lbl-total-paradas').innerText=`${rutaOrdenada.length} paradas óptimas`; document.getElementById('badge-total-botellones').innerText=`${totalBotellones} Cargas pendientes`;},err=>{showToast('Activa el GPS para trazar la ruta','error');},{enableHighAccuracy:true});};
-    window.cerrarMapaGlobal=function(){const modal=document.getElementById('pantallaMapaGlobalOverlay'); modal.classList.remove('active'); setTimeout(()=>modal.style.display='none',300);};
 
-    // ========== GASTOS ==========
-    function abrirModalGasto(){document.getElementById('fecha-gasto').value=new Date().toISOString().split('T')[0]; document.getElementById('desc-gasto').value=''; document.getElementById('monto-gasto').value=''; renderGastosList(); openModal('modalGastoOverlay');}
-    async function guardarGasto(){const fecha=document.getElementById('fecha-gasto').value,desc=document.getElementById('desc-gasto').value.trim(),monto=parseFloat(document.getElementById('monto-gasto').value); if(!fecha||!desc||isNaN(monto)||monto<=0)return showToast('Completa todos los campos','error'); const id=crypto.randomUUID(); gastos.push({id,fecha,desc,monto}); cargarMovimiento(); renderGastosList(); document.getElementById('desc-gasto').value=''; document.getElementById('monto-gasto').value=''; const{error}=await db.from('gastos').insert({id,fecha,descripcion:desc,monto}); if(!error)showToast('Gasto registrado','success');}
-    async function eliminarGasto(gastoId){gastos=gastos.filter(g=>g.id!==gastoId); cargarMovimiento(); renderGastosList(); await db.from('gastos').delete().eq('id',gastoId); showToast('Gasto eliminado','info');}
-    function renderGastosList(){const container=document.getElementById('gastosListContainer'); const mes=parseInt(document.getElementById('mes').value),anio=parseInt(document.getElementById('anio').value); const gastosMes=gastos.filter(g=>{const d=new Date(g.fecha+'T12:00:00'); return d.getMonth()===mes&&d.getFullYear()===anio;}).sort((a,b)=>new Date(b.fecha)-new Date(a.fecha)); if(gastosMes.length===0){container.innerHTML='<p style="text-align:center; color:var(--text-secondary); padding:20px;">No hay gastos este mes</p>';return;} let html='<h3 style="margin-bottom:12px; font-size:16px;">Gastos del mes</h3>'; gastosMes.forEach(g=>{const fecha=new Date(g.fecha+'T12:00:00').toLocaleDateString('es-ES',{day:'2-digit',month:'2-digit'}); html+=`<div class="gasto-item"><span>${fecha}</span><span>${escapeHtml(g.desc)}</span><span>-${formatearBs(g.monto)}</span><button class="gasto-delete-btn" onclick="eliminarGasto('${g.id}')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button></div>`;}); container.innerHTML=html;}
-
-    // ========== PERFIL ==========
-    function abrirModalPrecios(){document.getElementById('precioMineralInput').value=precioMineral; document.getElementById('precioSaborizadaInput').value=precioSaborizada; document.getElementById('costoMineralInput').value=costoProdMineral; document.getElementById('costoSaborizadaInput').value=costoProdSaborizada; openModal('modalPreciosOverlay');}
-    async function guardarPrecios(){const pm=parseFloat(document.getElementById('precioMineralInput').value),ps=parseFloat(document.getElementById('precioSaborizadaInput').value),cm=parseFloat(document.getElementById('costoMineralInput').value),cs=parseFloat(document.getElementById('costoSaborizadaInput').value); if(isNaN(pm)||isNaN(ps)||isNaN(cm)||isNaN(cs)||pm<0||ps<0||cm<0||cs<0)return showToast('Valores inválidos','error'); precioMineral=pm;precioSaborizada=ps;costoProdMineral=cm;costoProdSaborizada=cs; closeModal('modalPreciosOverlay'); const{error}=await db.from('configuracion').upsert({id:1,precio_mineral:pm,precio_saborizada:ps,costo_mineral:cm,costo_saborizada:cs}); if(!error){showToast('Precios actualizados','success'); cargarMovimiento(); calcularTotalVenta();}}
-    async function subirLogoPerfil(event){const file=event.target.files[0]; if(!file)return; const reader=new FileReader(); reader.onload=e=>{document.getElementById('profile-img').src=e.target.result; localStorage.setItem('agua_avatar',e.target.result);}; reader.readAsDataURL(file); const{error}=await db.storage.from('assets').upload('repartidor-icon.png',file,{cacheControl:'3600',upsert:true}); if(error)showToast('Error al subir imagen','error'); else showToast('Logo actualizado','success');}
-    function cargarLogoActual(){const publicUrl=db.storage.from('assets').getPublicUrl('repartidor-icon.png').data.publicUrl; const preview=document.getElementById('profile-img'); const img=new Image(); img.onload=()=>{preview.src=publicUrl; localStorage.setItem('agua_avatar',publicUrl);}; img.onerror=()=>{const saved=localStorage.getItem('agua_avatar'); if(saved)preview.src=saved;}; img.src=publicUrl;}
-    function copiarDirectLink(){let storeCode=localStorage.getItem('aguabol_store_code'); if(!storeCode){storeCode='AGUA-'+Math.random().toString(36).substring(2,6).toUpperCase(); localStorage.setItem('aguabol_store_code',storeCode);} const link=`https://agualight.com/Pedidos.html?store=${storeCode}`; if(navigator.clipboard)navigator.clipboard.writeText(link).then(()=>showToast('Link copiado','success')); else{const ti=document.createElement('input'); ti.value=link; document.body.appendChild(ti); ti.select(); document.execCommand('copy'); document.body.removeChild(ti); showToast('Link copiado','success');}}
-
-    // ========== MARKETING ==========
-    function renderCampanasAutomaticas(){const container=document.getElementById('campanas-automaticas-container'); if(!campanasAutomaticas.length){container.innerHTML='<div class="card" style="text-align:center; padding:30px; color:var(--text-secondary);">No hay campañas automáticas configuradas.</div>';return;} let html=''; campanasAutomaticas.forEach(camp=>{const fechaUltimo=camp.fecha_ultimo_envio?new Date(camp.fecha_ultimo_envio+'T12:00:00').toLocaleDateString('es-ES',{day:'2-digit',month:'2-digit',year:'numeric'}):'Nunca'; html+=`<div class="card" style="margin-bottom:16px;"><div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;"><div><div style="font-size:16px; font-weight:800;">${escapeHtml(camp.nombre_campana)}</div><div style="font-size:12px; color:var(--text-secondary);">Cada ${camp.frecuencia_dias} días</div></div><label class="switch"><input type="checkbox" id="auto-activo-${camp.id}" ${camp.activa?'checked':''} onchange="guardarAutoMarketing('${camp.id}')"><span class="slider"></span></label></div><div class="input-group" style="width:100%;"><label>Título</label><input type="text" id="auto-titulo-${camp.id}" value="${escapeHtml(camp.titulo||'')}" onchange="guardarAutoMarketing('${camp.id}')"></div><div class="input-group" style="width:100%;"><label>Mensaje</label><textarea id="auto-mensaje-${camp.id}" rows="2" style="width:100%; appearance:none; background:#f8fafc; border:1px solid #e2e8f0; border-radius:var(--radius-sm); padding:12px 14px; font-size:16px; font-family:inherit; color:var(--text-primary); font-weight:600; outline:none; resize:none;" onchange="guardarAutoMarketing('${camp.id}')">${escapeHtml(camp.mensaje||'')}</textarea></div><div style="font-size:12px; font-weight:700; color:var(--tint); margin-top:8px; background:#e0f2fe; padding:8px 12px; border-radius:8px; display:inline-block;">Último envío: ${fechaUltimo}</div></div>`;}); container.innerHTML=html;}
-    async function guardarAutoMarketing(id){const camp=campanasAutomaticas.find(c=>c.id===id); if(!camp)return; const activo=document.getElementById(`auto-activo-${id}`)?.checked??camp.activa, titulo=document.getElementById(`auto-titulo-${id}`)?.value??camp.titulo, mensaje=document.getElementById(`auto-mensaje-${id}`)?.value??camp.mensaje; Object.assign(camp,{activa:activo,titulo,mensaje}); const{error}=await db.from('campanas_automaticas').update({activa:activo,titulo,mensaje}).eq('id',id); if(!error)showToast('Campaña actualizada','success');}
-    async function verificarDisparoAutomatico(){if(!campanasAutomaticas.length)return; const hoy=new Date(); for(const camp of campanasAutomaticas){if(!camp.activa||!camp.titulo||!camp.mensaje)continue; let disparar=false; if(!camp.fecha_ultimo_envio)disparar=true; else{const ultimoEnvio=new Date(camp.fecha_ultimo_envio+'T12:00:00'); const diffDias=Math.ceil(Math.abs(hoy-ultimoEnvio)/(1000*60*60*24)); if(diffDias>=camp.frecuencia_dias)disparar=true;} if(disparar){const fechaHoyStr=hoy.toISOString().split('T')[0]; const{data:subsIds}=await db.from('clientes_campanas').select('cliente_id').eq('campana_id',camp.id); const suscriptores=subsIds?subsIds.map(s=>s.cliente_id):[]; if(suscriptores.length===0){await db.from('campanas_automaticas').update({fecha_ultimo_envio:fechaHoyStr}).eq('id',camp.id); camp.fecha_ultimo_envio=fechaHoyStr; continue;} try{const{error:invokeError}=await db.functions.invoke('enviar-masivo',{body:{titulo:camp.titulo,mensaje:camp.mensaje,cliente_ids:suscriptores,campana_id:camp.id}}); if(invokeError){console.error(`Error al enviar campaña "${camp.nombre_campana}":`,invokeError); continue;} await db.from('campanas_automaticas').update({fecha_ultimo_envio:fechaHoyStr}).eq('id',camp.id); camp.fecha_ultimo_envio=fechaHoyStr; await db.from('campanas_marketing').insert({titulo:'🤖 '+camp.titulo,mensaje:camp.mensaje,alcance:suscriptores.length,fecha_envio:new Date().toISOString()}); cargarHistorialMarketing(); showToast(`🤖 Campaña "${camp.nombre_campana}" enviada a ${suscriptores.length} suscriptores`,'success');}catch(err){console.error('Error en disparo automático:',err);}}}}
-    async function cargarHistorialMarketing(){const{data:campanas}=await db.from('campanas_marketing').select('*').order('fecha_envio',{ascending:false}); const contenedor=document.getElementById('historial-marketing-tabla'); if(!campanas||!campanas.length){contenedor.innerHTML='<div style="padding:20px; text-align:center; color:var(--text-secondary); font-size:14px;">No has enviado ninguna campaña todavía.</div>';return;} contenedor.innerHTML=campanas.map(c=>{const fecha=new Date(c.fecha_envio).toLocaleDateString('es-ES',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}); return`<div style="padding:16px; border-bottom:1px solid var(--separator); display:flex; flex-direction:column; gap:6px;"><div style="display:flex; justify-content:space-between; align-items:flex-start;"><strong style="font-size:15px;">${escapeHtml(c.titulo)}</strong><span style="background:#dcfce7; color:#16a34a; padding:4px 8px; border-radius:6px; font-weight:700; font-size:11px; white-space:nowrap;">📱 ${c.alcance} enviados</span></div><div style="font-size:13px; color:var(--text-secondary);">${escapeHtml(c.mensaje)}</div><div style="font-size:11px; color:#94a3b8; font-weight:600; margin-top:4px;">Enviado: ${fecha}</div></div>`;}).join('');}
-    async function dispararCampañaMasiva(){const titulo=document.getElementById('marketing-titulo').value.trim(), mensaje=document.getElementById('marketing-mensaje').value.trim(); if(!titulo||!mensaje)return showToast('Falta título o mensaje','error'); const btn=document.getElementById('btn-enviar-marketing'); btn.disabled=true; const textoOriginal=btn.innerHTML; btn.innerHTML='<span class="spin">⏳</span> Enviando...'; try{const{error}=await db.functions.invoke('enviar-masivo',{body:{titulo,mensaje}}); if(error)throw error; document.getElementById('marketing-titulo').value=''; document.getElementById('marketing-mensaje').value=''; cargarHistorialMarketing(); showToast('Notificaciones enviadas','success');}catch(e){showToast('Error al conectar con el servidor','error');}finally{btn.disabled=false; btn.innerHTML=textoOriginal;}}
-
-    // ========== REALTIME ==========
-    async function recargarPedidosActivos(){const{data}=await db.from('pedidos').select('*, clientes(*)').in('estado',['pendiente','en_camino']).order('created_at',{ascending:false}); if(data)pedidosActivos=data; renderPedidos();}
-    async function escucharRealtime(){
-      db.channel('public:pedidos').on('postgres_changes',{event:'INSERT',schema:'public',table:'pedidos'},async payload=>{const{data:cliInfo}=await db.from('clientes').select('*').eq('id',payload.new.cliente_id).single(); payload.new.clientes=cliInfo; pedidosActivos.unshift(payload.new); try{await LocalNotifications.schedule({notifications:[{id:new Date().getTime(),title:'¡Nuevo pedido!',body:cliInfo?`${cliInfo.nombre} ha solicitado un pedido`:'Nuevo pedido entrante',sound:'default',smallIcon:'ic_launcher',iconColor:'#0ea5e9'}]});}catch(e){} showToast('¡NUEVO PEDIDO RECIBIDO! 🔔'); renderPedidos();})
-      .on('postgres_changes',{event:'UPDATE',schema:'public',table:'pedidos'},async payload=>{if(payload.new.estado==='cancelado'||payload.new.estado==='entregado'){if(payload.new.estado==='entregado'){showToast('Un chofer ha entregado un pedido ✅','success'); const pedido=pedidosActivos.find(p=>p.id===payload.new.id); if(pedido){const idVenta=crypto.randomUUID(),fechaHoy=new Date().toISOString().split('T')[0],m=pedido.items?.mineral||0,s=pedido.items?.saborizada||0; ventas.push({id:idVenta,fecha:fechaHoy,clienteId:pedido.cliente_id,mineral:m,saborizada:s,envasesDevueltos:0,total:pedido.monto_total}); stock.mineral-=m;stock.saborizada-=s; await Promise.all([db.from('ventas').insert({id:idVenta,pedido_id:payload.new.id,fecha:fechaHoy,cliente_id:pedido.cliente_id,mineral:m,saborizada:s,envases_devueltos:0,total:pedido.monto_total}),db.from('stock').upsert({id:1,mineral:stock.mineral,saborizada:stock.saborizada,envases_vacios:stock.envasesVacios})]); cargarMovimiento();actualizarStockUI();}} await recargarPedidosActivos(); return;} const idx=pedidosActivos.findIndex(p=>p.id===payload.new.id); if(idx!==-1){pedidosActivos[idx].estado=payload.new.estado; pedidosActivos[idx].chofer_id=payload.new.chofer_id; pedidosActivos[idx].ubicacion_chofer=payload.new.ubicacion_chofer; renderPedidos();}}).subscribe();
-      db.channel('public:clientes').on('postgres_changes',{event:'*',schema:'public',table:'clientes'},payload=>{if(payload.eventType==='INSERT'){const nCli={id:payload.new.id,name:payload.new.nombre,phone:payload.new.telefono,address:payload.new.direccion,frequency:payload.new.frecuencia_dias?payload.new.frecuencia_dias.toString():''}; if(!clients.some(c=>c.id===nCli.id))clients.push(nCli);} else if(payload.eventType==='UPDATE'){const idx=clients.findIndex(c=>c.id===payload.new.id); if(idx!==-1)clients[idx]={id:payload.new.id,name:payload.new.nombre,phone:payload.new.telefono,address:payload.new.direccion,frequency:payload.new.frecuencia_dias?payload.new.frecuencia_dias.toString():''};} else if(payload.eventType==='DELETE'){clients=clients.filter(c=>c.id!==payload.old.id);} renderClientList();llenarSelectClientes();}).subscribe();
-      db.channel('operaciones_central').on('broadcast',{event:'accion_chofer'},event=>{const datosChofer=event.payload; if(datosChofer.estado==='cancelado')showToast('Un pedido ha sido cancelado ❌','info'); if(datosChofer.estado==='entregado')showToast('Un chofer ha entregado un pedido ✅','success'); recargarPedidosActivos();}).subscribe();
+    async function cancelarPedido(id) {
+      if(confirm('¿Seguro que deseas cancelar este pedido? Se notificará al cliente.')) {
+        await db.from('pedidos').update({ estado: 'cancelado' }).eq('id', id);
+        cerrarRuta();
+        pedidosActivos = pedidosActivos.filter(p => p.id !== id);
+        renderPedidos();
+        showToast('Pedido cancelado correctamente ❌', 'info');
+      }
     }
-    async function registrarPush(){
-      const PushNotifications=Capacitor.Plugins.PushNotifications; if(!PushNotifications)return;
-      try{await PushNotifications.createChannel({id:'pedidos_urgentes',name:'Pedidos Urgentes',description:'Notificaciones de alta prioridad',importance:5,visibility:1,vibration:true,sound:'default'});}catch(e){}
-      let permStatus=await PushNotifications.checkPermissions(); if(permStatus.receive==='prompt')permStatus=await PushNotifications.requestPermissions(); if(permStatus.receive!=='granted')return;
+
+    // ========== 7. DIRECTORIO CRM ==========
+    function getClientStats(clienteId) {
+      const clientSales = ventas.filter(v => v.clienteId === clienteId).sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+      let totMin = 0, totSab = 0, totDev = 0;
+      clientSales.forEach(v => { totMin += v.mineral; totSab += v.saborizada; totDev += (v.envasesDevueltos || 0); });
+      const deudaEnvases = (totMin + totSab) - totDev;
+      const client = clients.find(c => c.id === clienteId);
+      let pedidoPendiente = false;
+      if (clientSales.length > 0) {
+        const diasDesdeUltima = Math.floor((new Date() - new Date(clientSales[0].fecha)) / (1000 * 60 * 60 * 24));
+        if (client && client.frequency && !isNaN(parseInt(client.frequency))) {
+          pedidoPendiente = diasDesdeUltima > parseInt(client.frequency) * 1.3;
+        } else if (clientSales.length >= 2) {
+          let diasDiff = [];
+          for(let i = 0; i < Math.min(clientSales.length, 3) - 1; i++){
+             diasDiff.push(Math.abs(new Date(clientSales[i].fecha) - new Date(clientSales[i+1].fecha)) / (1000 * 60 * 60 * 24));
+          }
+          const avg = diasDiff.reduce((a,b)=>a+b, 0) / diasDiff.length;
+          pedidoPendiente = diasDesdeUltima > avg + 1;
+        }
+      }
+      return { totMin, totSab, deudaEnvases, pedidoPendiente };
+    }
+
+    function renderClientList() {
+      const search = document.getElementById('searchInput').value.toLowerCase().trim();
+      const filtered = clients.filter(c => c.name.toLowerCase().includes(search) || (c.phone && c.phone.includes(search)));
+      const container = document.getElementById('clientListContainer');
+      if (filtered.length === 0) {
+        container.innerHTML = `<div style="padding:40px 20px; text-align:center; color:var(--text-secondary);">No se encontraron clientes.</div>`;
+        return;
+      }
+      let html = '';
+      filtered.forEach(client => {
+        const stats = getClientStats(client.id);
+        const inicial = client.name.charAt(0).toUpperCase();
+        let direccionVisual = client.address || 'Sin dirección';
+        let destLat = null, destLng = null;
+        if (client.address) {
+           if (client.address.includes('| GPS:')) {
+               const partes = client.address.split('| GPS:'); direccionVisual = partes[0].trim();
+               const coords = partes[1].trim().split(','); if(coords.length === 2) { destLat = parseFloat(coords[0]); destLng = parseFloat(coords[1]); }
+           } 
+        }
+        let btnMapaHtml = '';
+        if (client.address) {
+          if (destLat !== null && destLng !== null) {
+            btnMapaHtml = `
+              <div class="action-btn map" onclick="event.stopPropagation(); abrirControlRuta(null, ${destLat}, ${destLng}, '${escapeHtml(client.name)}', '${escapeHtml(direccionVisual)}')">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg></div>`;
+          } else {
+            const wazeBusqueda = `https://waze.com/ul?q=${encodeURIComponent(direccionVisual)}`;
+            btnMapaHtml = `
+              <div class="action-btn map" onclick="event.stopPropagation(); window.open('${wazeBusqueda}', '_blank')">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div>`;
+          }
+        }
+        const urlWa = `https://wa.me/${client.phone.replace(/[^0-9]/g, '')}?text=Hola%20${encodeURIComponent(client.name)},%20te%20escribimos%20de%20Agualight.`;
+        let badgeDeuda = stats.deudaEnvases > 0 ? `<span class="badge ${stats.deudaEnvases > 3 ? 'alert' : ''}">Debe ${stats.deudaEnvases}</span>` : '';
+        html += `
+          <div class="client-row" onclick="openEditModal('${client.id}')">
+            <div class="client-header">
+              <div class="client-avatar">${inicial}</div>
+              <div class="client-info-main">
+                <div class="client-name">
+                  <span class="truncate">${escapeHtml(client.name)}</span>
+                  ${stats.pedidoPendiente ? '<span class="badge pending">Pedido Pendiente</span>' : ''}
+                </div>
+                <div class="client-stats">
+                  <span class="badge mineral">${stats.totMin} Min</span>
+                  <span class="badge saborizada">${stats.totSab} Sab</span>
+                  ${badgeDeuda}
+                </div>
+              </div>
+            </div>
+            <div class="client-actions-bar">
+               <div class="truncate" style="font-size:13px; color:var(--text-secondary); max-width:60%;">${escapeHtml(direccionVisual)}</div>
+               <div class="action-icons">
+                 ${btnMapaHtml}
+                 <div class="action-btn whatsapp" onclick="event.stopPropagation(); window.open('${urlWa}', '_blank')" title="Contactar">
+                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                 </div>
+               </div>
+            </div>
+          </div>`;
+      });
+      container.innerHTML = html;
+    }
+
+    // ========== 8. MÓDULO REPARTO (MAPA INDIVIDUAL) ==========
+    function abrirControlRuta(pedidoId, destLat, destLng, nombreCliente, direccionCliente) {
+      const modal = document.getElementById('pantallaRutaOverlay');
+      modal.style.display = 'flex'; setTimeout(() => modal.classList.add('active'), 10);
+      document.getElementById('ruta-cliente-nombre').textContent = nombreCliente;
+      document.getElementById('ruta-cliente-dir').textContent = direccionCliente;
+      document.getElementById('ruta-distancia').innerHTML = '<span class="spin">⏳</span>';
+      document.getElementById('ruta-tiempo').innerHTML = '--';
+      const btnViaje = document.getElementById('btn-iniciar-viaje');
+      if(pedidoId) {
+        const pedido = pedidosActivos.find(p => p.id === pedidoId);
+        const puntos = calcularLealtadCliente(pedido.cliente_id);
+        document.getElementById('ruta-lealtad-texto').textContent = `${puntos}/10 Compras`;
+        const chofer = choferes.find(c => c.id === pedido.chofer_id);
+        document.getElementById('ruta-chofer-asignado').textContent = chofer ? `Repartidor: ${chofer.nombre}` : 'Reparto Propio (Administrador)';
+        
+        const panelNormales = document.getElementById('panel-acciones-normales');
+        const panelPremio = document.getElementById('panel-acciones-premio');
+        const panelCancelarPremio = document.getElementById('panel-cancelar-premio');
+
+        if(puntos === 10) { 
+          document.getElementById('ruta-lealtad-texto').textContent = '🎁 ¡RECARGA GRATIS!';
+          panelNormales.style.display = 'none';
+          panelPremio.style.display = 'grid';
+          panelCancelarPremio.style.display = 'block';
+          
+          document.getElementById('btn-premio-mineral').onclick = () => completarPedido(pedidoId, 'mineral');
+          document.getElementById('btn-premio-saborizada').onclick = () => completarPedido(pedidoId, 'saborizada');
+          document.getElementById('btn-cancelar-ruta-premio').onclick = () => cancelarPedido(pedidoId);
+        } else {
+          document.getElementById('ruta-lealtad-texto').textContent = `${puntos}/10 Compras`;
+          panelNormales.style.display = 'grid';
+          panelPremio.style.display = 'none';
+          panelCancelarPremio.style.display = 'none';
+          
+          document.getElementById('btn-cancelar-ruta').onclick = () => cancelarPedido(pedidoId);
+          document.getElementById('btn-completar-ruta').onclick = () => completarPedido(pedidoId);
+        }
+        btnViaje.style.display = 'flex';
+
+        if(pedido.estado === 'pendiente') {
+          db.from('pedidos').update({ estado: 'en_camino', chofer_id: null }).eq('id', pedidoId).then(()=>{
+             pedido.estado = 'en_camino'; renderPedidos();
+          });
+        }
+      } else {
+        document.getElementById('ruta-chofer-asignado').textContent = 'Visualización GPS Libre';
+        document.getElementById('ruta-lealtad-texto').textContent = '-';
+        document.getElementById('btn-cancelar-ruta').style.display = 'none';
+        document.getElementById('btn-completar-ruta').style.display = 'none';
+        btnViaje.style.display = 'none';
+      }
+      let tlf = '';
+      if (pedidoId) {
+         const pedido = pedidosActivos.find(p => p.id === pedidoId);
+         if(pedido && pedido.clientes) tlf = pedido.clientes.telefono;
+      } else {
+         const c = clients.find(c => c.name === nombreCliente);
+         if (c) tlf = c.phone;
+      }
+      const btnWa = document.getElementById('btn-contacto-ruta');
+      if (tlf) {
+         btnWa.style.display = 'flex';
+         btnWa.onclick = () => window.open(`https://wa.me/${tlf.replace(/\D/g,'')}`, '_blank');
+      } else {
+         btnWa.style.display = 'none';
+      }
+      if (!mapaRepartidor) {
+          mapaRepartidor = L.map('mapa-repartidor', { zoomControl: false }).setView([10.1620, -67.9996], 13);
+          L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png').addTo(mapaRepartidor);
+      }
+      setTimeout(() => {
+          mapaRepartidor.invalidateSize();
+          if (navigator.geolocation && destLat) {
+              navigator.geolocation.getCurrentPosition(async (pos) => {
+                  const [oLat, oLng] = [pos.coords.latitude, pos.coords.longitude];
+                  if(marcadorA) mapaRepartidor.removeLayer(marcadorA);
+                  if(marcadorB) mapaRepartidor.removeLayer(marcadorB);
+                  if(capaRuta) mapaRepartidor.removeLayer(capaRuta);
+                  marcadorA = L.marker([oLat, oLng]).addTo(mapaRepartidor);
+                  marcadorB = L.marker([destLat, destLng]).addTo(mapaRepartidor);
+                  mapaRepartidor.fitBounds(L.latLngBounds([oLat, oLng], [destLat, destLng]), {padding: [50,50]});
+                  try {
+                      const res = await fetch(`https://router.project-osrm.org/route/v1/driving/${oLng},${oLat};${destLng},${destLat}?geometries=geojson`);
+                      const data = await res.json();
+                      if(data.routes && data.routes[0]) {
+                          capaRuta = L.geoJSON(data.routes[0].geometry, { style: { color: '#0ea5e9', weight: 6, opacity: 0.8 } }).addTo(mapaRepartidor);
+                          document.getElementById('ruta-distancia').textContent = `${(data.routes[0].distance / 1000).toFixed(1)} km`;
+                          document.getElementById('ruta-tiempo').textContent = `${Math.round(data.routes[0].duration / 60)} min`;
+                      } else { document.getElementById('ruta-distancia').textContent = 'Error'; }
+                  } catch(e) { document.getElementById('ruta-distancia').textContent = 'Error'; }
+              }, (err) => {
+                  showToast('Activa el GPS', 'error'); document.getElementById('ruta-distancia').textContent = 'Sin GPS';
+              }, { enableHighAccuracy: true });
+          }
+      }, 400);
+      btnViaje.innerHTML = '📍 Iniciar Navegación (En App)';
+      btnViaje.style.background = 'linear-gradient(135deg, #10b981, #059669)';
+      btnViaje.onclick = () => {
+        if (watchGpsId) {
+          navigator.geolocation.clearWatch(watchGpsId); watchGpsId = null;
+          btnViaje.innerHTML = '📍 Iniciar Navegación (En App)'; btnViaje.style.background = 'linear-gradient(135deg, #10b981, #059669)';
+          showToast('Navegación pausada'); return;
+        }
+        btnViaje.innerHTML = '🛑 Detener Transmisión GPS'; btnViaje.style.background = 'var(--destructive)';
+        showToast('Iniciando ruta. El cliente te está viendo en vivo.', 'success');
+        watchGpsId = navigator.geolocation.watchPosition(async (pos) => {
+          const latAct = pos.coords.latitude; const lngAct = pos.coords.longitude;
+          if(marcadorA) { marcadorA.setLatLng([latAct, lngAct]); } else { marcadorA = L.marker([latAct, lngAct]).addTo(mapaRepartidor); }
+          if (pedidoId) { await db.from('pedidos').update({ ubicacion_chofer: `${latAct},${lngAct}` }).eq('id', pedidoId); }
+          try {
+            const res = await fetch(`https://router.project-osrm.org/route/v1/driving/${lngAct},${latAct};${destLng},${destLat}?geometries=geojson`);
+            const data = await res.json();
+            if(data.routes && data.routes[0]) {
+              if(capaRuta) mapaRepartidor.removeLayer(capaRuta);
+              capaRuta = L.geoJSON(data.routes[0].geometry, { style: { color: '#0ea5e9', weight: 6, opacity: 0.8 } }).addTo(mapaRepartidor);
+              document.getElementById('ruta-distancia').textContent = `${(data.routes[0].distance / 1000).toFixed(1)} km`;
+              document.getElementById('ruta-tiempo').textContent = `${Math.round(data.routes[0].duration / 60)} min`;
+            }
+          } catch(e) {}
+        }, (err) => console.log('Buscando señal GPS...'), { enableHighAccuracy: true });
+      };
+    }
+    
+    function cerrarRuta() {
+      if (watchGpsId) { navigator.geolocation.clearWatch(watchGpsId); watchGpsId = null; }
+      const modal = document.getElementById('pantallaRutaOverlay');
+      modal.classList.remove('active'); setTimeout(() => modal.style.display = 'none', 300);
+    }
+
+    // ========== 9. MÓDULO RUTA GLOBAL MULTI-PARADAS ==========
+    window.abrirMapaGlobal = function() {
+      try {
+        const modal = document.getElementById('pantallaMapaGlobalOverlay');
+        if (!modal) return;
+        
+        modal.style.display = 'flex';
+        setTimeout(() => { modal.classList.add('active'); modal.style.opacity = '1'; }, 10);
+        
+        if (!mapaGlobal) {
+          mapaGlobal = L.map('mapa-global-reparto', { zoomControl: false }).setView([10.1620, -67.9996], 13);
+          L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png').addTo(mapaGlobal);
+        }
+
+        if (listaMarcadoresGlobales && listaMarcadoresGlobales.length > 0) {
+            listaMarcadoresGlobales.forEach(m => { if(mapaGlobal.hasLayer(m)) mapaGlobal.removeLayer(m); });
+        }
+        listaMarcadoresGlobales = [];
+
+        navigator.geolocation.getCurrentPosition((pos) => {
+            const adminLat = pos.coords.latitude;
+            const adminLng = pos.coords.longitude;
+
+            const adminIcon = L.divIcon({ html: '📍', className: '', iconSize: [24, 24] });
+            const mAdmin = L.marker([adminLat, adminLng], {icon: adminIcon}).addTo(mapaGlobal).bindPopup("Tu Ubicación");
+            listaMarcadoresGlobales.push(mAdmin);
+
+            let clientesActivos = [];
+            let totalBotellones = 0;
+
+            clients.forEach(cliente => {
+                let destLat = null, destLng = null;
+                if (cliente.address && cliente.address.includes('| GPS:')) {
+                    const coords = cliente.address.split('| GPS:')[1].trim().split(',');
+                    if (coords.length >= 2) { destLat = parseFloat(coords[0]); destLng = parseFloat(coords[1]); }
+                }
+                if (destLat === null || destLng === null) return;
+
+                const pedidoEnVivo = pedidosActivos.find(p => p.cliente_id === cliente.id && (p.estado === 'pendiente' || p.estado === 'en_camino'));
+                const stats = getClientStats(cliente.id);
+
+                if (pedidoEnVivo || stats.pedidoPendiente) {
+                   clientesActivos.push({
+                      cliente: cliente, lat: destLat, lng: destLng, pedido: pedidoEnVivo
+                   });
+                   if (pedidoEnVivo && pedidoEnVivo.items) {
+                       totalBotellones += (parseInt(pedidoEnVivo.items.mineral) || 0) + (parseInt(pedidoEnVivo.items.saborizada) || 0);
+                   }
+                } else {
+                   const pinGris = L.circleMarker([destLat, destLng], { radius: 6, color: '#94a3b8', fillOpacity: 0.6, stroke: false }).addTo(mapaGlobal);
+                   listaMarcadoresGlobales.push(pinGris);
+                }
+            });
+
+            let rutaOrdenada = [];
+            let currentLat = adminLat;
+            let currentLng = adminLng;
+            let noVisitados = [...clientesActivos];
+
+            while(noVisitados.length > 0) {
+                let nearestIdx = 0;
+                let minDist = Infinity;
+                for(let i=0; i < noVisitados.length; i++) {
+                   const d = calcularDistancia(currentLat, currentLng, noVisitados[i].lat, noVisitados[i].lng);
+                   if (d < minDist) { minDist = d; nearestIdx = i; }
+                }
+                const nearest = noVisitados.splice(nearestIdx, 1)[0];
+                rutaOrdenada.push(nearest);
+                currentLat = nearest.lat; currentLng = nearest.lng;
+            }
+
+            let puntosRuta = [[adminLat, adminLng]];
+            
+            rutaOrdenada.forEach((nodo, index) => {
+                puntosRuta.push([nodo.lat, nodo.lng]);
+                
+                let colorBurbuja = nodo.pedido ? (nodo.pedido.estado === 'en_camino' ? '#0ea5e9' : '#10b981') : '#f59e0b';
+                
+                const pinNumerado = L.divIcon({
+                  html: `<div style="width:34px; height:34px; border-radius:50%; background:${colorBurbuja}; color:white; border:2.5px solid white; box-shadow:0 4px 10px rgba(0,0,0,0.3); display:flex; justify-content:center; align-items:center; font-weight:800; font-size:14px;">${index + 1}</div>`,
+                  className: '', iconSize: [34, 34], iconAnchor: [17, 17]
+                });
+
+                let infoPopup = `<div style="font-family:inherit; padding:2px;"><strong style="font-size:14px;">${index + 1}. ${nodo.cliente.name}</strong>`;
+                if (nodo.pedido) { infoPopup += `<br><span style="font-size:12px; color:var(--green);">Bs ${nodo.pedido.monto_total}</span>`; } 
+                else { infoPopup += `<br><span style="font-size:12px; color:#d97706;">CRM: Toca Comprar</span>`; }
+                infoPopup += `</div>`;
+
+                const marcador = L.marker([nodo.lat, nodo.lng], { icon: pinNumerado }).addTo(mapaGlobal).bindPopup(infoPopup);
+                listaMarcadoresGlobales.push(marcador);
+            });
+
+            if (puntosRuta.length > 1) {
+                const linea = L.polyline(puntosRuta, {color: '#10b981', weight: 4, dashArray: '8, 8', opacity: 0.8}).addTo(mapaGlobal);
+                listaMarcadoresGlobales.push(linea);
+                mapaGlobal.fitBounds(linea.getBounds(), { padding: [60, 60] });
+            } else {
+                mapaGlobal.setView([adminLat, adminLng], 14);
+            }
+
+            const lbl = document.getElementById('lbl-total-paradas');
+            if (lbl) lbl.innerText = `${rutaOrdenada.length} paradas óptimas`;
+            const badge = document.getElementById('badge-total-botellones');
+            if(badge) badge.innerText = `${totalBotellones} Cargas pendientes`;
+
+        }, (err) => {
+            showToast('Activa el GPS para trazar la ruta', 'error');
+        }, { enableHighAccuracy: true });
+
+      } catch (error) {
+        console.error("Error al abrir mapa global:", error);
+      }
+    };
+
+    window.cerrarMapaGlobal = function() {
+      const modal = document.getElementById('pantallaMapaGlobalOverlay');
+      if(modal) {
+          modal.classList.remove('active');
+          modal.style.opacity = '0';
+          setTimeout(() => modal.style.display = 'none', 300);
+      }
+    };
+
+    // ========== 10. VENTAS MANUALES E INVENTARIO ==========
+    function llenarSelectClientes() {
+      const select = document.getElementById('cliente-venta');
+      select.innerHTML = '<option value="">Sin cliente</option>';
+      clients.forEach(c => select.innerHTML += `<option value="${c.id}">${escapeHtml(c.name)}</option>`);
+    }
+    function mostrarDeudaEnvases() {
+      const clienteId = document.getElementById('cliente-venta').value;
+      const hint = document.getElementById('deuda-envases-hint');
+      if(clienteId) {
+        const stats = getClientStats(clienteId);
+        hint.style.display = 'block';
+        hint.textContent = `Debe ${stats.deudaEnvases} envase(s).`;
+        hint.style.color = stats.deudaEnvases > 2 ? 'var(--destructive)' : 'var(--text-secondary)';
+      } else { hint.style.display = 'none'; }
+    }
+    function calcularTotalVenta() {
+      const min = parseInt(document.getElementById('cant-mineral').value) || 0;
+      const sab = parseInt(document.getElementById('cant-saborizada').value) || 0;
+      const total = min * precioMineral + sab * precioSaborizada;
+      document.getElementById('total-venta').textContent = `Total: ${formatearBs(total)}`;
+    }
+    function cambiarCantidad(tipo, delta) {
+      const input = document.getElementById('cant-' + tipo);
+      input.value = Math.max(0, (parseInt(input.value) || 0) + delta);
+      calcularTotalVenta();
+    }
+    async function registrarVentaManual() {
+      const fecha = document.getElementById('fecha-venta').value;
+      const clienteId = document.getElementById('cliente-venta').value;
+      const cantMineral = parseInt(document.getElementById('cant-mineral').value) || 0;
+      const cantSaborizada = parseInt(document.getElementById('cant-saborizada').value) || 0;
+      const devueltos = parseInt(document.getElementById('cant-devueltos').value) || 0;
+      if (!fecha) return showToast('Selecciona la fecha', 'error');
+      if (cantMineral === 0 && cantSaborizada === 0) return showToast('Ingresa al menos un botellón', 'error');
+      if (cantMineral > stock.mineral) return showToast('Stock insuficiente Mineral', 'error');
+      if (cantSaborizada > stock.saborizada) return showToast('Stock insuficiente Saborizada', 'error');
+      const idVenta = crypto.randomUUID();
+      const total = cantMineral * precioMineral + cantSaborizada * precioSaborizada;
+      stock.mineral -= cantMineral; stock.saborizada -= cantSaborizada; stock.envasesVacios = (stock.envasesVacios || 0) + devueltos;
+      actualizarStockUI();
+      document.getElementById('cant-mineral').value = 0; document.getElementById('cant-saborizada').value = 0; document.getElementById('cant-devueltos').value = 0;
+      calcularTotalVenta(); mostrarDeudaEnvases();
+      const { error: errVenta } = await db.from('ventas').insert({ id: idVenta, fecha, cliente_id: clienteId || null, mineral: cantMineral, saborizada: cantSaborizada, envases_devueltos: devueltos, total });
+      if (errVenta) return showToast('Error al registrar en nube', 'error');
+      await db.from('stock').upsert({ id: 1, mineral: stock.mineral, saborizada: stock.saborizada, envases_vacios: stock.envasesVacios });
+      showToast('Venta registrada con éxito', 'success'); cargarMovimiento(); if(clienteId) renderClientList();
+    }
+    async function cambiarStock(tipo, delta) {
+      stock[tipo] = Math.max(0, stock[tipo] + delta);
+      actualizarStockUI();
+      await db.from('stock').upsert({ id: 1, mineral: stock.mineral, saborizada: stock.saborizada, envases_vacios: stock.envasesVacios || 0 });
+    }
+    function actualizarStockUI() {
+      document.getElementById('stock-mineral').textContent = stock.mineral;
+      document.getElementById('stock-saborizada').textContent = stock.saborizada;
+      document.getElementById('total-envases-fisicos').textContent = stock.mineral + stock.saborizada + (stock.envasesVacios || 0);
+    }
+
+    // ========== 11. CRUD CLIENTES ==========
+    function openClientModal() {
+      editingClientId = null; document.getElementById('modalClientTitle').textContent = 'Nuevo cliente';
+      document.getElementById('clientName').value = ''; document.getElementById('clientPhone').value = '';
+      document.getElementById('clientAddress').value = ''; document.getElementById('clientFrequency').value = '';
+      document.getElementById('deleteClientContainer').style.display = 'none';
+      document.getElementById('clientSalesHistory').style.display = 'none';
+      // Renderizar campañas automáticas activas para nuevo cliente
+      const checkboxesHtml = campanasAutomaticas
+        .filter(c => c.activa)
+        .map(c => `<label style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+                    <input type="checkbox" class="campaign-sub-check" data-campana-id="${c.id}">
+                    <span style="font-size: 14px;">${escapeHtml(c.nombre_campana)} (cada ${c.frecuencia_dias} días)</span>
+                  </label>`).join('');
+      document.getElementById('clientCampaignsCheckboxes').innerHTML = checkboxesHtml || '<p style="color:var(--text-secondary); font-size:13px;">No hay campañas activas.</p>';
+      openModal('modalClientOverlay');
+    }
+    function openEditModal(id) {
+      const client = clients.find(c => c.id === id); if (!client) return; editingClientId = id;
+      document.getElementById('modalClientTitle').textContent = 'Editar cliente';
+      document.getElementById('clientName').value = client.name; document.getElementById('clientPhone').value = client.phone;
+      document.getElementById('clientAddress').value = client.address || ''; document.getElementById('clientFrequency').value = client.frequency || '';
+      document.getElementById('deleteClientContainer').style.display = 'block';
+      const container = document.getElementById('clientSalesHistory');
+      const clientSales = ventas.filter(v => v.clienteId === id).sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+      if (clientSales.length === 0) { container.style.display = 'none'; }
+      else {
+        container.style.display = 'block'; let html = '<h3 style="margin-bottom:12px; font-size:16px;">Últimas ventas</h3>';
+        clientSales.slice(0, 10).forEach(v => {
+          const fecha = new Date(v.fecha + 'T12:00:00').toLocaleDateString('es-ES', { day:'2-digit', month:'2-digit', year:'numeric' });
+          let detalle = [];
+          if (v.mineral > 0) detalle.push(`${v.mineral} Min`);
+          if (v.saborizada > 0) detalle.push(`${v.saborizada} Sab`);
+          html += `<div class="history-item"><span class="history-date">${fecha}</span><span class="history-detail">${detalle.join(', ') || 'Sin detalle'}</span><span class="history-amount">${formatearBs(v.total)}</span></div>`;
+        });
+        container.innerHTML = html;
+      }
+      // Renderizar suscripciones a campañas
+      const subs = suscripcionesClientes[id] || new Set();
+      const checkboxesHtml = campanasAutomaticas
+        .filter(c => c.activa)
+        .map(c => `<label style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+                    <input type="checkbox" class="campaign-sub-check" data-campana-id="${c.id}" ${subs.has(c.id) ? 'checked' : ''}>
+                    <span style="font-size: 14px;">${escapeHtml(c.nombre_campana)} (cada ${c.frecuencia_dias} días)</span>
+                  </label>`).join('');
+      document.getElementById('clientCampaignsCheckboxes').innerHTML = checkboxesHtml || '<p style="color:var(--text-secondary); font-size:13px;">No hay campañas activas.</p>';
+      openModal('modalClientOverlay');
+    }
+    async function saveClient() {
+      const name = document.getElementById('clientName').value.trim(); const phone = document.getElementById('clientPhone').value.trim();
+      const address = document.getElementById('clientAddress').value.trim(); const frequency = document.getElementById('clientFrequency').value.trim();
+      if (!name || !phone) return showToast('Nombre y teléfono son obligatorios', 'error');
+      const isNew = !editingClientId; const cId = isNew ? crypto.randomUUID() : editingClientId;
+      if (isNew) { clients.push({ id: cId, name, phone, address, frequency: frequency || '' }); } 
+      else { const client = clients.find(c => c.id === cId); if (client) Object.assign(client, { name, phone, address, frequency: frequency || '' }); }
+      llenarSelectClientes(); renderClientList(); closeModal('modalClientOverlay');
+      const { error: upsertErr } = await db.from('clientes').upsert({ id: cId, nombre: name, telefono: phone, direccion: address || null, frecuencia_dias: frequency ? parseInt(frequency) : null });
+      if (upsertErr) return showToast('Error al guardar cliente', 'error');
+      // Guardar suscripciones a campañas
+      const checkboxes = document.querySelectorAll('.campaign-sub-check:checked');
+      const nuevasSubs = Array.from(checkboxes).map(cb => cb.dataset.campanaId);
+      await db.from('clientes_campanas').delete().eq('cliente_id', cId);
+      if (nuevasSubs.length > 0) {
+        await db.from('clientes_campanas').insert(nuevasSubs.map(cid => ({ cliente_id: cId, campana_id: cid })));
+      }
+      suscripcionesClientes[cId] = new Set(nuevasSubs);
+      showToast(isNew ? 'Cliente guardado' : 'Cliente actualizado', 'success');
+    }
+    async function deleteClient() {
+      if (!editingClientId) return;
+      if (confirm('¿Eliminar este cliente de forma permanente?')) {
+        const cId = editingClientId; clients = clients.filter(c => c.id !== cId);
+        llenarSelectClientes(); renderClientList(); closeModal('modalClientOverlay');
+        await db.from('clientes').delete().eq('id', cId);
+        await db.from('clientes_campanas').delete().eq('cliente_id', cId);
+        delete suscripcionesClientes[cId];
+        showToast('Cliente eliminado', 'info');
+      }
+    }
+
+    // ========== 12. GASTOS ==========
+    function abrirModalGasto() {
+      document.getElementById('fecha-gasto').value = new Date().toISOString().split('T')[0];
+      document.getElementById('desc-gasto').value = ''; document.getElementById('monto-gasto').value = '';
+      renderGastosList(); openModal('modalGastoOverlay');
+    }
+    async function guardarGasto() {
+      const fecha = document.getElementById('fecha-gasto').value; const desc = document.getElementById('desc-gasto').value.trim();
+      const monto = parseFloat(document.getElementById('monto-gasto').value);
+      if(!fecha || !desc || isNaN(monto) || monto <= 0) return showToast('Completa todos los campos', 'error');
+      const id = crypto.randomUUID(); gastos.push({ id, fecha, desc, monto });
+      cargarMovimiento(); renderGastosList(); document.getElementById('desc-gasto').value = ''; document.getElementById('monto-gasto').value = '';
+      const { error } = await db.from('gastos').insert({ id, fecha, descripcion: desc, monto });
+      if (!error) showToast('Gasto registrado', 'success');
+    }
+    async function eliminarGasto(gastoId) {
+      gastos = gastos.filter(g => g.id !== gastoId); cargarMovimiento(); renderGastosList();
+      await db.from('gastos').delete().eq('id', gastoId); showToast('Gasto eliminado', 'info');
+    }
+    function renderGastosList() {
+      const container = document.getElementById('gastosListContainer');
+      const mes = parseInt(document.getElementById('mes').value); const anio = parseInt(document.getElementById('anio').value);
+      const gastosMes = gastos.filter(g => { const d = new Date(g.fecha + 'T12:00:00'); return d.getMonth() === mes && d.getFullYear() === anio; }).sort((a,b) => new Date(b.fecha) - new Date(a.fecha));
+      if (gastosMes.length === 0) { container.innerHTML = '<p style="text-align:center; color:var(--text-secondary); padding:20px;">No hay gastos este mes</p>'; return; }
+      let html = '<h3 style="margin-bottom:12px; font-size:16px;">Gastos del mes</h3>';
+      gastosMes.forEach(g => {
+        const fecha = new Date(g.fecha + 'T12:00:00').toLocaleDateString('es-ES', { day:'2-digit', month:'2-digit' });
+        html += `<div class="gasto-item"><span class="gasto-date">${fecha}</span><span class="gasto-desc">${escapeHtml(g.desc)}</span><span class="gasto-monto">-${formatearBs(g.monto)}</span><button class="gasto-delete-btn" onclick="eliminarGasto('${g.id}')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button></div>`;
+      });
+      container.innerHTML = html;
+    }
+
+    // ========== 13. PERFIL Y SETTINGS ==========
+    function abrirModalPrecios() {
+      document.getElementById('precioMineralInput').value = precioMineral; document.getElementById('precioSaborizadaInput').value = precioSaborizada;
+      document.getElementById('costoMineralInput').value = costoProdMineral; document.getElementById('costoSaborizadaInput').value = costoProdSaborizada;
+      openModal('modalPreciosOverlay');
+    }
+    async function guardarPrecios() {
+      const pm = parseFloat(document.getElementById('precioMineralInput').value); const ps = parseFloat(document.getElementById('precioSaborizadaInput').value);
+      const cm = parseFloat(document.getElementById('costoMineralInput').value); const cs = parseFloat(document.getElementById('costoSaborizadaInput').value);
+      if (isNaN(pm) || isNaN(ps) || isNaN(cm) || isNaN(cs) || pm < 0 || ps < 0 || cm < 0 || cs < 0) return showToast('Valores inválidos', 'error');
+      precioMineral = pm; precioSaborizada = ps; costoProdMineral = cm; costoProdSaborizada = cs;
+      closeModal('modalPreciosOverlay');
+      const { error } = await db.from('configuracion').upsert({ id: 1, precio_mineral: pm, precio_saborizada: ps, costo_mineral: cm, costo_saborizada: cs });
+      if (!error) { showToast('Precios actualizados', 'success'); cargarMovimiento(); calcularTotalVenta(); }
+    }
+
+    async function subirLogoPerfil(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        document.getElementById('profile-img').src = e.target.result;
+        localStorage.setItem('agua_avatar', e.target.result);
+      };
+      reader.readAsDataURL(file);
+      const { error } = await db.storage
+        .from('assets')
+        .upload('repartidor-icon.png', file, { cacheControl: '3600', upsert: true });
+      if (error) showToast('Error al subir imagen: ' + error.message, 'error');
+      else showToast('Logo actualizado con éxito', 'success');
+    }
+
+    function cargarLogoActual() {
+      const publicUrl = db.storage.from('assets').getPublicUrl('repartidor-icon.png').data.publicUrl;
+      const preview = document.getElementById('profile-img');
+      const img = new Image();
+      img.onload = () => {
+        preview.src = publicUrl;
+        localStorage.setItem('agua_avatar', publicUrl);
+      };
+      img.onerror = () => {
+        const saved = localStorage.getItem('agua_avatar');
+        if (saved) preview.src = saved;
+      };
+      img.src = publicUrl;
+    }
+
+    function copiarDirectLink() {
+      let storeCode = localStorage.getItem('aguabol_store_code');
+      if (!storeCode) { storeCode = 'AGUA-' + Math.random().toString(36).substring(2, 6).toUpperCase(); localStorage.setItem('aguabol_store_code', storeCode); }
+      const link = `https://agualight.com/Pedidos.html?store=${storeCode}`;
+      if (navigator.clipboard) { navigator.clipboard.writeText(link).then(() => showToast(`Link copiado`, 'success')); } 
+      else { const ti = document.createElement("input"); ti.value = link; document.body.appendChild(ti); ti.select(); document.execCommand("copy"); document.body.removeChild(ti); showToast(`Link copiado`, 'success'); }
+    }
+
+    // ========== 14. FINANZAS ==========
+    function cargarMovimiento() {
+      const mes = parseInt(document.getElementById('mes').value); const anio = parseInt(document.getElementById('anio').value);
+      const ventasMes = ventas.filter(v => { const d = new Date(v.fecha + 'T12:00:00'); return d.getMonth() === mes && d.getFullYear() === anio; });
+      const gastosMes = gastos.filter(g => { const d = new Date(g.fecha + 'T12:00:00'); return d.getMonth() === mes && d.getFullYear() === anio; });
+      let totalIngresos = 0, costoProduccionTotal = 0, totalGastos = gastosMes.reduce((acc, g) => acc + g.monto, 0);
+      let datosDiarios = {};
+      ventasMes.forEach(v => {
+        const dia = new Date(v.fecha + 'T12:00:00').getDate();
+        if(!datosDiarios[dia]) datosDiarios[dia] = 0;
+        totalIngresos += v.total; costoProduccionTotal += (v.mineral * costoProdMineral) + (v.saborizada * costoProdSaborizada);
+        datosDiarios[dia] += v.total;
+      });
+      const utilidadNeta = totalIngresos - costoProduccionTotal - totalGastos;
+      document.getElementById('utilidad-neta').style.color = utilidadNeta >= 0 ? 'var(--green)' : 'var(--destructive)';
+      animarNumero('total-mes', totalIngresos, 1200); animarNumero('utilidad-neta', utilidadNeta, 1200);
+      let barrasHTML = ''; const maxDiario = Math.max(...Object.values(datosDiarios), 1);
+      const diasEnMes = new Date(anio, mes + 1, 0).getDate(); const hoy = new Date();
+      const esMesActual = (mes === hoy.getMonth() && anio === hoy.getFullYear()); const diaActual = hoy.getDate();
+      for (let dia = 1; dia <= diasEnMes; dia++) {
+        const totalDia = datosDiarios[dia] || 0; const altura = Math.min((totalDia / maxDiario) * 100, 100);
+        const esHoy = esMesActual && dia === diaActual;
+        barrasHTML += `<div class="bar-item" id="${esHoy ? 'bar-dia-actual' : ''}"><div class="bar" style="height:0px;" data-height="${altura}"></div><span class="${esHoy ? 'bar-label hoy' : 'bar-label'}">${dia}</span></div>`;
+      }
+      const grafico = document.getElementById('grafico'); grafico.innerHTML = barrasHTML;
+      setTimeout(() => { grafico.querySelectorAll('.bar').forEach(bar => bar.style.height = bar.getAttribute('data-height') + 'px'); }, 50);
+      if (esMesActual) setTimeout(() => { const barActual = document.getElementById('bar-dia-actual'); if (barActual) barActual.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' }); }, 300);
+      else document.getElementById('chart-container-scroll').scrollLeft = 0;
+    }
+
+    // ========== 15. MARKETING ==========
+    function renderCampanasAutomaticas() {
+      const container = document.getElementById('campanas-automaticas-container');
+      if (!campanasAutomaticas || campanasAutomaticas.length === 0) {
+        container.innerHTML = '<div class="card" style="text-align:center; padding:30px; color:var(--text-secondary);">No hay campañas automáticas configuradas.</div>';
+        return;
+      }
+      let html = '';
+      campanasAutomaticas.forEach(camp => {
+        const fechaUltimo = camp.fecha_ultimo_envio 
+          ? new Date(camp.fecha_ultimo_envio + 'T12:00:00').toLocaleDateString('es-ES', { day:'2-digit', month:'2-digit', year:'numeric' })
+          : 'Nunca';
+        html += `
+          <div class="card" style="margin-bottom: 16px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+              <div>
+                <div style="font-size: 16px; font-weight: 800; color: var(--text-primary);">${escapeHtml(camp.nombre_campana)}</div>
+                <div style="font-size: 12px; color: var(--text-secondary);">Cada ${camp.frecuencia_dias} días</div>
+              </div>
+              <label class="switch">
+                <input type="checkbox" id="auto-activo-${camp.id}" ${camp.activa ? 'checked' : ''} onchange="guardarAutoMarketing('${camp.id}')">
+                <span class="slider"></span>
+              </label>
+            </div>
+
+            <div class="input-group" style="width: 100%;">
+              <label>Título</label>
+              <input type="text" id="auto-titulo-${camp.id}" value="${escapeHtml(camp.titulo || '')}" onchange="guardarAutoMarketing('${camp.id}')">
+            </div>
+
+            <div class="input-group" style="width: 100%;">
+              <label>Mensaje</label>
+              <textarea id="auto-mensaje-${camp.id}" rows="2" style="width: 100%; appearance: none; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: var(--radius-sm); padding: 12px 14px; font-size: 16px; font-family: inherit; color: var(--text-primary); font-weight: 600; outline: none; resize: none;" onchange="guardarAutoMarketing('${camp.id}')">${escapeHtml(camp.mensaje || '')}</textarea>
+            </div>
+
+            <div style="font-size: 12px; font-weight: 700; color: var(--tint); margin-top: 8px; background: #e0f2fe; padding: 8px 12px; border-radius: 8px; display: inline-block;">
+              Último envío: ${fechaUltimo}
+            </div>
+          </div>
+        `;
+      });
+      container.innerHTML = html;
+    }
+
+    async function guardarAutoMarketing(id) {
+      const camp = campanasAutomaticas.find(c => c.id === id);
+      if (!camp) return;
+      const activo = document.getElementById(`auto-activo-${id}`)?.checked ?? camp.activa;
+      const titulo = document.getElementById(`auto-titulo-${id}`)?.value ?? camp.titulo;
+      const mensaje = document.getElementById(`auto-mensaje-${id}`)?.value ?? camp.mensaje;
+      Object.assign(camp, { activa: activo, titulo, mensaje });
+      const { error } = await db.from('campanas_automaticas').update({
+        activa: activo,
+        titulo: titulo,
+        mensaje: mensaje
+      }).eq('id', id);
+      if (!error) showToast('Campaña automática actualizada', 'success');
+    }
+
+    async function verificarDisparoAutomatico() {
+      if (!campanasAutomaticas || campanasAutomaticas.length === 0) return;
+      const hoy = new Date();
+      for (const camp of campanasAutomaticas) {
+        if (!camp.activa || !camp.titulo || !camp.mensaje) continue;
+        let disparar = false;
+        if (!camp.fecha_ultimo_envio) {
+          disparar = true;
+        } else {
+          const ultimoEnvio = new Date(camp.fecha_ultimo_envio + 'T12:00:00');
+          const diffTiempo = Math.abs(hoy - ultimoEnvio);
+          const diffDias = Math.ceil(diffTiempo / (1000 * 60 * 60 * 24));
+          if (diffDias >= camp.frecuencia_dias) {
+            disparar = true;
+          }
+        }
+        if (disparar) {
+          const fechaHoyStr = hoy.toISOString().split('T')[0];
+          // Obtener suscriptores de esta campaña
+          const { data: subsIds, error: subsErr } = await db
+            .from('clientes_campanas')
+            .select('cliente_id')
+            .eq('campana_id', camp.id);
+          if (subsErr) {
+            console.error('Error obteniendo suscriptores:', subsErr);
+            continue;
+          }
+          const suscriptores = subsIds ? subsIds.map(s => s.cliente_id) : [];
+          if (suscriptores.length === 0) {
+            // Sin suscriptores, marcar como enviado para no reintentar
+            await db.from('campanas_automaticas').update({ fecha_ultimo_envio: fechaHoyStr }).eq('id', camp.id);
+            camp.fecha_ultimo_envio = fechaHoyStr;
+            continue;
+          }
+          try {
+            const { error: invokeError } = await db.functions.invoke('enviar-masivo', {
+              body: {
+                titulo: camp.titulo,
+                mensaje: camp.mensaje,
+                cliente_ids: suscriptores,
+                campana_id: camp.id
+              }
+            });
+            if (invokeError) {
+              console.error(`Error al enviar campaña "${camp.nombre_campana}":`, invokeError);
+              continue;
+            }
+            await db.from('campanas_automaticas').update({ fecha_ultimo_envio: fechaHoyStr }).eq('id', camp.id);
+            camp.fecha_ultimo_envio = fechaHoyStr;
+            await db.from('campanas_marketing').insert({
+              titulo: '🤖 ' + camp.titulo,
+              mensaje: camp.mensaje,
+              alcance: suscriptores.length,
+              fecha_envio: new Date().toISOString()
+            });
+            cargarHistorialMarketing();
+            showToast(`🤖 Campaña "${camp.nombre_campana}" enviada a ${suscriptores.length} suscriptores`, "success");
+          } catch (err) {
+            console.error('Error en disparo automático:', err);
+          }
+        }
+      }
+    }
+
+    async function cargarHistorialMarketing() {
+      const { data: campanas, error } = await db
+        .from('campanas_marketing')
+        .select('*')
+        .order('fecha_envio', { ascending: false });
+      const contenedor = document.getElementById('historial-marketing-tabla');
+      if (error || !campanas || campanas.length === 0) {
+        contenedor.innerHTML = `<div style="padding: 20px; text-align: center; color: var(--text-secondary); font-size: 14px;">No has enviado ninguna campaña todavía.</div>`;
+        return;
+      }
+      contenedor.innerHTML = campanas.map(c => {
+        const fecha = new Date(c.fecha_envio).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+        return `
+          <div style="padding: 16px; border-bottom: 1px solid var(--separator); display: flex; flex-direction: column; gap: 6px;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+              <strong style="font-size: 15px;">${escapeHtml(c.titulo)}</strong>
+              <span style="background: #dcfce7; color: #16a34a; padding: 4px 8px; border-radius: 6px; font-weight: 700; font-size: 11px; white-space: nowrap;">📱 ${c.alcance} enviados</span>
+            </div>
+            <div style="font-size: 13px; color: var(--text-secondary);">${escapeHtml(c.mensaje)}</div>
+            <div style="font-size: 11px; color: #94a3b8; font-weight: 600; margin-top: 4px;">Enviado: ${fecha}</div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    async function dispararCampañaMasiva() {
+      const titulo = document.getElementById('marketing-titulo').value.trim();
+      const mensaje = document.getElementById('marketing-mensaje').value.trim();
+      if (!titulo || !mensaje) return showToast("Falta el título o el mensaje", "error");
+      const btn = document.getElementById('btn-enviar-marketing');
+      btn.disabled = true;
+      const textoOriginal = btn.innerHTML;
+      btn.innerHTML = `<span class="spin">⏳</span> Enviando a todos...`;
+      try {
+        const { data, error } = await db.functions.invoke('enviar-masivo', {
+          body: { titulo: titulo, mensaje: mensaje }
+        });
+        if (error) throw error;
+        showToast("¡Notificaciones enviadas con éxito!", "success");
+        document.getElementById('marketing-titulo').value = '';
+        document.getElementById('marketing-mensaje').value = '';
+        cargarHistorialMarketing();
+      } catch (err) {
+        console.error("Error lanzando campaña:", err);
+        showToast("Error al conectar con el servidor", "error");
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = textoOriginal;
+      }
+    }
+
+    // ========== 16. REALTIME Y PUSH ==========
+    async function recargarPedidosActivos() {
+      const { data, error } = await db.from('pedidos')
+        .select('*, clientes(*)')
+        .in('estado', ['pendiente', 'en_camino'])
+        .order('created_at', { ascending: false });
+      if (!error && data) {
+        pedidosActivos = data;
+        renderPedidos();
+      }
+    }
+
+    async function escucharRealtime() {
+      db.channel('public:pedidos')
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'pedidos' }, async (payload) => {
+          const { data: cliInfo } = await db.from('clientes').select('*').eq('id', payload.new.cliente_id).single();
+          payload.new.clientes = cliInfo; pedidosActivos.unshift(payload.new);
+          try {
+            await LocalNotifications.schedule({
+              notifications: [{ id: new Date().getTime(), title: '¡Nuevo pedido!', body: cliInfo ? `${cliInfo.nombre} ha solicitado un pedido` : 'Nuevo pedido entrante', sound: 'default', smallIcon: 'ic_launcher', iconColor: '#0ea5e9' }]
+            });
+          } catch(e) {}
+          showToast('¡NUEVO PEDIDO RECIBIDO! 🔔');
+          renderPedidos();
+        })
+        .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'pedidos' }, async (payload) => {
+          if (payload.new.estado === 'cancelado' || payload.new.estado === 'entregado') {
+            if (payload.new.estado === 'entregado') {
+              showToast('Un chofer ha entregado un pedido ✅', 'success');
+              const pedido = pedidosActivos.find(p => p.id === payload.new.id);
+              if (pedido) {
+                const idVenta = crypto.randomUUID();
+                const fechaHoy = new Date().toISOString().split('T')[0];
+                const m = pedido.items?.mineral || 0;
+                const s = pedido.items?.saborizada || 0;
+                ventas.push({ id: idVenta, fecha: fechaHoy, clienteId: pedido.cliente_id, mineral: m, saborizada: s, envasesDevueltos: 0, total: pedido.monto_total });
+                stock.mineral -= m;
+                stock.saborizada -= s;
+                await Promise.all([
+                  db.from('ventas').insert({
+                    id: idVenta,
+                    pedido_id: payload.new.id,
+                    fecha: fechaHoy,
+                    cliente_id: pedido.cliente_id,
+                    mineral: m, saborizada: s,
+                    envases_devueltos: 0,
+                    total: pedido.monto_total
+                  }),
+                  db.from('stock').upsert({ id: 1, mineral: stock.mineral, saborizada: stock.saborizada, envases_vacios: stock.envasesVacios })
+                ]);
+                cargarMovimiento();
+                actualizarStockUI();
+              }
+            }
+            await recargarPedidosActivos();
+            return;
+          }
+          const idx = pedidosActivos.findIndex(p => p.id === payload.new.id);
+          if (idx !== -1) {
+            pedidosActivos[idx].estado = payload.new.estado;
+            pedidosActivos[idx].chofer_id = payload.new.chofer_id;
+            pedidosActivos[idx].ubicacion_chofer = payload.new.ubicacion_chofer;
+            renderPedidos();
+          }
+        })
+        .subscribe();
+
+      db.channel('public:clientes')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'clientes' }, (payload) => {
+            if (payload.eventType === 'INSERT') {
+              const nCli = { id: payload.new.id, name: payload.new.nombre, phone: payload.new.telefono, address: payload.new.direccion, frequency: payload.new.frecuencia_dias ? payload.new.frecuencia_dias.toString() : '' };
+              if(!clients.some(c => c.id === nCli.id)) clients.push(nCli);
+            } else if (payload.eventType === 'UPDATE') {
+              const idx = clients.findIndex(c => c.id === payload.new.id);
+              if (idx !== -1) clients[idx] = { id: payload.new.id, name: payload.new.nombre, phone: payload.new.telefono, address: payload.new.direccion, frequency: payload.new.frecuencia_dias ? payload.new.frecuencia_dias.toString() : '' };
+            } else if (payload.eventType === 'DELETE') { clients = clients.filter(c => c.id !== payload.old.id); }
+            renderClientList(); llenarSelectClientes();
+        }).subscribe();
+
+      db.channel('operaciones_central')
+        .on('broadcast', { event: 'accion_chofer' }, (event) => {
+          const datosChofer = event.payload;
+          if (datosChofer.estado === 'cancelado') showToast('Un pedido ha sido cancelado ❌', 'info');
+          if (datosChofer.estado === 'entregado') showToast('Un chofer ha entregado un pedido ✅', 'success');
+          recargarPedidosActivos();
+        })
+        .subscribe();
+    }
+
+    async function registrarPush() {
+      const PushNotifications = Capacitor.Plugins.PushNotifications;
+      if (!PushNotifications) return;
+      try {
+        await PushNotifications.createChannel({
+          id: 'pedidos_urgentes',
+          name: 'Pedidos Urgentes',
+          description: 'Notificaciones de alta prioridad para nuevos pedidos',
+          importance: 5,
+          visibility: 1,
+          vibration: true,
+          sound: 'default'
+        });
+      } catch (e) { console.log('Canal push no inicializado en entorno web.', e); }
+      let permStatus = await PushNotifications.checkPermissions();
+      if (permStatus.receive === 'prompt') {
+        permStatus = await PushNotifications.requestPermissions();
+      }
+      if (permStatus.receive !== 'granted') return;
       await PushNotifications.register();
-      PushNotifications.addListener('registration',async token=>{const{error}=await db.from('dispositivos').upsert({user_id:'admin-unico',fcm_token:token.value,plataforma:'android',updated_at:new Date().toISOString()},{onConflict:'user_id'}); if(error)console.error('Error guardando token push:',error.message);});
-      PushNotifications.addListener('pushNotificationReceived',notif=>{const data=notif.data; if(data&&(data.type==='pedido_cancelado'||data.type==='pedido_entregado')){showToast(data.type==='pedido_cancelado'?'Pedido cancelado por chofer ❌':'Pedido entregado ✅','info'); recargarPedidosActivos();}else{showToast('🔔 ¡Notificación entrante!','info'); cargarDatosCompletos();}});
-      PushNotifications.addListener('pushNotificationActionPerformed',notif=>{const data=notif.data; if(data&&(data.type==='pedido_cancelado'||data.type==='pedido_entregado'))recargarPedidosActivos(); else cargarDatosCompletos();});
+      PushNotifications.addListener('registration', async (token) => {
+        const { error } = await db.from('dispositivos').upsert({
+          user_id: 'admin-unico',
+          fcm_token: token.value,
+          plataforma: 'android',
+          updated_at: new Date().toISOString()
+        }, { onConflict: 'user_id' });
+        if (error) console.error('Error inyectando token push de administrador:', error.message);
+      });
+      PushNotifications.addListener('pushNotificationReceived', (notif) => {
+        const data = notif.data;
+        if (data && (data.type === "pedido_cancelado" || data.type === "pedido_entregado")) {
+          showToast(data.type === "pedido_cancelado" ? "Pedido cancelado por chofer ❌" : "Pedido entregado ✅", "info");
+          recargarPedidosActivos();
+        } else {
+          showToast('🔔 ¡Notificación entrante!', 'info');
+          cargarDatosCompletos();
+        }
+      });
+      PushNotifications.addListener('pushNotificationActionPerformed', (notif) => {
+        const data = notif.data;
+        if (data && (data.type === "pedido_cancelado" || data.type === "pedido_entregado")) {
+          recargarPedidosActivos();
+        } else {
+          cargarDatosCompletos();
+        }
+      });
     }
 
-    // ========== INICIO ==========
-    document.addEventListener('DOMContentLoaded',async()=>{
-      document.getElementById('fecha-venta').value=new Date().toISOString().split('T')[0];
-      const today=new Date(); document.getElementById('mes').value=today.getMonth(); document.getElementById('anio').value=today.getFullYear();
-      try{const geoPlugin=Capacitor.Plugins.Geolocation; if(geoPlugin)await geoPlugin.requestPermissions();}catch(e){}
-      try{const notifPlugin=Capacitor.Plugins.LocalNotifications; if(notifPlugin)await notifPlugin.requestPermissions();}catch(e){}
-      const savedAvatar=localStorage.getItem('agua_avatar'); if(savedAvatar)document.getElementById('profile-img').src=savedAvatar;
+    // ========== INICIAR APP ==========
+    document.addEventListener('DOMContentLoaded', async () => {
+      document.getElementById('fecha-venta').value = new Date().toISOString().split('T')[0];
+      const today = new Date(); document.getElementById('mes').value = today.getMonth(); document.getElementById('anio').value = today.getFullYear();
+      try { const geoPlugin = Capacitor.Plugins.Geolocation; if (geoPlugin) await geoPlugin.requestPermissions(); } catch(e) {}
+      try { const notifPlugin = Capacitor.Plugins.LocalNotifications; if (notifPlugin) await notifPlugin.requestPermissions(); } catch(e) {}
+      const savedAvatar = localStorage.getItem('agua_avatar');
+      if (savedAvatar) document.getElementById('profile-img').src = savedAvatar;
       await cargarDatosCompletos();
       escucharRealtime();
       registrarPush();
