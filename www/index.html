@@ -1150,7 +1150,8 @@ return pts;
   const deudaEnvases = (totMin + totSab) - totDev;
   
   // NUEVO: calcular sellos de lealtad (0-10)
-  const stamps = (totMin + totSab) % 11;   // 10 = ¡Gratis!
+  let stamps = (totMin + totSab) % 10;
+if (stamps === 0 && (totMin + totSab) > 0) stamps = 10;
 
   const client = clients.find(c => c.id === clienteId);
   let pedidoPendiente = false;
