@@ -909,7 +909,9 @@
     function calcularLealtadCliente(clienteId) {
       const compras = ventas.filter(v => v.clienteId === clienteId);
       let total = 0; compras.forEach(c => { total += (c.mineral || 0) + (c.saborizada || 0); });
-      return total % 11;
+let pts = total % 10;
+if (pts === 0 && total > 0) pts = 10;
+return pts;
     }
 
     function renderPedidos() {
