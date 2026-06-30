@@ -718,8 +718,10 @@
     async function cargarLealtad() {
       const { data: v } = await db.from('ventas').select('mineral, saborizada').eq('cliente_id', usuarioActual.id);
       let tot = 0; v?.forEach(x => tot += (x.mineral+x.saborizada));
-      let pts = tot % 11; 
-      const faltan = 10 - pts;
+      // CÓDIGO CORRECTO
+let pts = tot % 10;
+if (pts === 0 && tot > 0) { pts = 10; }
+const faltan = 10 - pts;
       const lblStatus = document.getElementById('status-lealtad');
       
       if (pts === 10) {
