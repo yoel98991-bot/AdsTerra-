@@ -724,18 +724,26 @@
       }
     }
 
-        async function cargarLealtad() {
-      const { data: v } = await db.from('ventas').select('mineral, saborizada, total').eq('cliente_id', usuarioActual.id);
+            async function cargarLealtad() {
+      // 1. Leemos el historial de ventas Y los pedidos que están en camino
+      const [resVentas, resPedidos] = await Promise.all([
+        db.from('ventas').select('mineral, saborizada, total').eq('cliente_id', usuarioActual.id),
+        db.from('pedidos').select('items, monto_total').eq('cliente_id', usuarioActual.id).in('estado', ['pendiente', 'en_camino'])
+      ]);
+      
+      const v = resVentas.data || [];
+      const pedidosActivos = resPedidos.data || [];
       
       let botellonesNormales = 0;
       let premiosReclamados = 0;
       
-      v?.forEach(x => {
-          const m = x.mineral || 0;
-          const s = x.saborizada || 0;
-          const valorReal = (m * pMin) + (s * pSab);
+      v.forEach(x => {
+          const m = parseInt(x.mineral) || 0;
+          const s = parseInt(x.saborizada) || 0;
+          const totalVenta = parseFloat(x.total) || 0;
           
-          if (x.total < valorReal && x.total >= 0) {
+          // Lógica estricta: Detectamos si fue un premio real entregado
+          if ((m > 0 && totalVenta === 0) || (s > 0 && totalVenta <= (pSab / 2 + 0.1) && totalVenta >= 0)) {
               premiosReclamados++;
               botellonesNormales += (m + s - 1); 
           } else {
@@ -746,9 +754,21 @@
       const META = 10;
       let premiosGanados = Math.floor(botellonesNormales / META);
       let tienePremio = premiosGanados > premiosReclamados;
-      let pts = botellonesNormales % META;
-      const faltan = META - pts;
       
+      // 2. CORRECCIÓN: Si el cliente ya pidió su premio, ocultamos la alerta
+      let premioEnProceso = pedidosActivos.some(p => p.items?.es_premio === true || (p.monto_total === 0 && p.items?.mineral > 0));
+      if (premioEnProceso) {
+          tienePremio = false; 
+      }
+      
+      let pts = botellonesNormales % META;
+      
+      // 3. CORRECCIÓN: Si llegó a 10, forzamos a que dibuje los 10 sellos en lugar de 0
+      if (tienePremio && pts === 0) {
+          pts = META; 
+      }
+      
+      const faltan = META - pts;
       const lblStatus = document.getElementById('status-lealtad');
       
       if (tienePremio) {
@@ -757,6 +777,13 @@
         lblStatus.style.color = "var(--gold)";
         document.getElementById('premio-container').style.display = 'block';
         document.getElementById('catalogo-container').style.display = 'none'; 
+      } else if (premioEnProceso) {
+        // Le mostramos al cliente que su premio ya va en camino
+        lblStatus.innerHTML = "Tu recarga de regalo va en camino 🛵";
+        lblStatus.style.background = "rgba(14, 165, 233, 0.2)";
+        lblStatus.style.color = "var(--tint)";
+        document.getElementById('premio-container').style.display = 'none';
+        document.getElementById('catalogo-container').style.display = 'block';
       } else {
         lblStatus.innerHTML = `Te faltan ${faltan} sellos para tu regalo`;
         lblStatus.style.background = "rgba(255,255,255,0.1)";
@@ -767,7 +794,6 @@
       
       const cont = document.getElementById('stamps-container'); 
       cont.innerHTML = '';
-      cont.style.gridTemplateColumns = `repeat(${META}, 1fr)`; 
       
       for (let i = 1; i <= META; i++) {
         const isFilled = i <= pts;
@@ -799,6 +825,7 @@
         bdayMsg.style.display = 'none';
       }
     }
+
 
 
         async function pedirPremioRapido(tipo) {
