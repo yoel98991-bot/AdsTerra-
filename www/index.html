@@ -906,14 +906,32 @@
     }
 
     // ========== 6. OPERACIONES: PEDIDOS ==========
+
     function calcularLealtadCliente(clienteId) {
       const compras = ventas.filter(v => v.clienteId === clienteId);
-      let total = 0; compras.forEach(c => { total += (c.mineral || 0) + (c.saborizada || 0); });
-let pts = total % 10;
-if (pts === 0 && total > 0) pts = 10;
-return pts;
+      let botellonesComprados = 0;
+      let premiosReclamados = 0;
+
+      compras.forEach(c => {
+        const m = c.mineral || 0;
+        const s = c.saborizada || 0;
+        const valorReal = (m * precioMineral) + (s * precioSaborizada);
+        
+        // Si pagó menos del valor real, asumimos que se le dio el premio
+        if (c.total < valorReal && c.total >= 0) {
+            premiosReclamados++;
+            botellonesComprados += (m + s - 1); // No contamos el producto regalado
+        } else {
+            botellonesComprados += (m + s);
+        }
+      });
+
+      let premiosGanados = Math.floor(botellonesComprados / 7);
+      if (premiosGanados > premiosReclamados) return 7; // Fuerzo el 7 para que el botón de regalo aparezca
+      return botellonesComprados % 7;
     }
 
+    
     function renderPedidos() {
       const container = document.getElementById('lista-pedidos-container');
       const vacia = document.getElementById('lista-pedidos-vacia');
@@ -1144,14 +1162,22 @@ return pts;
 
     // ========== 7. DIRECTORIO CRM ==========
     function getClientStats(clienteId) {
-  const clientSales = ventas.filter(v => v.clienteId === clienteId).sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
-  let totMin = 0, totSab = 0, totDev = 0;
-  clientSales.forEach(v => { totMin += v.mineral; totSab += v.saborizada; totDev += (v.envasesDevueltos || 0); });
-  const deudaEnvases = (totMin + totSab) - totDev;
+   const clientSales = ventas.filter(v => v.clienteId === clienteId).sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+  let totMin = 0, totSab = 0, totDev = 0, botellonesComprados = 0, premiosReclamados = 0;
   
-  // NUEVO: calcular sellos de lealtad (0-10)
-  let stamps = (totMin + totSab) % 10;
-if (stamps === 0 && (totMin + totSab) > 0) stamps = 10;
+  clientSales.forEach(v => { 
+    totMin += v.mineral; totSab += v.saborizada; totDev += (v.envasesDevueltos || 0); 
+    const m = v.mineral || 0; const s = v.saborizada || 0;
+    const valorReal = (m * precioMineral) + (s * precioSaborizada);
+    if (v.total < valorReal && v.total >= 0) {
+        premiosReclamados++; botellonesComprados += (m + s - 1);
+    } else {
+        botellonesComprados += (m + s);
+    }
+  });
+  const deudaEnvases = (totMin + totSab) - totDev;
+  let premiosGanados = Math.floor(botellonesComprados / 7);
+  let stamps = (premiosGanados > premiosReclamados) ? 7 : (botellonesComprados % 7);
 
   const client = clients.find(c => c.id === clienteId);
   let pedidoPendiente = false;
@@ -1208,12 +1234,14 @@ if (stamps === 0 && (totMin + totSab) > 0) stamps = 10;
     let badgeDeuda = stats.deudaEnvases > 0 ? `<span class="badge ${stats.deudaEnvases > 3 ? 'alert' : ''}">Debe ${stats.deudaEnvases}</span>` : '';
     
     // --- NUEVO: badge de lealtad ---
+        // --- NUEVO: badge de lealtad ---
     let badgeLealtad = '';
-    if (stats.stamps === 10) {
+    if (stats.stamps === 7) {
       badgeLealtad = '<span class="badge" style="background: #dcfce7; color: #16a34a;">🎉 ¡Gratis!</span>';
     } else {
-      badgeLealtad = `<span class="badge" style="background: #fef3c7; color: #d97706;">🎁 ${stats.stamps}/10</span>`;
+      badgeLealtad = `<span class="badge" style="background: #fef3c7; color: #d97706;">🎁 ${stats.stamps}/7</span>`;
     }
+
 
     html += `
       <div class="client-row" onclick="openEditModal('${client.id}')">
@@ -1266,7 +1294,7 @@ if (stamps === 0 && (totMin + totSab) > 0) stamps = 10;
         const panelPremio = document.getElementById('panel-acciones-premio');
         const panelCancelarPremio = document.getElementById('panel-cancelar-premio');
 
-        if(puntos === 10) { 
+        if(puntos === 7) { 
           document.getElementById('ruta-lealtad-texto').textContent = '🎁 ¡RECARGA GRATIS!';
           panelNormales.style.display = 'none';
           panelPremio.style.display = 'grid';
@@ -1276,7 +1304,10 @@ if (stamps === 0 && (totMin + totSab) > 0) stamps = 10;
           document.getElementById('btn-premio-saborizada').onclick = () => completarPedido(pedidoId, 'saborizada');
           document.getElementById('btn-cancelar-ruta-premio').onclick = () => cancelarPedido(pedidoId);
         } else {
-          document.getElementById('ruta-lealtad-texto').textContent = `${puntos}/10 Compras`;
+          document.getElementById('ruta-lealtad-texto').textContent = `${puntos}/7 Compras`;
+
+
+    
           panelNormales.style.display = 'grid';
           panelPremio.style.display = 'none';
           panelCancelarPremio.style.display = 'none';
