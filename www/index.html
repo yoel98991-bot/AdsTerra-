@@ -907,7 +907,7 @@
 
     // ========== 6. OPERACIONES: PEDIDOS ==========
 
-    function calcularLealtadCliente(clienteId) {
+        function calcularLealtadCliente(clienteId) {
       const compras = ventas.filter(v => v.clienteId === clienteId);
       let botellonesComprados = 0;
       let premiosReclamados = 0;
@@ -926,9 +926,9 @@
         }
       });
 
-      let premiosGanados = Math.floor(botellonesComprados / 7);
-      if (premiosGanados > premiosReclamados) return 7; // Fuerzo el 7 para que el botón de regalo aparezca
-      return botellonesComprados % 7;
+      let premiosGanados = Math.floor(botellonesComprados / 10);
+      if (premiosGanados > premiosReclamados) return 10; // Forzamos el 10 para que aparezca el botón de regalo
+      return botellonesComprados % 10;
     }
 
     
@@ -1161,41 +1161,50 @@
     }
 
     // ========== 7. DIRECTORIO CRM ==========
-    function getClientStats(clienteId) {
-   const clientSales = ventas.filter(v => v.clienteId === clienteId).sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
-  let totMin = 0, totSab = 0, totDev = 0, botellonesComprados = 0, premiosReclamados = 0;
-  
-  clientSales.forEach(v => { 
-    totMin += v.mineral; totSab += v.saborizada; totDev += (v.envasesDevueltos || 0); 
-    const m = v.mineral || 0; const s = v.saborizada || 0;
-    const valorReal = (m * precioMineral) + (s * precioSaborizada);
-    if (v.total < valorReal && v.total >= 0) {
-        premiosReclamados++; botellonesComprados += (m + s - 1);
-    } else {
-        botellonesComprados += (m + s);
-    }
-  });
-  const deudaEnvases = (totMin + totSab) - totDev;
-  let premiosGanados = Math.floor(botellonesComprados / 7);
-  let stamps = (premiosGanados > premiosReclamados) ? 7 : (botellonesComprados % 7);
+        function getClientStats(clienteId) {
+      const clientSales = ventas.filter(v => v.clienteId === clienteId).sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+      let totMin = 0, totSab = 0, totDev = 0, botellonesComprados = 0, premiosReclamados = 0;
+      
+      clientSales.forEach(v => { 
+        totMin += v.mineral; totSab += v.saborizada; totDev += (v.envasesDevueltos || 0); 
+        const m = v.mineral || 0; const s = v.saborizada || 0;
+        const valorReal = (m * precioMineral) + (s * precioSaborizada);
+        
+        // Verificamos si el pago fue menor al valor real para identificar el premio
+        if (v.total < valorReal && v.total >= 0) {
+            premiosReclamados++; 
+            botellonesComprados += (m + s - 1);
+        } else {
+            botellonesComprados += (m + s);
+        }
+      });
+      
+      const deudaEnvases = (totMin + totSab) - totDev;
+      
+      // Cálculo de sellos basado en 10
+      let premiosGanados = Math.floor(botellonesComprados / 10);
+      let stamps = (premiosGanados > premiosReclamados) ? 10 : (botellonesComprados % 10);
 
-  const client = clients.find(c => c.id === clienteId);
-  let pedidoPendiente = false;
-  if (clientSales.length > 0) {
-    const diasDesdeUltima = Math.floor((new Date() - new Date(clientSales[0].fecha)) / (1000 * 60 * 60 * 24));
-    if (client && client.frequency && !isNaN(parseInt(client.frequency))) {
-      pedidoPendiente = diasDesdeUltima > parseInt(client.frequency) * 1.3;
-    } else if (clientSales.length >= 2) {
-      let diasDiff = [];
-      for(let i = 0; i < Math.min(clientSales.length, 3) - 1; i++){
-         diasDiff.push(Math.abs(new Date(clientSales[i].fecha) - new Date(clientSales[i+1].fecha)) / (1000 * 60 * 60 * 24));
+      const client = clients.find(c => c.id === clienteId);
+      let pedidoPendiente = false;
+      
+      // Lógica de predicción de pedidos que ya tenías
+      if (clientSales.length > 0) {
+        const diasDesdeUltima = Math.floor((new Date() - new Date(clientSales[0].fecha)) / (1000 * 60 * 60 * 24));
+        if (client && client.frequency && !isNaN(parseInt(client.frequency))) {
+          pedidoPendiente = diasDesdeUltima > parseInt(client.frequency) * 1.3;
+        } else if (clientSales.length >= 2) {
+          let diasDiff = [];
+          for(let i = 0; i < Math.min(clientSales.length, 3) - 1; i++){
+             diasDiff.push(Math.abs(new Date(clientSales[i].fecha) - new Date(clientSales[i+1].fecha)) / (1000 * 60 * 60 * 24));
+          }
+          const avg = diasDiff.reduce((a,b)=>a+b, 0) / diasDiff.length;
+          pedidoPendiente = diasDesdeUltima > avg + 1;
+        }
       }
-      const avg = diasDiff.reduce((a,b)=>a+b, 0) / diasDiff.length;
-      pedidoPendiente = diasDesdeUltima > avg + 1;
+      return { totMin, totSab, deudaEnvases, pedidoPendiente, stamps };
     }
-  }
-  return { totMin, totSab, deudaEnvases, pedidoPendiente, stamps }; // <-- stamps añadido
-}
+
 
     function renderClientList() {
   const search = document.getElementById('searchInput').value.toLowerCase().trim();
