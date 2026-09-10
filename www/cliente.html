@@ -127,7 +127,6 @@
       100% { opacity: 1; transform: scale(1); }
     }
 
-    /* Mensaje de cumpleaños */
     .birthday-msg {
       background: var(--card); border-radius: var(--radius-md); padding: 20px; margin-top: 16px;
       display: flex; align-items: center; gap: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.04);
@@ -168,11 +167,102 @@
     .tab-item.active svg { transform: scale(1.1); }
 
     #toast { display: none; position: fixed; top: calc(env(safe-area-inset-top) + 16px); left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.8); backdrop-filter: blur(10px); color: white; padding: 12px 24px; border-radius: 100px; font-weight: 500; font-size: 15px; z-index: 9999; align-items: center; gap: 8px; animation: fadeSlideUp 0.3s; }
+
+    /* ========== GPS GATE (BLOQUEO OBLIGATORIO) ========== */
+    .gps-gate {
+      position: fixed; inset: 0;
+      background: rgba(15, 23, 42, 0.92);
+      backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+      z-index: 10000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      animation: fadeIn 0.3s ease;
+    }
+    .gps-gate.visible { display: flex; }
+    .gps-gate-card {
+      background: white;
+      border-radius: 28px;
+      padding: 36px 26px 26px 26px;
+      max-width: 420px;
+      width: 100%;
+      text-align: center;
+      box-shadow: 0 30px 60px -20px rgba(0,0,0,0.5);
+      animation: fadeSlideUp 0.45s cubic-bezier(0.25, 0.8, 0.25, 1);
+    }
+    .gps-gate-icon {
+      width: 90px; height: 90px; margin: 0 auto 22px;
+      background: rgba(14, 165, 233, 0.12);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--tint);
+      position: relative;
+      animation: pulseGps 2s infinite;
+    }
+    @keyframes pulseGps {
+      0% { box-shadow: 0 0 0 0 rgba(14, 165, 233, 0.4); }
+      70% { box-shadow: 0 0 0 20px rgba(14, 165, 233, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(14, 165, 233, 0); }
+    }
+    .gps-gate-card h2 { font-size: 25px; font-weight: 700; margin-bottom: 12px; letter-spacing: -0.6px; color: var(--text-main); }
+    .gps-gate-card p.gps-gate-desc { font-size: 15px; color: var(--text-muted); line-height: 1.55; margin-bottom: 26px; }
+    #btn-gps-gate {
+      width: 100%; padding: 17px; background: var(--tint); color: white;
+      border: none; border-radius: 16px; font-size: 17px; font-weight: 700;
+      cursor: pointer; transition: transform 0.12s, background 0.2s;
+      display: flex; align-items: center; justify-content: center; gap: 10px;
+      box-shadow: 0 8px 20px -6px rgba(14, 165, 233, 0.5);
+    }
+    #btn-gps-gate:active { transform: scale(0.97); }
+    #btn-gps-gate:disabled { opacity: 0.6; cursor: not-allowed; }
+    .gps-gate-hint {
+      font-size: 12px; color: var(--text-muted); margin-top: 18px; margin-bottom: 0;
+      display: flex; align-items: center; justify-content: center; gap: 6px; line-height: 1.4;
+    }
+    .gps-gate-hint svg { flex-shrink: 0; }
+
+    /* Badge de GPS activo en el header */
+    .gps-badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-size: 10px; font-weight: 700; color: var(--green);
+      background: rgba(52, 199, 89, 0.12);
+      padding: 3px 8px; border-radius: 100px;
+      margin-top: 4px; text-transform: uppercase; letter-spacing: 0.3px;
+    }
+    .gps-badge.off { color: #FF3B30; background: rgba(255, 59, 48, 0.12); }
+    .gps-badge-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
   </style>
 </head>
 <body>
 
   <div id="toast"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg> <span id="toast-msg">Mensaje</span></div>
+
+  <!-- ========== GPS GATE OBLIGATORIO ========== -->
+  <div id="gps-gate" class="gps-gate">
+    <div class="gps-gate-card">
+      <div class="gps-gate-icon">
+        <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+          <circle cx="12" cy="10" r="3"></circle>
+        </svg>
+      </div>
+      <h2>Activa tu ubicación</h2>
+      <p class="gps-gate-desc">Para realizar pedidos necesitamos conocer tu ubicación exacta. Es <strong>obligatorio</strong> para que el repartidor pueda llegar hasta ti.</p>
+      <button id="btn-gps-gate" onclick="activarGPSGate()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="3 11 22 2 13 21 11 13 3 11"/>
+        </svg>
+        <span id="btn-gps-gate-text">Activar Ubicación</span>
+      </button>
+      <p class="gps-gate-hint">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>
+        </svg>
+        Debes permitir el acceso al GPS cuando el sistema lo solicite
+      </p>
+    </div>
+  </div>
 
   <div id="auth-screen">
     <div class="auth-card">
@@ -194,6 +284,7 @@
       <div>
         <div class="header-subtitle" id="header-fecha">Hacer Pedido</div>
         <div class="header-title" id="header-titulo">Inicio</div>
+        <div id="gps-badge" class="gps-badge" style="display:none;"><span class="gps-badge-dot"></span> Ubicación activa</div>
       </div>
       <div class="avatar-mini" id="header-avatar">A</div>
     </div>
@@ -241,14 +332,13 @@
         </div>
       </div>
 
-            <!-- NUEVO: Panel de Premio a los 10 Sellos -->
+      <!-- NUEVO: Panel de Premio a los 10 Sellos -->
       <div id="premio-container" style="display: none; background: linear-gradient(135deg, #FF9500, #FFCC00); border-radius: 16px; padding: 20px; margin-bottom: 24px; color: white; box-shadow: 0 10px 20px rgba(255, 149, 0, 0.3);">
         <h3 style="margin-bottom: 10px; font-size: 20px;">¡Tienes un Premio Disponible! 🎁</h3>
         <p style="font-size: 14px; margin-bottom: 16px;">Has completado tus 10 sellos. Elige tu recompensa:</p>
         <button onclick="pedirPremioRapido('mineral')" style="width: 100%; padding: 14px; border: none; border-radius: 12px; background: white; color: #FF9500; font-weight: 800; font-size: 16px; margin-bottom: 10px; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">🧊 Pedir 1 Mineral (GRATIS)</button>
         <button onclick="pedirPremioRapido('saborizada')" style="width: 100%; padding: 14px; border: none; border-radius: 12px; background: white; color: #FF9500; font-weight: 800; font-size: 16px; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">🍹 Pedir 1 Saborizada (Mitad de Precio)</button>
       </div>
-
 
       <div id="catalogo-container">
         <div class="list-header">CATÁLOGO DE PRODUCTOS</div>
@@ -306,7 +396,6 @@
         <div class="stamps-grid" id="stamps-container"></div>
         <div id="status-lealtad" style="margin-top: 24px; text-align: center; font-size: 15px; font-weight: 500; background: rgba(255,255,255,0.1); padding: 12px; border-radius: 12px; position: relative; z-index: 2; transition: all 0.3s ease;">Cargando...</div>
       </div>
-      <!-- Mensaje de cumpleaños -->
       <div id="birthday-msg" class="birthday-msg" style="display: none;">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M20 12v10H4V12"/>
@@ -382,6 +471,10 @@
     let listaSaboresSeleccionados = [];
     let saborTemporalmenteSeleccionado = null;
 
+    // === GPS GATE STATE ===
+    let gpsActivado = false;
+    let gpsGateActivo = false;
+
     const dias = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
     document.getElementById('header-fecha').innerText = dias[new Date().getDay()].toUpperCase();
 
@@ -392,6 +485,113 @@
         return v.toString(16);
       });
     }
+
+    // ============ GPS GATE: VERIFICACIÓN Y BLOQUEO ============
+    function verificarGPSGate() {
+      const tieneGPS = !!(usuarioActual?.direccion && usuarioActual.direccion.includes('| GPS:'));
+      gpsActivado = tieneGPS;
+      gpsGateActivo = !tieneGPS;
+      const gate = document.getElementById('gps-gate');
+      const badge = document.getElementById('gps-badge');
+
+      if (!tieneGPS) {
+        gate.classList.add('visible');
+        document.body.style.overflow = 'hidden';
+        if (badge) badge.style.display = 'none';
+      } else {
+        gate.classList.remove('visible');
+        document.body.style.overflow = '';
+        if (badge) badge.style.display = 'inline-flex';
+      }
+    }
+
+    // Guard: se llama antes de cualquier acción crítica (pedidos, premios)
+    function requiereGPS() {
+      if (gpsActivado) return false;
+      document.getElementById('gps-gate').classList.add('visible');
+      gpsGateActivo = true;
+      showToast("Activa tu ubicación para continuar", true);
+      return true;
+    }
+
+    // Acción del botón del gate
+    async function activarGPSGate() {
+      if (!navigator.geolocation) {
+        showToast("Tu dispositivo no soporta GPS", true);
+        return;
+      }
+      
+      const btn = document.getElementById('btn-gps-gate');
+      const txt = document.getElementById('btn-gps-gate-text');
+      btn.disabled = true;
+      txt.innerText = "Obteniendo ubicación...";
+      
+      const opcionesGPS = { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 };
+
+      navigator.geolocation.getCurrentPosition(async (pos) => {
+        const lat = pos.coords.latitude, lng = pos.coords.longitude;
+        coordsGPS = `${lat.toFixed(5)},${lng.toFixed(5)}`;
+        
+        let direccionTraducida = "Ubicación exacta detectada";
+        try {
+          const urlAPI = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`;
+          const res = await fetch(urlAPI);
+          const data = await res.json();
+          
+          if (data && data.address) {
+            const calle = data.address.road || data.address.pedestrian || '';
+            const numero = data.address.house_number || '';
+            const barrio = data.address.suburb || data.address.neighbourhood || '';
+            let partes = [];
+            if (calle) partes.push(numero ? `${calle} #${numero}` : calle);
+            if (barrio) partes.push(barrio);
+            if (partes.length > 0) direccionTraducida = partes.join(', ');
+            else if (data.display_name) direccionTraducida = data.display_name.split(',').slice(0, 3).join(',');
+          }
+        } catch (e) { console.log("Reverse geocode falló:", e); }
+
+        const direccionFinal = `${direccionTraducida} | GPS: ${coordsGPS}`;
+        
+        try {
+          await db.from('clientes').update({ direccion: direccionFinal }).eq('id', usuarioActual.id);
+        } catch (e) { console.log("No se pudo guardar en DB (offline?)", e); }
+        
+        usuarioActual.direccion = direccionFinal;
+        guardarLocal(usuarioActual);
+
+        document.getElementById('resumen-direccion').innerText = direccionFinal;
+        document.getElementById('perfil-direccion').value = direccionFinal;
+
+        // Refrescar botón interno de la pantalla principal
+        const mainBtn = document.getElementById('btn-gps');
+        if (mainBtn) {
+          mainBtn.innerHTML = "✅ Ubicación Exacta Guardada";
+          mainBtn.style.background = "#DCFCE7";
+          mainBtn.style.color = "#16A34A";
+        }
+
+        // Cerrar el gate
+        gpsActivado = true;
+        gpsGateActivo = false;
+        document.getElementById('gps-gate').classList.remove('visible');
+        document.body.style.overflow = '';
+        const badge = document.getElementById('gps-badge');
+        if (badge) badge.style.display = 'inline-flex';
+
+        btn.disabled = false;
+        txt.innerText = "Activar Ubicación";
+        showToast("¡Ubicación activada!");
+      }, (err) => {
+        btn.disabled = false;
+        txt.innerText = "Activar Ubicación";
+        let msg = "Debes permitir el acceso al GPS";
+        if (err && err.code === 1) msg = "Permiso denegado. Actívalo en Ajustes.";
+        else if (err && err.code === 2) msg = "No se pudo obtener la ubicación.";
+        else if (err && err.code === 3) msg = "Tiempo de espera agotado. Intenta de nuevo.";
+        showToast(msg, true);
+      }, opcionesGPS);
+    }
+    // ============ FIN GPS GATE ============
 
     async function checkAuth() {
       const id = localStorage.getItem('aguabol_id');
@@ -452,9 +652,22 @@
       document.getElementById('perfil-nombre').value = usuarioActual.nombre || '';
       document.getElementById('perfil-direccion').value = usuarioActual.direccion || '';
       document.getElementById('perfil-cumpleanos').value = usuarioActual.cumpleanos || '';
+
+      // Refrescar botón GPS interno si ya tiene GPS
+      const mainBtn = document.getElementById('btn-gps');
+      if (mainBtn && usuarioActual.direccion && usuarioActual.direccion.includes('| GPS:')) {
+        mainBtn.innerHTML = "✅ Ubicación Exacta Guardada";
+        mainBtn.style.background = "#DCFCE7";
+        mainBtn.style.color = "#16A34A";
+      }
       
       document.getElementById('auth-screen').classList.add('hidden');
-      setTimeout(() => { document.getElementById('auth-screen').style.display='none'; document.getElementById('main-app').classList.add('visible'); }, 400);
+      setTimeout(() => { 
+        document.getElementById('auth-screen').style.display='none'; 
+        document.getElementById('main-app').classList.add('visible');
+        // Verificar GPS gate DESPUÉS de mostrar la app
+        verificarGPSGate();
+      }, 400);
       
       cargarPrecios(); chequearPedidoActivo();
       db.channel('rastreo').on('postgres_changes', { event:'*', schema:'public', table:'pedidos', filter:`cliente_id=eq.${usuarioActual.id}` }, () => chequearPedidoActivo()).subscribe();
@@ -643,7 +856,12 @@
       document.getElementById('total-pago').innerText = `Bs ${t.toFixed(2)}`;
     }
 
+    // Botón interno de la pantalla principal (funciona igual que el del gate)
     async function obtenerGPS() {
+      if (requiereGPS() && !gpsActivado) {
+        // El gate ya está visible, no hacemos nada más
+        return;
+      }
       if (!navigator.geolocation) return showToast("Tu dispositivo no soporta GPS", true);
       
       const btn = document.getElementById('btn-gps'); 
@@ -699,6 +917,9 @@
     }
    
     async function enviarPedido() {
+      // === BLOQUEO: Sin GPS no se puede pedir ===
+      if (requiereGPS()) return;
+
       const m = parseInt(document.getElementById('qty-min').innerText);
       const s = parseInt(document.getElementById('qty-sab').innerText);
       if (m+s === 0) return showToast("Añade productos al catálogo", true);
@@ -724,8 +945,7 @@
       }
     }
 
-            async function cargarLealtad() {
-      // 1. Leemos el historial de ventas Y los pedidos que están en camino
+    async function cargarLealtad() {
       const [resVentas, resPedidos] = await Promise.all([
         db.from('ventas').select('mineral, saborizada, total').eq('cliente_id', usuarioActual.id),
         db.from('pedidos').select('items, monto_total').eq('cliente_id', usuarioActual.id).in('estado', ['pendiente', 'en_camino'])
@@ -742,7 +962,6 @@
           const s = parseInt(x.saborizada) || 0;
           const totalVenta = parseFloat(x.total) || 0;
           
-          // Lógica estricta: Detectamos si fue un premio real entregado
           if ((m > 0 && totalVenta === 0) || (s > 0 && totalVenta <= (pSab / 2 + 0.1) && totalVenta >= 0)) {
               premiosReclamados++;
               botellonesNormales += (m + s - 1); 
@@ -755,7 +974,6 @@
       let premiosGanados = Math.floor(botellonesNormales / META);
       let tienePremio = premiosGanados > premiosReclamados;
       
-      // 2. CORRECCIÓN: Si el cliente ya pidió su premio, ocultamos la alerta
       let premioEnProceso = pedidosActivos.some(p => p.items?.es_premio === true || (p.monto_total === 0 && p.items?.mineral > 0));
       if (premioEnProceso) {
           tienePremio = false; 
@@ -763,7 +981,6 @@
       
       let pts = botellonesNormales % META;
       
-      // 3. CORRECCIÓN: Si llegó a 10, forzamos a que dibuje los 10 sellos en lugar de 0
       if (tienePremio && pts === 0) {
           pts = META; 
       }
@@ -778,7 +995,6 @@
         document.getElementById('premio-container').style.display = 'block';
         document.getElementById('catalogo-container').style.display = 'none'; 
       } else if (premioEnProceso) {
-        // Le mostramos al cliente que su premio ya va en camino
         lblStatus.innerHTML = "Tu recarga de regalo va en camino 🛵";
         lblStatus.style.background = "rgba(14, 165, 233, 0.2)";
         lblStatus.style.color = "var(--tint)";
@@ -826,9 +1042,10 @@
       }
     }
 
+    async function pedirPremioRapido(tipo) {
+      // === BLOQUEO: Sin GPS no se puede reclamar premio ===
+      if (requiereGPS()) return;
 
-
-        async function pedirPremioRapido(tipo) {
       if(!confirm('¿Deseas reclamar tu premio ahora? El repartidor irá a tu ubicación.')) return;
       
       let m = 0, s = 0, totalPago = 0;
@@ -858,8 +1075,6 @@
       }
     }
 
-    
-
     async function actualizarPerfil() {
       const n = document.getElementById('perfil-nombre').value;
       const d = document.getElementById('perfil-direccion').value;
@@ -868,6 +1083,8 @@
       usuarioActual.nombre = n; usuarioActual.direccion = d; usuarioActual.cumpleanos = cumple;
       guardarLocal(usuarioActual);
       document.getElementById('resumen-direccion').innerText = d;
+      // Re-verificar gate por si el usuario borró el GPS manualmente
+      verificarGPSGate();
       showToast("Datos guardados con éxito");
     }
 
