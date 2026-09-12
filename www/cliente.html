@@ -465,6 +465,9 @@
     // CREDENCIALES SUPABASE
     const db = window.supabase.createClient('https://aiipxfssbnpfpefbbnwm.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFpaXB4ZnNzYm5wZnBlZmJibndtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3MDM2MzIsImV4cCI6MjA5NDI3OTYzMn0.CS_e43iE4ClLgqQULrm4mNm3ji71WQZQcdBNfg6lTHg');
     
+    // ⚙️ CONFIGURACIÓN: Número de WhatsApp del administrador (formato internacional sin +)
+    const ADMIN_WHATSAPP = '59168100743';
+    
     let usuarioActual = null, coordsGPS = null, pMin = 8.5, pSab = 10, esRegistro = false;
     let mapa = null, markRep = null, markCasa = null, rutaLayer = null, lineaGris = null, historialGPS = []; 
     
@@ -915,6 +918,68 @@
         showToast("Error: Revisa que tu GPS esté encendido", true);
       }, opcionesGPS);
     }
+
+    // ============================================================
+    // 📲 NUEVO: GENERAR Y ABRIR MENSAJE DE WHATSAPP PARA EL ADMIN
+    // ============================================================
+    function enviarWhatsAppAdmin(datos) {
+      const nombre = (usuarioActual && usuarioActual.nombre) ? usuarioActual.nombre : 'Cliente';
+      
+      // Armar líneas del pedido
+      let lineasPedido = [];
+      if (datos.mineral > 0) {
+        const subtotalMin = pMin * datos.mineral;
+        lineasPedido.push(`- Botellón de agua (Bs ${pMin.toFixed(2)}) x${datos.mineral} = Bs ${subtotalMin.toFixed(2)}`);
+      }
+      if (datos.saborizada > 0) {
+        const subtotalSab = pSab * datos.saborizada;
+        lineasPedido.push(`- Agua Saborizada (Bs ${pSab.toFixed(2)}) x${datos.saborizada} = Bs ${subtotalSab.toFixed(2)}`);
+        if (datos.sabores && datos.sabores.length > 0) {
+          lineasPedido.push(`  🍹 Sabores: ${datos.sabores.join(', ')}`);
+        }
+      }
+      if (lineasPedido.length === 0) lineasPedido.push('- (Sin detalle)');
+      
+      // Extraer coordenadas GPS y dirección escrita
+      let mapsUrl = '';
+      let dirLimpia = '';
+      if (usuarioActual && usuarioActual.direccion) {
+        if (usuarioActual.direccion.includes('| GPS:')) {
+          const partes = usuarioActual.direccion.split('| GPS:');
+          dirLimpia = partes[0].trim();
+          const coords = partes[1].trim();
+          mapsUrl = `https://www.google.com/maps?q=${coords}`;
+        } else {
+          dirLimpia = usuarioActual.direccion;
+        }
+      }
+      
+      // Construir mensaje
+      let mensaje = `Hola 😊 soy: ${nombre}\n\n`;
+      
+      if (datos.esPremio) {
+        mensaje += `🎁 *QUIERO RECLAMAR MI PREMIO DE AGUA LIGHT* 💧\n\n`;
+      } else {
+        mensaje += `Quiero realizar un pedido de Agua Light 💧\n\n`;
+      }
+      
+      mensaje += `🧾 *Pedido:*\n${lineasPedido.join('\n')}\n\n`;
+      mensaje += `💰 *Total a pagar:* ${datos.total === 0 ? 'GRATIS 🎁' : 'Bs ' + datos.total.toFixed(2)}\n\n`;
+      
+      if (mapsUrl) {
+        mensaje += `📍 *Ubicación:*\n${mapsUrl}\n`;
+      }
+      if (dirLimpia && dirLimpia !== "Sin dirección asignada.") {
+        mensaje += `\n📌 *Referencia:* ${dirLimpia}\n`;
+      }
+      
+      mensaje += `\nQuedo atento(a) a la confirmación 🙌\n\n🙏 Si es posible, entrega lo más pronto`;
+      
+      // Abrir WhatsApp
+      const url = `https://wa.me/${ADMIN_WHATSAPP}?text=${encodeURIComponent(mensaje)}`;
+      window.open(url, '_blank');
+    }
+    // ============================================================
    
     async function enviarPedido() {
       // === BLOQUEO: Sin GPS no se puede pedir ===
@@ -924,17 +989,27 @@
       const s = parseInt(document.getElementById('qty-sab').innerText);
       if (m+s === 0) return showToast("Añade productos al catálogo", true);
       
-      let dir = usuarioActual.direccion || "Sin dirección";
+      const totalPedido = (m * pMin) + (s * pSab);
+      const saboresParaWa = [...listaSaboresSeleccionados];
       
       const { error } = await db.from('pedidos').insert({ 
         id: generarUUID(), 
         cliente_id: usuarioActual.id, 
         items: { mineral: m, saborizada: s, detalles_sabores: listaSaboresSeleccionados }, 
-        monto_total: (m*pMin + s*pSab), 
+        monto_total: totalPedido, 
         estado: 'pendiente' 
       });
       
       if (!error) { 
+        // 📲 Abrir WhatsApp del admin con el resumen del pedido
+        enviarWhatsAppAdmin({
+          mineral: m,
+          saborizada: s,
+          sabores: saboresParaWa,
+          total: totalPedido,
+          esPremio: false
+        });
+        
         showToast("¡Pedido confirmado!"); 
         document.getElementById('qty-min').innerText="1"; 
         document.getElementById('qty-sab').innerText="0"; 
@@ -1070,6 +1145,15 @@
       });
       
       if (!error) { 
+        // 📲 Abrir WhatsApp del admin con el resumen del premio
+        enviarWhatsAppAdmin({
+          mineral: m,
+          saborizada: s,
+          sabores: detalles,
+          total: totalPago,
+          esPremio: true
+        });
+        
         showToast("¡Premio solicitado! El repartidor va en camino 🎁"); 
         chequearPedidoActivo(); 
       }
